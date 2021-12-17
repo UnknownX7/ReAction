@@ -24,13 +24,12 @@ namespace ReAction
         {
             try
             {
-                PluginLog.Error($"{actionType} start {actionID} -> {actionManager->GetAdjustedActionId(actionID)} {targetedActorID:X} {pvp}");
                 if (actionType == 1 && useType == 0)
                 {
                     foreach (var stack in ReAction.Config.ActionStacks)
                     {
                         var adjustedActionID = actionManager->GetAdjustedActionId(actionID);
-                        if (stack.Actions.FirstOrDefault(action => (action.UseAdjustedID ? actionManager->GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID) == null) continue;
+                        if (stack.Actions.FirstOrDefault(action => action.ID == 0 || (action.UseAdjustedID ? actionManager->GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID) == null) continue;
 
                         if (!CheckActionStack(adjustedActionID, stack.Items, out var newAction, out var newTarget))
                         {
@@ -43,7 +42,6 @@ namespace ReAction
                         targetedActorID = newTarget;
                     }
                 }
-                PluginLog.Error($"end {actionID} {targetedActorID:X}");
             }
             catch (Exception e)
             {

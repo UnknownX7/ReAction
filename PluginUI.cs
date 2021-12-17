@@ -8,7 +8,7 @@ namespace ReAction
 {
     public static class PluginUI
     {
-        public static bool isVisible = true;
+        public static bool isVisible = false;
         private static int selectedStack = -1;
         private static Configuration.ActionStack CurrentStack => 0 <= selectedStack && selectedStack < ReAction.Config.ActionStacks.Count ? ReAction.Config.ActionStacks[selectedStack] : null;
 
@@ -150,7 +150,7 @@ namespace ReAction
                 var action = stack.Actions[i];
 
                 ImGui.SetNextItemWidth(buttonWidth);
-                ActionComboBox(ref action.ID, false);
+                ActionComboBox(ref action.ID, "All Skills");
 
                 ImGui.SameLine();
 
@@ -204,7 +204,7 @@ namespace ReAction
                 ImGui.SameLine();
 
                 ImGui.SetNextItemWidth(buttonWidth);
-                ActionComboBox(ref item.ID, true);
+                ActionComboBox(ref item.ID, "Same Skill");
 
                 ImGui.SameLine();
 
@@ -240,15 +240,15 @@ namespace ReAction
         private static string FormatActionRowName(Lumina.Excel.GeneratedSheets.Action a) => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}";
 
         private static string search = string.Empty;
-        private static void ActionComboBox(ref uint option, bool allowSameSkill)
+        private static void ActionComboBox(ref uint option, string initialOption)
         {
-            var selected = option == 0 ? "Same Skill" : ReAction.actionSheet.TryGetValue(option, out var a) ? FormatActionRowName(a) : option.ToString();
+            var selected = option == 0 ? initialOption : ReAction.actionSheet.TryGetValue(option, out var a) ? FormatActionRowName(a) : option.ToString();
             if (!ImGui.BeginCombo("##Action", selected))
                 return;
 
             ImGui.InputText("##ActionSearch", ref search, 64);
 
-            if (allowSameSkill && ImGui.Selectable("Same Skill", option == 0))
+            if (ImGui.Selectable(initialOption, option == 0))
             {
                 option = 0;
                 ReAction.Config.Save();
@@ -274,7 +274,7 @@ namespace ReAction
             ImGui.EndCombo();
         }
 
-        private static void AddActionList(List<Configuration.Action> actions, float buttonWidth)
+        private static void AddActionList(ICollection<Configuration.Action> actions, float buttonWidth)
         {
             ImGui.PushFont(UiBuilder.IconFont);
 
@@ -288,6 +288,12 @@ namespace ReAction
             if (!ImGui.BeginPopup("ReActionAddSkillsPopup")) return;
 
             ImGui.InputText("##ActionSearch", ref search, 64);
+
+            if (ImGui.Selectable("All Skills"))
+            {
+                actions.Add(new() { ID = 0 });
+                ReAction.Config.Save();
+            }
 
             var doSearch = !string.IsNullOrEmpty(search);
             foreach (var (id, row) in ReAction.actionSheet)
