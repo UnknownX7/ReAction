@@ -12,7 +12,7 @@ namespace ReAction
         public static ActionManager* actionManager;
         public static readonly Memory.Replacer queueGroundTargetsReplacer = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
         // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 10
-        public static readonly Memory.Replacer enhancedAutoFaceTargetReplacer = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x10 }, ReAction.Config.EnhancedAutoFaceTarget);
+        public static readonly Memory.Replacer enhancedAutoFaceTargetReplacer = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x10 }, ReAction.Config.EnableEnhancedAutoFaceTarget);
 
         private static IntPtr pronounModule = IntPtr.Zero;
         public static GameObject* UITarget => (GameObject*)*(IntPtr*)(pronounModule + 0x290);

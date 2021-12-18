@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Game;
 using Dalamud.Plugin;
 
 namespace ReAction
@@ -12,6 +13,7 @@ namespace ReAction
         public static Configuration Config { get; private set; }
 
         public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> actionSheet;
+        public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> mountActionsSheet;
 
         public ReAction(DalamudPluginInterface pluginInterface)
         {
@@ -21,11 +23,13 @@ namespace ReAction
             Config = (Configuration)DalamudApi.PluginInterface.GetPluginConfig() ?? new();
             Config.Initialize();
 
+            DalamudApi.Framework.Update += Update;
             DalamudApi.PluginInterface.UiBuilder.Draw += Draw;
             DalamudApi.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfig;
 
             actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId is not 7).ToDictionary(i => i.RowId, i => i);
-            if (actionSheet == null)
+            mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);
+            if (actionSheet == null || mountActionsSheet == null)
                 throw new ApplicationException("Action sheet failed to load!");
 
             Game.Initialize();
@@ -40,6 +44,8 @@ namespace ReAction
         public static void PrintEcho(string message) => DalamudApi.ChatGui.Print($"[ReAction] {message}");
         public static void PrintError(string message) => DalamudApi.ChatGui.PrintError($"[ReAction] {message}");
 
+        private void Update(Framework framework) => ActionStackManager.Update();
+
         private void Draw() => PluginUI.Draw();
 
         #region IDisposable Support
@@ -49,6 +55,7 @@ namespace ReAction
 
             Config.Save();
 
+            DalamudApi.Framework.Update -= Update;
             DalamudApi.PluginInterface.UiBuilder.Draw -= Draw;
             DalamudApi.PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfig;
             DalamudApi.Dispose();

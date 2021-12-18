@@ -28,7 +28,8 @@ namespace ReAction
         public int Version { get; set; }
 
         public List<ActionStack> ActionStacks = new();
-        public bool EnhancedAutoFaceTarget = false;
+        public bool EnableEnhancedAutoFaceTarget = false;
+        public bool EnableAutoDismount = false;
         public bool EnableGroundTargetQueuing = false;
         public bool EnableInstantGroundTarget = false;
 

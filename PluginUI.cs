@@ -337,13 +337,19 @@ namespace ReAction
 
             ImGui.NextColumn();
 
-            if (ImGui.Checkbox("Enhanced Auto Face Target", ref ReAction.Config.EnhancedAutoFaceTarget))
+            if (ImGui.Checkbox("Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
             {
                 Game.enhancedAutoFaceTargetReplacer.Toggle();
                 save = true;
             }
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Actions that don't require facing a target will no longer automatically face the target.");
+
+            ImGui.NextColumn();
+
+            save |= ImGui.Checkbox("Enable Auto Dismount", ref ReAction.Config.EnableAutoDismount);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Automatically dismounts when an action is used, prior to using the action.");
 
             ImGui.Columns(1);
 
