@@ -10,6 +10,8 @@ namespace ReAction
     {
         public static bool isVisible = false;
         private static int selectedStack = -1;
+        private static string search = string.Empty;
+
         private static Configuration.ActionStack CurrentStack => 0 <= selectedStack && selectedStack < ReAction.Config.ActionStacks.Count ? ReAction.Config.ActionStacks[selectedStack] : null;
 
         public static void Draw()
@@ -239,7 +241,6 @@ namespace ReAction
 
         private static string FormatActionRowName(Lumina.Excel.GeneratedSheets.Action a) => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}";
 
-        private static string search = string.Empty;
         private static void ActionComboBox(ref uint option, string initialOption)
         {
             var selected = option == 0 ? initialOption : ReAction.actionSheet.TryGetValue(option, out var a) ? FormatActionRowName(a) : option.ToString();
@@ -248,13 +249,14 @@ namespace ReAction
 
             ImGui.InputText("##ActionSearch", ref search, 64);
 
-            if (ImGui.Selectable(initialOption, option == 0))
+            var doSearch = !string.IsNullOrEmpty(search);
+
+            if ((!doSearch || initialOption.Contains(search, StringComparison.CurrentCultureIgnoreCase)) && ImGui.Selectable(initialOption, option == 0))
             {
                 option = 0;
                 ReAction.Config.Save();
             }
 
-            var doSearch = !string.IsNullOrEmpty(search);
             foreach (var (id, row) in ReAction.actionSheet)
             {
                 var name = FormatActionRowName(row);
@@ -289,13 +291,15 @@ namespace ReAction
 
             ImGui.InputText("##ActionSearch", ref search, 64);
 
-            if (ImGui.Selectable("All Skills"))
+            var doSearch = !string.IsNullOrEmpty(search);
+
+            const string initialOption = "All Skills";
+            if ((!doSearch || initialOption.Contains(search, StringComparison.CurrentCultureIgnoreCase)) && ImGui.Selectable(initialOption))
             {
                 actions.Add(new() { ID = 0 });
                 ReAction.Config.Save();
             }
 
-            var doSearch = !string.IsNullOrEmpty(search);
             foreach (var (id, row) in ReAction.actionSheet)
             {
                 var name = FormatActionRowName(row);
