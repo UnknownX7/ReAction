@@ -18,7 +18,17 @@ namespace ReAction
             UITarget,
             FieldTarget,
             TargetsTarget,
-            Self
+            Self,
+            LastTarget,
+            LastEnemy,
+            LastAttacker,
+            P2,
+            P3,
+            P4,
+            P5,
+            P6,
+            P7,
+            P8
         }
 
         private static bool isMountActionQueued = false;
@@ -107,6 +117,26 @@ namespace ReAction
                 case TargetType.Self:
                     o = DalamudApi.ClientState.LocalPlayer;
                     break;
+                case TargetType.LastTarget:
+                    return Game.GetObjectFromPronounID(1006);
+                case TargetType.LastEnemy:
+                    return Game.GetObjectFromPronounID(1084);
+                case TargetType.LastAttacker:
+                    return Game.GetObjectFromPronounID(1008);
+                case TargetType.P2:
+                    return Game.GetObjectFromPronounID(44);
+                case TargetType.P3:
+                    return Game.GetObjectFromPronounID(45);
+                case TargetType.P4:
+                    return Game.GetObjectFromPronounID(46);
+                case TargetType.P5:
+                    return Game.GetObjectFromPronounID(47);
+                case TargetType.P6:
+                    return Game.GetObjectFromPronounID(48);
+                case TargetType.P7:
+                    return Game.GetObjectFromPronounID(49);
+                case TargetType.P8:
+                    return Game.GetObjectFromPronounID(50);
             }
 
             return o != null ? (GameObject*)o.Address : null;
@@ -120,7 +150,7 @@ namespace ReAction
             ret = 0;
 
             if (actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
-                || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // Limit Break / Sprint / Teleport / Return
+                || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
                 || !DalamudApi.Condition[ConditionFlag.Mounted])
                 return false;
 

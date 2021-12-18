@@ -17,6 +17,9 @@ namespace ReAction
         private static IntPtr pronounModule = IntPtr.Zero;
         public static GameObject* UITarget => (GameObject*)*(IntPtr*)(pronounModule + 0x290);
 
+        private static delegate* unmanaged<IntPtr, uint, GameObject*> getObjectFromPronounID;
+        public static GameObject* GetObjectFromPronounID(uint id) => getObjectFromPronounID(pronounModule, id);
+
         private static delegate* unmanaged<uint, GameObject*, byte> canUseActionOnObject;
         public static byte CanUseActionOnObject(uint actionID, GameObject* o) => canUseActionOnObject(actionID, o);
 
@@ -30,9 +33,10 @@ namespace ReAction
             try
             {
                 actionManager = ActionManager.Instance();
-                UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
-                canUseActionOnObject = (delegate* unmanaged<uint, GameObject*, byte>)DalamudApi.SigScanner.ScanText("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3");
                 pronounModule = (IntPtr)Framework.Instance()->GetUiModule()->GetPronounModule();
+                getObjectFromPronounID = (delegate* unmanaged<IntPtr, uint, GameObject*>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 C0 0F 85 ?? ?? ?? ?? 8D 4F DD");
+                canUseActionOnObject = (delegate* unmanaged<uint, GameObject*, byte>)DalamudApi.SigScanner.ScanText("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3");
+                UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
                 UseActionHook.Enable();
             }
             catch (Exception e)
