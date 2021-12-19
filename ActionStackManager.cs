@@ -151,7 +151,8 @@ namespace ReAction
 
             if (actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
                 || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
-                || !DalamudApi.Condition[ConditionFlag.Mounted])
+                || !DalamudApi.Condition[ConditionFlag.Mounted]
+                || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, (uint)targetedActorID, 0, 0) == 0)
                 return false;
 
             isMountActionQueued = true;
