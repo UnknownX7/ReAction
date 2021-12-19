@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
@@ -33,6 +34,7 @@ namespace ReAction
 
         private static bool isMountActionQueued = false;
         private static (uint actionType, uint actionID, long targetedActorID, uint useType, int pvp) queuedMountAction;
+        private static Stopwatch mountActionTimer = new();
 
         public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetedActorID, uint param, uint useType, int pvp, IntPtr a8)
         {
@@ -157,6 +159,7 @@ namespace ReAction
 
             isMountActionQueued = true;
             queuedMountAction = (actionType, actionID, targetedActorID, useType, pvp);
+            mountActionTimer.Restart();
             ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, IntPtr.Zero);
             return true;
         }
@@ -171,13 +174,17 @@ namespace ReAction
         {
             if (!isMountActionQueued || DalamudApi.Condition[ConditionFlag.Mounted]) return;
 
-            Game.UseActionHook.Original(Game.actionManager, queuedMountAction.actionType, queuedMountAction.actionID,
-                queuedMountAction.targetedActorID, 0, queuedMountAction.useType, queuedMountAction.pvp, IntPtr.Zero);
+            if (mountActionTimer.ElapsedMilliseconds <= 2000)
+            {
+                Game.UseActionHook.Original(Game.actionManager, queuedMountAction.actionType, queuedMountAction.actionID,
+                    queuedMountAction.targetedActorID, 0, queuedMountAction.useType, queuedMountAction.pvp, IntPtr.Zero);
 
-            if (ReAction.Config.EnableInstantGroundTarget)
-                CheckInstantGroundTarget(queuedMountAction.actionType, queuedMountAction.useType);
+                if (ReAction.Config.EnableInstantGroundTarget)
+                    CheckInstantGroundTarget(queuedMountAction.actionType, queuedMountAction.useType);
+            }
 
             isMountActionQueued = false;
+            mountActionTimer.Stop();
         }
     }
 }
