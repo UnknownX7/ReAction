@@ -23,7 +23,7 @@ namespace ReAction
 
             if (ImGui.BeginTabBar("ReActionTabs"))
             {
-                if (ImGui.BeginTabItem("Config"))
+                if (ImGui.BeginTabItem("Stacks"))
                 {
                     DrawStackList();
                     ImGui.EndTabItem();

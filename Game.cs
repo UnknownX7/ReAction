@@ -14,7 +14,7 @@ namespace ReAction
         // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 10
         public static readonly Memory.Replacer enhancedAutoFaceTargetReplacer = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x10 }, ReAction.Config.EnableEnhancedAutoFaceTarget);
 
-        public static bool IsCasting => *((byte*)actionManager + 0x28) != 0;
+        public static uint CastActionType => *(uint*)((IntPtr)actionManager + 0x28);
         public static uint CastActionID => *(uint*)((IntPtr)actionManager + 0x2C);
         public static uint CastTargetID => *(uint*)((IntPtr)actionManager + 0x38);
 
