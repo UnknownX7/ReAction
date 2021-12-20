@@ -191,7 +191,13 @@ namespace ReAction
 
         private static void TryCancelingCast()
         {
-            if (canceledCast || Game.CastActionType != 1 || Game.CanUseActionOnGameObject(Game.CastActionID, (GameObject*)DalamudApi.ObjectTable.SearchById(Game.CastTargetID)?.Address)) return;
+            if (canceledCast
+                || Game.CastActionType != 1
+                || !ReAction.actionSheet.TryGetValue(Game.CastActionID, out var a)
+                || a.TargetArea
+                || Game.CanUseActionOnGameObject(Game.CastActionID, (GameObject*)DalamudApi.ObjectTable.SearchById(Game.CastTargetID)?.Address))
+                return;
+
             Game.CancelCast();
             canceledCast = true;
         }
