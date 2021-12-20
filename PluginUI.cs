@@ -127,8 +127,17 @@ namespace ReAction
             if (ImGui.InputText("Name", ref stack.Name, 64))
                 ReAction.Config.Save();
 
+            ImGui.Columns(2, null, false);
+
             if (ImGui.Checkbox("Block Original on Stack Fail", ref stack.BlockOriginal))
                 ReAction.Config.Save();
+
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Fail if Out of Range", ref stack.CheckRange))
+                ReAction.Config.Save();
+
+            ImGui.Columns(1);
 
             ImGui.Spacing();
 
@@ -152,7 +161,7 @@ namespace ReAction
                 var action = stack.Actions[i];
 
                 ImGui.SetNextItemWidth(buttonWidth);
-                ActionComboBox(ref action.ID, "All Skills");
+                ActionComboBox(ref action.ID, "All Actions");
 
                 ImGui.SameLine();
 
@@ -206,7 +215,7 @@ namespace ReAction
                 ImGui.SameLine();
 
                 ImGui.SetNextItemWidth(buttonWidth);
-                ActionComboBox(ref item.ID, "Same Skill");
+                ActionComboBox(ref item.ID, "Same Action");
 
                 ImGui.SameLine();
 
@@ -293,7 +302,7 @@ namespace ReAction
 
             var doSearch = !string.IsNullOrEmpty(search);
 
-            const string initialOption = "All Skills";
+            const string initialOption = "All Actions";
             if ((!doSearch || initialOption.Contains(search, StringComparison.CurrentCultureIgnoreCase)) && ImGui.Selectable(initialOption))
             {
                 actions.Add(new() { ID = 0 });
@@ -343,7 +352,7 @@ namespace ReAction
                 save = true;
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Actions that don't require facing a target will no longer automatically face the target.");
+                ImGui.SetTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
 
             ImGui.NextColumn();
 

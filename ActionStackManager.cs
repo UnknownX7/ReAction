@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Dalamud.Game.ClientState.Conditions;
@@ -47,7 +46,7 @@ namespace ReAction
                         var adjustedActionID = actionManager->GetAdjustedActionId(actionID);
                         if (stack.Actions.FirstOrDefault(action => action.ID == 0 || (action.UseAdjustedID ? actionManager->GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID) == null) continue;
 
-                        if (!CheckActionStack(adjustedActionID, stack.Items, out var newAction, out var newTarget))
+                        if (!CheckActionStack(adjustedActionID, stack, out var newAction, out var newTarget))
                         {
                             if (stack.BlockOriginal)
                                 return 0;
@@ -75,16 +74,17 @@ namespace ReAction
             return ret;
         }
 
-        private static bool CheckActionStack(uint id, List<Configuration.ActionStackItem> stack, out uint action, out uint target)
+        private static bool CheckActionStack(uint id, Configuration.ActionStack stack, out uint action, out uint target)
         {
             action = 0;
             target = 0xE0000000;
 
-            foreach (var item in stack)
+            var useRange = stack.CheckRange;
+            foreach (var item in stack.Items)
             {
                 var newID = item.ID != 0 ? item.ID : id;
                 var newTarget = GetTarget(item.Target);
-                if (newTarget == null || !CanUseAction(newID, newTarget)) continue;
+                if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget)) continue;
                 action = newID;
                 target = newTarget->ObjectID;
                 return true;
@@ -145,7 +145,7 @@ namespace ReAction
         }
 
         private static bool CanUseAction(uint id, GameObject* target)
-            => Game.CanUseActionOnGameObject(id, target) != 0 && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID) is 0 or 580 or 582;
+            => Game.CanUseActionOnGameObject(id, target) && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID) is 0 or 580 or 582;
 
         private static bool TryDismount(uint actionType, uint actionID, long targetedActorID, uint useType, int pvp, out byte ret)
         {

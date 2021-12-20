@@ -21,7 +21,13 @@ namespace ReAction
         public static GameObject* GetGameObjectFromPronounID(uint id) => getGameObjectFromPronounID(pronounModule, id);
 
         private static delegate* unmanaged<uint, GameObject*, byte> canUseActionOnGameObject;
-        public static byte CanUseActionOnGameObject(uint actionID, GameObject* o) => canUseActionOnGameObject(actionID, o);
+        public static bool CanUseActionOnGameObject(uint actionID, GameObject* o) => canUseActionOnGameObject(actionID, o) != 0;
+
+        // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
+        private static delegate* unmanaged<uint, GameObject*, GameObject*, uint> getActionOutOfRangeOrLoS;
+        // The game is dumb and I cannot check LoS easily because not facing the target will override it
+        public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
+            && getActionOutOfRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566;
 
         public delegate byte UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetedActorID, uint param, uint useType, int pvp, IntPtr a8);
         public static Hook<UseActionDelegate> UseActionHook;
@@ -36,6 +42,7 @@ namespace ReAction
                 pronounModule = (IntPtr)Framework.Instance()->GetUiModule()->GetPronounModule();
                 getGameObjectFromPronounID = (delegate* unmanaged<IntPtr, uint, GameObject*>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 C0 0F 85 ?? ?? ?? ?? 8D 4F DD");
                 canUseActionOnGameObject = (delegate* unmanaged<uint, GameObject*, byte>)DalamudApi.SigScanner.ScanText("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3");
+                getActionOutOfRangeOrLoS = (delegate* unmanaged<uint, GameObject*, GameObject*, uint>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0");
                 UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
                 UseActionHook.Enable();
             }

@@ -23,6 +23,7 @@ namespace ReAction
             public List<Action> Actions = new();
             public List<ActionStackItem> Items = new();
             public bool BlockOriginal = false;
+            public bool CheckRange = false;
         }
 
         public int Version { get; set; }
