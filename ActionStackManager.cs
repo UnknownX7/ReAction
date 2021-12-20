@@ -34,7 +34,7 @@ namespace ReAction
 
         private static bool isMountActionQueued = false;
         private static (uint actionType, uint actionID, long targetedActorID, uint useType, int pvp) queuedMountAction;
-        private static Stopwatch mountActionTimer = new();
+        private static readonly Stopwatch mountActionTimer = new();
 
         public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetedActorID, uint param, uint useType, int pvp, IntPtr a8)
         {
@@ -120,32 +120,32 @@ namespace ReAction
                     o = DalamudApi.ClientState.LocalPlayer;
                     break;
                 case TargetType.LastTarget:
-                    return Game.GetObjectFromPronounID(1006);
+                    return Game.GetGameObjectFromPronounID(1006);
                 case TargetType.LastEnemy:
-                    return Game.GetObjectFromPronounID(1084);
+                    return Game.GetGameObjectFromPronounID(1084);
                 case TargetType.LastAttacker:
-                    return Game.GetObjectFromPronounID(1008);
+                    return Game.GetGameObjectFromPronounID(1008);
                 case TargetType.P2:
-                    return Game.GetObjectFromPronounID(44);
+                    return Game.GetGameObjectFromPronounID(44);
                 case TargetType.P3:
-                    return Game.GetObjectFromPronounID(45);
+                    return Game.GetGameObjectFromPronounID(45);
                 case TargetType.P4:
-                    return Game.GetObjectFromPronounID(46);
+                    return Game.GetGameObjectFromPronounID(46);
                 case TargetType.P5:
-                    return Game.GetObjectFromPronounID(47);
+                    return Game.GetGameObjectFromPronounID(47);
                 case TargetType.P6:
-                    return Game.GetObjectFromPronounID(48);
+                    return Game.GetGameObjectFromPronounID(48);
                 case TargetType.P7:
-                    return Game.GetObjectFromPronounID(49);
+                    return Game.GetGameObjectFromPronounID(49);
                 case TargetType.P8:
-                    return Game.GetObjectFromPronounID(50);
+                    return Game.GetGameObjectFromPronounID(50);
             }
 
             return o != null ? (GameObject*)o.Address : null;
         }
 
         private static bool CanUseAction(uint id, GameObject* target)
-            => Game.CanUseActionOnObject(id, target) != 0 && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID) is 0 or 580 or 582;
+            => Game.CanUseActionOnGameObject(id, target) != 0 && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID) is 0 or 580 or 582;
 
         private static bool TryDismount(uint actionType, uint actionID, long targetedActorID, uint useType, int pvp, out byte ret)
         {
