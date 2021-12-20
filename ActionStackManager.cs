@@ -32,12 +32,12 @@ namespace ReAction
         }
 
         private static bool isMountActionQueued = false;
-        private static (uint actionType, uint actionID, long targetedActorID, uint useType, int pvp) queuedMountAction;
+        private static (uint actionType, uint actionID, uint targetObjectID, uint useType, int pvp) queuedMountAction;
         private static readonly Stopwatch mountActionTimer = new();
 
         private static bool canceledCast = false;
 
-        public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetedActorID, uint param, uint useType, int pvp, IntPtr a8)
+        public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint targetObjectID, uint param, uint useType, int pvp, IntPtr a8)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace ReAction
                         }
 
                         actionID = newAction;
-                        targetedActorID = newTarget;
+                        targetObjectID = newTarget;
                     }
                 }
             }
@@ -65,10 +65,13 @@ namespace ReAction
                 PluginLog.Error($"Failed to modify action\n{e}");
             }
 
-            if (ReAction.Config.EnableAutoDismount && TryDismount(actionType, actionID, targetedActorID, useType, pvp, out var ret))
+            if (ReAction.Config.EnableAutoTarget && actionType == 1 && TryTabTarget(actionID, targetObjectID, out var newObjectID))
+                targetObjectID = newObjectID;
+
+            if (ReAction.Config.EnableAutoDismount && TryDismount(actionType, actionID, targetObjectID, useType, pvp, out var ret))
                 return ret;
 
-            ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetedActorID, param, useType, pvp, a8);
+            ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, a8);
 
             if (ReAction.Config.EnableInstantGroundTarget)
                 CheckInstantGroundTarget(actionType, useType);
@@ -149,18 +152,30 @@ namespace ReAction
         private static bool CanUseAction(uint id, GameObject* target)
             => Game.CanUseActionOnGameObject(id, target) && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID) is 0 or 580 or 582;
 
-        private static bool TryDismount(uint actionType, uint actionID, long targetedActorID, uint useType, int pvp, out byte ret)
+        private static bool TryTabTarget(uint actionID, uint targetObjectID, out uint newObjectID)
+        {
+            newObjectID = 0;
+            if (targetObjectID != 0xE0000000 || DalamudApi.TargetManager.Target != null || !ReAction.actionSheet.TryGetValue(actionID, out var a) || !a.CanTargetHostile) return false;
+
+            Game.TargetEnemyNext();
+            if (DalamudApi.TargetManager.Target is not { } target) return false;
+
+            newObjectID = target.ObjectId;
+            return true;
+        }
+
+        private static bool TryDismount(uint actionType, uint actionID, uint targetObjectID, uint useType, int pvp, out byte ret)
         {
             ret = 0;
 
             if (actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
                 || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
                 || !DalamudApi.Condition[ConditionFlag.Mounted]
-                || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, (uint)targetedActorID, 0, 0) == 0)
+                || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, targetObjectID, 0, 0) == 0)
                 return false;
 
             isMountActionQueued = true;
-            queuedMountAction = (actionType, actionID, targetedActorID, useType, pvp);
+            queuedMountAction = (actionType, actionID, targetObjectID, useType, pvp);
             mountActionTimer.Restart();
             ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, IntPtr.Zero);
             return true;
@@ -179,7 +194,7 @@ namespace ReAction
             if (mountActionTimer.ElapsedMilliseconds <= 2000)
             {
                 Game.UseActionHook.Original(Game.actionManager, queuedMountAction.actionType, queuedMountAction.actionID,
-                    queuedMountAction.targetedActorID, 0, queuedMountAction.useType, queuedMountAction.pvp, IntPtr.Zero);
+                    queuedMountAction.targetObjectID, 0, queuedMountAction.useType, queuedMountAction.pvp, IntPtr.Zero);
 
                 if (ReAction.Config.EnableInstantGroundTarget)
                     CheckInstantGroundTarget(queuedMountAction.actionType, queuedMountAction.useType);

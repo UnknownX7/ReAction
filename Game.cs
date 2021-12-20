@@ -30,16 +30,19 @@ namespace ReAction
         private static delegate* unmanaged<void> cancelCast;
         public static void CancelCast() => cancelCast();
 
+        private static delegate* unmanaged<void> targetEnemyNext;
+        public static void TargetEnemyNext() => targetEnemyNext();
+
         // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
         private static delegate* unmanaged<uint, GameObject*, GameObject*, uint> getActionOutOfRangeOrLoS;
         // The game is dumb and I cannot check LoS easily because not facing the target will override it
         public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
             && getActionOutOfRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566;
 
-        public delegate byte UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetedActorID, uint param, uint useType, int pvp, IntPtr a8);
+        public delegate byte UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, uint targetObjectID, uint param, uint useType, int pvp, IntPtr a8);
         public static Hook<UseActionDelegate> UseActionHook;
-        private static byte UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, long targetedActorID, uint param, uint useType, int pvp, IntPtr a8)
-            => ActionStackManager.OnUseAction(actionManager, actionType, actionID, targetedActorID, param, useType, pvp, a8);
+        private static byte UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, uint targetObjectID, uint param, uint useType, int pvp, IntPtr a8)
+            => ActionStackManager.OnUseAction(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, a8);
 
         public static void Initialize()
         {
@@ -51,6 +54,7 @@ namespace ReAction
                 canUseActionOnGameObject = (delegate* unmanaged<uint, GameObject*, byte>)DalamudApi.SigScanner.ScanText("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3");
                 getActionOutOfRangeOrLoS = (delegate* unmanaged<uint, GameObject*, GameObject*, uint>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0");
                 cancelCast = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9");
+                targetEnemyNext = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 28 33 D2 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 33 C0");
                 UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
                 UseActionHook.Enable();
             }

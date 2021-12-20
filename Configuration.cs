@@ -34,6 +34,7 @@ namespace ReAction
         public bool EnableGroundTargetQueuing = false;
         public bool EnableInstantGroundTarget = false;
         public bool EnableAutoCastCancel = false;
+        public bool EnableAutoTarget = false;
 
         public void Initialize() { }
 

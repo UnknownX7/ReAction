@@ -366,6 +366,12 @@ namespace ReAction
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Automatically cancels casting when the target dies.");
 
+            ImGui.NextColumn();
+
+            save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Automatically uses tab target when no target is specified for a targeted attack.");
+
             ImGui.Columns(1);
 
             if (save)
