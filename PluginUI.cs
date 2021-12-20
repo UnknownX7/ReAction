@@ -346,7 +346,7 @@ namespace ReAction
 
             ImGui.NextColumn();
 
-            if (ImGui.Checkbox("Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
+            if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
             {
                 Game.enhancedAutoFaceTargetReplacer.Toggle();
                 save = true;
