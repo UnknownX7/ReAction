@@ -41,7 +41,7 @@ namespace ReAction
         {
             try
             {
-                if (actionType == 1 && useType == 0)
+                if (actionType == 1 && useType == 0 && ReAction.actionSheet.ContainsKey(actionID))
                 {
                     foreach (var stack in ReAction.Config.ActionStacks)
                     {
