@@ -35,6 +35,8 @@ namespace ReAction
         private static (uint actionType, uint actionID, long targetedActorID, uint useType, int pvp) queuedMountAction;
         private static readonly Stopwatch mountActionTimer = new();
 
+        private static bool canceledCast = false;
+
         public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetedActorID, uint param, uint useType, int pvp, IntPtr a8)
         {
             try
@@ -170,9 +172,9 @@ namespace ReAction
                 *(byte*)((IntPtr)Game.actionManager + 0xB8) = 1;
         }
 
-        public static void Update()
+        private static void TryQueuedMountAction()
         {
-            if (!isMountActionQueued || DalamudApi.Condition[ConditionFlag.Mounted]) return;
+            if (DalamudApi.Condition[ConditionFlag.Mounted]) return;
 
             if (mountActionTimer.ElapsedMilliseconds <= 2000)
             {
@@ -185,6 +187,26 @@ namespace ReAction
 
             isMountActionQueued = false;
             mountActionTimer.Stop();
+        }
+
+        private static void TryCancelingCast()
+        {
+            if (canceledCast || !Game.IsCasting || Game.CanUseActionOnGameObject(Game.CastActionID, (GameObject*)DalamudApi.ObjectTable.SearchById(Game.CastTargetID)?.Address)) return;
+            Game.CancelCast();
+            canceledCast = true;
+        }
+
+        public static void Update()
+        {
+            if (isMountActionQueued)
+                TryQueuedMountAction();
+
+            if (!ReAction.Config.EnableAutoCastCancel) return;
+
+            if (canceledCast && !Game.IsCasting)
+                canceledCast = false;
+            else
+                TryCancelingCast();
         }
     }
 }

@@ -360,6 +360,12 @@ namespace ReAction
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Automatically dismounts when an action is used, prior to using the action.");
 
+            ImGui.NextColumn();
+
+            save |= ImGui.Checkbox("Enable Auto Cast Cancel", ref ReAction.Config.EnableAutoCastCancel);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Automatically cancels casting when the target dies.");
+
             ImGui.Columns(1);
 
             if (save)

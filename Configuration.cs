@@ -33,6 +33,7 @@ namespace ReAction
         public bool EnableAutoDismount = false;
         public bool EnableGroundTargetQueuing = false;
         public bool EnableInstantGroundTarget = false;
+        public bool EnableAutoCastCancel = false;
 
         public void Initialize() { }
 

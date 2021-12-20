@@ -14,6 +14,10 @@ namespace ReAction
         // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 10
         public static readonly Memory.Replacer enhancedAutoFaceTargetReplacer = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x10 }, ReAction.Config.EnableEnhancedAutoFaceTarget);
 
+        public static bool IsCasting => *((byte*)actionManager + 0x28) != 0;
+        public static uint CastActionID => *(uint*)((IntPtr)actionManager + 0x2C);
+        public static uint CastTargetID => *(uint*)((IntPtr)actionManager + 0x38);
+
         private static IntPtr pronounModule = IntPtr.Zero;
         public static GameObject* UITarget => (GameObject*)*(IntPtr*)(pronounModule + 0x290);
 
@@ -22,6 +26,9 @@ namespace ReAction
 
         private static delegate* unmanaged<uint, GameObject*, byte> canUseActionOnGameObject;
         public static bool CanUseActionOnGameObject(uint actionID, GameObject* o) => canUseActionOnGameObject(actionID, o) != 0;
+
+        private static delegate* unmanaged<void> cancelCast;
+        public static void CancelCast() => cancelCast();
 
         // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
         private static delegate* unmanaged<uint, GameObject*, GameObject*, uint> getActionOutOfRangeOrLoS;
@@ -43,6 +50,7 @@ namespace ReAction
                 getGameObjectFromPronounID = (delegate* unmanaged<IntPtr, uint, GameObject*>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 C0 0F 85 ?? ?? ?? ?? 8D 4F DD");
                 canUseActionOnGameObject = (delegate* unmanaged<uint, GameObject*, byte>)DalamudApi.SigScanner.ScanText("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3");
                 getActionOutOfRangeOrLoS = (delegate* unmanaged<uint, GameObject*, GameObject*, uint>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0");
+                cancelCast = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9");
                 UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
                 UseActionHook.Enable();
             }
