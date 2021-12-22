@@ -88,7 +88,7 @@ namespace ReAction
             var useRange = stack.CheckRange;
             foreach (var item in stack.Items)
             {
-                var newID = item.ID != 0 ? item.ID : id;
+                var newID = item.ID != 0 ? Game.actionManager->GetAdjustedActionId(item.ID) : id;
                 var newTarget = GetTarget(item.Target);
                 if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget)) continue;
 
