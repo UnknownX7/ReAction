@@ -372,6 +372,14 @@ namespace ReAction
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Automatically uses tab target when no target is specified for a targeted attack.");
 
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks))
+            {
+                Game.spellAutoAttackReplacer.Toggle();
+                save = true;
+            }
+
             ImGui.Columns(1);
 
             if (save)

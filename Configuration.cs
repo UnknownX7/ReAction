@@ -35,6 +35,7 @@ namespace ReAction
         public bool EnableInstantGroundTarget = false;
         public bool EnableAutoCastCancel = false;
         public bool EnableAutoTarget = false;
+        public bool EnableSpellAutoAttacks = false;
 
         public void Initialize() { }
 
