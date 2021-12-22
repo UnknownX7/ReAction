@@ -39,16 +39,17 @@ namespace ReAction
 
         public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, IntPtr a8)
         {
-            if (ReAction.Config.EnableAutoDismount && TryDismount(actionType, actionID, targetObjectID, useType, pvp, out var ret))
-                return ret;
-
             try
             {
-                if (actionType == 1 && useType == 0 && ReAction.actionSheet.ContainsKey(actionID))
+                var adjustedActionID = actionManager->GetAdjustedActionId(actionID);
+
+                if (ReAction.Config.EnableAutoDismount && TryDismount(actionType, adjustedActionID, targetObjectID, useType, pvp, out var ret))
+                    return ret;
+
+                if (actionType == 1 && useType == 0 && ReAction.actionSheet.ContainsKey(adjustedActionID))
                 {
                     foreach (var stack in ReAction.Config.ActionStacks)
                     {
-                        var adjustedActionID = actionManager->GetAdjustedActionId(actionID);
                         if (stack.Actions.FirstOrDefault(action => action.ID == 0 || (action.UseAdjustedID ? actionManager->GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID) == null) continue;
 
                         if (!CheckActionStack(adjustedActionID, stack, out var newAction, out var newTarget))
@@ -63,21 +64,22 @@ namespace ReAction
                         break;
                     }
                 }
+
+                if (ReAction.Config.EnableAutoTarget && actionType == 1 && TryTabTarget(adjustedActionID, targetObjectID, out var newObjectID))
+                    targetObjectID = newObjectID;
+
+                ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, a8);
+
+                if (ReAction.Config.EnableInstantGroundTarget)
+                    CheckInstantGroundTarget(actionType, useType);
+
+                return ret;
             }
             catch (Exception e)
             {
                 PluginLog.Error($"Failed to modify action\n{e}");
+                return 0;
             }
-
-            if (ReAction.Config.EnableAutoTarget && actionType == 1 && TryTabTarget(actionID, targetObjectID, out var newObjectID))
-                targetObjectID = newObjectID;
-
-            ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, a8);
-
-            if (ReAction.Config.EnableInstantGroundTarget)
-                CheckInstantGroundTarget(actionType, useType);
-
-            return ret;
         }
 
         private static bool CheckActionStack(uint id, Configuration.ActionStack stack, out uint action, out long target)
@@ -187,10 +189,12 @@ namespace ReAction
                 || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, (uint)targetObjectID, 0, 0) == 0)
                 return false;
 
+            ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, IntPtr.Zero);
+            if (ret == 0) return true;
+
             isMountActionQueued = true;
             queuedMountAction = (actionType, actionID, targetObjectID, useType, pvp);
             mountActionTimer.Restart();
-            ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, IntPtr.Zero);
             return true;
         }
 
@@ -208,9 +212,6 @@ namespace ReAction
             {
                 OnUseAction(Game.actionManager, queuedMountAction.actionType, queuedMountAction.actionID,
                     queuedMountAction.targetObjectID, 0, queuedMountAction.useType, queuedMountAction.pvp, IntPtr.Zero);
-
-                if (ReAction.Config.EnableInstantGroundTarget)
-                    CheckInstantGroundTarget(queuedMountAction.actionType, queuedMountAction.useType);
             }
 
             isMountActionQueued = false;
