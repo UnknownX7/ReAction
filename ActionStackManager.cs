@@ -46,6 +46,7 @@ namespace ReAction
                 if (ReAction.Config.EnableAutoDismount && TryDismount(actionType, adjustedActionID, targetObjectID, useType, pvp, out var ret))
                     return ret;
 
+                var succeeded = false;
                 if (actionType == 1 && useType == 0 && ReAction.actionSheet.ContainsKey(adjustedActionID))
                 {
                     foreach (var stack in ReAction.Config.ActionStacks)
@@ -61,6 +62,7 @@ namespace ReAction
 
                         actionID = newAction;
                         targetObjectID = newTarget;
+                        succeeded = true;
                         break;
                     }
                 }
@@ -69,6 +71,10 @@ namespace ReAction
                     targetObjectID = newObjectID;
 
                 ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, a8);
+
+                // TODO test using a ref bool for a8 here instead
+                if (succeeded && ReAction.actionSheet[adjustedActionID].TargetArea)
+                    *(long*)((IntPtr)Game.actionManager + 0x98) = targetObjectID;
 
                 if (ReAction.Config.EnableInstantGroundTarget)
                     CheckInstantGroundTarget(actionType, useType);
