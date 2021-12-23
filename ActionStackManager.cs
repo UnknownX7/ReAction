@@ -37,7 +37,9 @@ namespace ReAction
 
         private static bool canceledCast = false;
 
-        public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, IntPtr a8)
+        private static long queuedGroundTargetObjectID = 0;
+
+        public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
         {
             try
             {
@@ -73,11 +75,22 @@ namespace ReAction
                 if (ReAction.Config.EnableCameraRelativeDashes)
                     TryDashFromCamera(actionType, actionID);
 
-                ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, a8);
+                ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
 
-                // TODO test using a ref bool for a8 here instead
                 if (succeeded && ReAction.actionSheet[adjustedActionID].TargetArea)
+                {
                     *(long*)((IntPtr)Game.actionManager + 0x98) = targetObjectID;
+                    queuedGroundTargetObjectID = targetObjectID;
+                }
+                else if (useType == 1 && queuedGroundTargetObjectID != 0)
+                {
+                    *(long*)((IntPtr)Game.actionManager + 0x98) = queuedGroundTargetObjectID;
+                    queuedGroundTargetObjectID = 0;
+                }
+                else
+                {
+                    queuedGroundTargetObjectID = 0;
+                }
 
                 if (ReAction.Config.EnableInstantGroundTarget)
                     TryInstantGroundTarget(actionType, useType);
@@ -198,7 +211,7 @@ namespace ReAction
                 || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, (uint)targetObjectID, 0, 0) == 0)
                 return false;
 
-            ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, IntPtr.Zero);
+            ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
             if (ret == 0) return true;
 
             isMountActionQueued = true;
@@ -227,7 +240,7 @@ namespace ReAction
             if (mountActionTimer.ElapsedMilliseconds <= 2000)
             {
                 OnUseAction(Game.actionManager, queuedMountAction.actionType, queuedMountAction.actionID,
-                    queuedMountAction.targetObjectID, 0, queuedMountAction.useType, queuedMountAction.pvp, IntPtr.Zero);
+                    queuedMountAction.targetObjectID, 0, queuedMountAction.useType, queuedMountAction.pvp, null);
             }
 
             isMountActionQueued = false;
