@@ -70,6 +70,9 @@ namespace ReAction
                 if (ReAction.Config.EnableAutoTarget && actionType == 1 && TryTabTarget(adjustedActionID, targetObjectID, out var newObjectID))
                     targetObjectID = newObjectID;
 
+                if (ReAction.Config.EnableCameraRelativeDashes)
+                    TryDashFromCamera(actionType, actionID);
+
                 ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, a8);
 
                 // TODO test using a ref bool for a8 here instead
@@ -77,7 +80,7 @@ namespace ReAction
                     *(long*)((IntPtr)Game.actionManager + 0x98) = targetObjectID;
 
                 if (ReAction.Config.EnableInstantGroundTarget)
-                    CheckInstantGroundTarget(actionType, useType);
+                    TryInstantGroundTarget(actionType, useType);
 
                 return ret;
             }
@@ -204,7 +207,14 @@ namespace ReAction
             return true;
         }
 
-        private static void CheckInstantGroundTarget(uint actionType, uint useType)
+        private static void TryDashFromCamera(uint actionType, uint actionID)
+        {
+            if (ReAction.actionSheet.TryGetValue(actionID, out var a) && a.AffectsPosition && a.CanTargetSelf && a.BehaviourType > 1
+                && Game.actionManager->GetActionStatus((ActionType)actionType, actionID) == 0 && *((float*)Game.actionManager + 2) == 0)
+                Game.SetCharacterRotationToCamera();
+        }
+
+        private static void TryInstantGroundTarget(uint actionType, uint useType)
         {
             if ((useType != 2 || actionType != 1) && actionType != 15)
                 *(byte*)((IntPtr)Game.actionManager + 0xB8) = 1;

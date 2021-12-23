@@ -380,6 +380,12 @@ namespace ReAction
                 save = true;
             }
 
+            ImGui.NextColumn();
+
+            save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
+
             ImGui.Columns(1);
 
             if (save)

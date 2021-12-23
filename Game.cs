@@ -39,6 +39,20 @@ namespace ReAction
         private static delegate* unmanaged<void> targetEnemyNext;
         public static void TargetEnemyNext() => targetEnemyNext();
 
+        private static delegate* unmanaged<GameObject*, float, void> setGameObjectRotation;
+        private static IntPtr* cameraManager;
+        public static void SetCharacterRotationToCamera()
+        {
+            if (cameraManager == null) return;
+
+            var worldCamera = cameraManager[0];
+            if (worldCamera == IntPtr.Zero) return;
+
+            var hRotation = *(float*)(worldCamera + 0x130);
+            var localPlayer = (GameObject*)DalamudApi.ClientState.LocalPlayer!.Address;
+            setGameObjectRotation(localPlayer, hRotation + MathF.PI);
+        }
+
         // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
         private static delegate* unmanaged<uint, GameObject*, GameObject*, uint> getActionOutOfRangeOrLoS;
         // The game is dumb and I cannot check LoS easily because not facing the target will override it
@@ -61,6 +75,8 @@ namespace ReAction
                 getActionOutOfRangeOrLoS = (delegate* unmanaged<uint, GameObject*, GameObject*, uint>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0");
                 cancelCast = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9");
                 targetEnemyNext = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 28 33 D2 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 33 C0");
+                setGameObjectRotation = (delegate* unmanaged<GameObject*, float, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 83 FE 4F");
+                cameraManager = (IntPtr*)DalamudApi.SigScanner.GetStaticAddressFromSig("48 8D 35 ?? ?? ?? ?? 48 8B 09");
                 UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
                 UseActionHook.Enable();
             }

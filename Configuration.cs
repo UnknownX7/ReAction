@@ -36,6 +36,7 @@ namespace ReAction
         public bool EnableAutoCastCancel = false;
         public bool EnableAutoTarget = false;
         public bool EnableSpellAutoAttacks = false;
+        public bool EnableCameraRelativeDashes = false;
 
         public void Initialize() { }
 
