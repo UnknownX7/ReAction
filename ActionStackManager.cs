@@ -189,10 +189,15 @@ namespace ReAction
         private static bool CanUseAction(uint id, GameObject* target)
             => Game.CanUseActionOnGameObject(id, target) && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID) is 0 or 580 or 582;
 
-        private static bool TryTabTarget(uint actionID, long targetObjectID, out uint newObjectID)
+        private static bool TryTabTarget(uint actionID, long objectID, out uint newObjectID)
         {
             newObjectID = 0;
-            if (targetObjectID != 0xE0000000 || DalamudApi.TargetManager.Target != null || !ReAction.actionSheet.TryGetValue(actionID, out var a) || !a.CanTargetHostile) return false;
+            var targetObject = DalamudApi.TargetManager.Target is { } t ? (GameObject*)t.Address : null;
+            if (objectID != 0xE0000000 && Game.GetGameObjectFromObjectID(objectID) != targetObject
+                || Game.CanUseActionOnGameObject(actionID, targetObject)
+                || !ReAction.actionSheet.TryGetValue(actionID, out var a)
+                || !a.CanTargetHostile)
+                return false;
 
             Game.TargetEnemyNext();
             if (DalamudApi.TargetManager.Target is not { } target) return false;
@@ -255,9 +260,8 @@ namespace ReAction
                 || a.TargetArea)
                 return;
 
-            // Event NPC/Objects will likely fail this check but who cares
-            var o = DalamudApi.ObjectTable.SearchById(Game.CastTargetID);
-            if (o == null || Game.CanUseActionOnGameObject(Game.CastActionID, (GameObject*)o.Address)) return;
+            var o = Game.GetGameObjectFromObjectID(Game.CastTargetID);
+            if (o == null || Game.CanUseActionOnGameObject(Game.CastActionID, o)) return;
 
             Game.CancelCast();
             canceledCast = true;

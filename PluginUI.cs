@@ -370,7 +370,7 @@ namespace ReAction
 
             save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Automatically uses tab target when no target is specified for a targeted attack.");
+                ImGui.SetTooltip("Automatically uses tab target when your main target is incorrect for a targeted attack.");
 
             ImGui.NextColumn();
 

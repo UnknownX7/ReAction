@@ -26,6 +26,9 @@ namespace ReAction
         private static IntPtr pronounModule = IntPtr.Zero;
         public static GameObject* UITarget => (GameObject*)*(IntPtr*)(pronounModule + 0x290);
 
+        private static delegate* unmanaged<long, GameObject*> getGameObjectFromObjectID;
+        public static GameObject* GetGameObjectFromObjectID(long id) => getGameObjectFromObjectID(id);
+
         private static delegate* unmanaged<IntPtr, uint, GameObject*> getGameObjectFromPronounID;
         public static GameObject* GetGameObjectFromPronounID(uint id) => getGameObjectFromPronounID(pronounModule, id);
 
@@ -70,6 +73,7 @@ namespace ReAction
             {
                 actionManager = ActionManager.Instance();
                 pronounModule = (IntPtr)Framework.Instance()->GetUiModule()->GetPronounModule();
+                getGameObjectFromObjectID = (delegate* unmanaged<long, GameObject*>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F B6 C3 48 8B D0");
                 getGameObjectFromPronounID = (delegate* unmanaged<IntPtr, uint, GameObject*>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 C0 0F 85 ?? ?? ?? ?? 8D 4F DD");
                 canUseActionOnGameObject = (delegate* unmanaged<uint, GameObject*, byte>)DalamudApi.SigScanner.ScanText("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3");
                 getActionOutOfRangeOrLoS = (delegate* unmanaged<uint, GameObject*, GameObject*, uint>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0");
