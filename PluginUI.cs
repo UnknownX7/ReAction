@@ -48,7 +48,9 @@ namespace ReAction
 
             ImGui.PushFont(UiBuilder.IconFont);
 
-            if (ImGui.Button(FontAwesomeIcon.PlusCircle.ToIconString()))
+            var buttonSize = ImGui.CalcTextSize(FontAwesomeIcon.SignOutAlt.ToIconString()) + ImGui.GetStyle().FramePadding * 2;
+
+            if (ImGui.Button(FontAwesomeIcon.Plus.ToIconString(), buttonSize))
             {
                 ReAction.Config.ActionStacks.Add(new() { Name = "New Stack" });
                 ReAction.Config.Save();
@@ -56,7 +58,34 @@ namespace ReAction
 
             ImGui.SameLine();
 
-            if (ImGui.Button(FontAwesomeIcon.ArrowCircleUp.ToIconString()) && hasSelectedStack)
+            if (ImGui.Button(FontAwesomeIcon.SignOutAlt.ToIconString(), buttonSize) && hasSelectedStack)
+                ImGui.SetClipboardText(Configuration.ExportActionStack(CurrentStack));
+            ImGui.PopFont();
+            SetItemTooltip("Export stack to clipboard.");
+            ImGui.PushFont(UiBuilder.IconFont);
+
+            ImGui.SameLine();
+
+            if (ImGui.Button(FontAwesomeIcon.SignInAlt.ToIconString(), buttonSize))
+            {
+                try
+                {
+                    var stack = Configuration.ImportActionStack(ImGui.GetClipboardText());
+                    ReAction.Config.ActionStacks.Add(stack);
+                    ReAction.Config.Save();
+                }
+                catch (Exception e)
+                {
+                    ReAction.PrintError($"Failed to import stack from clipboard!\n{e.Message}");
+                }
+            }
+            ImGui.PopFont();
+            SetItemTooltip("Import stack from clipboard.");
+            ImGui.PushFont(UiBuilder.IconFont);
+
+            ImGui.SameLine();
+
+            if (ImGui.Button(FontAwesomeIcon.ArrowUp.ToIconString(), buttonSize) && hasSelectedStack)
             {
                 var preset = CurrentStack;
                 ReAction.Config.ActionStacks.RemoveAt(selectedStack);
@@ -69,7 +98,7 @@ namespace ReAction
 
             ImGui.SameLine();
 
-            if (ImGui.Button(FontAwesomeIcon.ArrowCircleDown.ToIconString()) && hasSelectedStack)
+            if (ImGui.Button(FontAwesomeIcon.ArrowDown.ToIconString(), buttonSize) && hasSelectedStack)
             {
                 var preset = CurrentStack;
                 ReAction.Config.ActionStacks.RemoveAt(selectedStack);
@@ -82,7 +111,7 @@ namespace ReAction
 
             ImGui.SameLine();
 
-            ImGui.Button(FontAwesomeIcon.TimesCircle.ToIconString());
+            ImGui.Button(FontAwesomeIcon.Times.ToIconString(), buttonSize);
             if (hasSelectedStack && ImGui.BeginPopupContextItem(null, ImGuiPopupFlags.MouseButtonLeft))
             {
                 if (ImGui.Selectable(FontAwesomeIcon.TrashAlt.ToIconString()))
