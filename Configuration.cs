@@ -22,6 +22,7 @@ namespace ReAction
             public string Name = string.Empty;
             public List<Action> Actions = new();
             public List<ActionStackItem> Items = new();
+            public uint ModifierKeys = 0u;
             public bool BlockOriginal = false;
             public bool CheckRange = false;
         }

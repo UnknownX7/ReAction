@@ -51,8 +51,11 @@ namespace ReAction
                 var succeeded = false;
                 if (actionType == 1 && useType == 0 && ReAction.actionSheet.ContainsKey(adjustedActionID))
                 {
+                    var modifierKeys = GetModifierKeys();
                     foreach (var stack in ReAction.Config.ActionStacks)
                     {
+                        var exactMatch = (stack.ModifierKeys & 8) != 0;
+                        if (exactMatch ? stack.ModifierKeys != modifierKeys : (stack.ModifierKeys & modifierKeys) != stack.ModifierKeys) continue;
                         if (stack.Actions.FirstOrDefault(action => action.ID == 0 || (action.UseAdjustedID ? actionManager->GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID) == null) continue;
 
                         if (!CheckActionStack(adjustedActionID, stack, out var newAction, out var newTarget))
@@ -102,6 +105,18 @@ namespace ReAction
                 PluginLog.Error($"Failed to modify action\n{e}");
                 return 0;
             }
+        }
+
+        private static uint GetModifierKeys()
+        {
+            var keys = 8u;
+            if (DalamudApi.KeyState[16]) // Shift
+                keys |= 1;
+            if (DalamudApi.KeyState[17]) // Ctrl
+                keys |= 2;
+            if (DalamudApi.KeyState[18]) // Alt
+                keys |= 4;
+            return keys;
         }
 
         private static bool CheckActionStack(uint id, Configuration.ActionStack stack, out uint action, out long target)

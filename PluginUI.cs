@@ -19,7 +19,7 @@ namespace ReAction
             if (!isVisible) return;
 
             ImGui.SetNextWindowSizeConstraints(new Vector2(700, 660) * ImGuiHelpers.GlobalScale, new Vector2(9999));
-            ImGui.Begin("ReAction Configuration", ref isVisible);
+            ImGui.Begin("ReAction Configuration", ref isVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
             if (ImGui.BeginTabBar("ReActionTabs"))
             {
@@ -98,7 +98,8 @@ namespace ReAction
 
             ImGui.PopFont();
 
-            ImGui.BeginChild("ReActionPresetList", new Vector2(250 * ImGuiHelpers.GlobalScale, 0), true);
+            var firstColumnWidth = 250 * ImGuiHelpers.GlobalScale;
+            ImGui.BeginChild("ReActionPresetList", new Vector2(firstColumnWidth, ImGui.GetContentRegionAvail().Y / 2), true);
 
             for (int i = 0; i < ReAction.Config.ActionStacks.Count; i++)
             {
@@ -116,43 +117,57 @@ namespace ReAction
 
             if (!hasSelectedStack) return;
 
+            var lastCursorPos = ImGui.GetCursorPos();
             ImGui.SameLine();
-            ImGui.BeginChild("ReActionStackEditor", ImGui.GetContentRegionAvail(), true);
-            DrawStackEditor(currentStack);
+            var nextLineCursorPos = ImGui.GetCursorPos();
+            ImGui.SetCursorPos(lastCursorPos);
+
+            ImGui.BeginChild("ReActionStackEditorMain", new Vector2(firstColumnWidth, ImGui.GetContentRegionAvail().Y), true);
+            DrawStackEditorMain(currentStack);
+            ImGui.EndChild();
+
+            ImGui.SetCursorPos(nextLineCursorPos);
+            ImGui.BeginChild("ReActionStackEditorLists", ImGui.GetContentRegionAvail(), true);
+            DrawStackEditorLists (currentStack);
             ImGui.EndChild();
         }
 
-        private static void DrawStackEditor(Configuration.ActionStack stack)
+        private static void DrawStackEditorMain(Configuration.ActionStack stack)
         {
-            if (ImGui.InputText("Name", ref stack.Name, 64))
+            var save = false;
+
+            save |= ImGui.InputText("Name", ref stack.Name, 64);
+            save |= ImGui.CheckboxFlags("##Shift", ref stack.ModifierKeys, 1);
+            SetItemTooltip("Shift");
+            ImGui.SameLine();
+            save |= ImGui.CheckboxFlags("##Ctrl", ref stack.ModifierKeys, 2);
+            SetItemTooltip("Control");
+            ImGui.SameLine();
+            save |= ImGui.CheckboxFlags("##Alt", ref stack.ModifierKeys, 4);
+            SetItemTooltip("Alt");
+            ImGui.SameLine();
+            save |= ImGui.CheckboxFlags("##Exact", ref stack.ModifierKeys, 8);
+            SetItemTooltip("Match exactly these modifiers. E.g. Shift + Control ticked will match Shift + Control held, but not Shift + Control + Alt held.");
+            ImGui.SameLine();
+            ImGui.TextUnformatted("Modifier Keys");
+            save |= ImGui.Checkbox("Block Original on Stack Fail", ref stack.BlockOriginal);
+            save |= ImGui.Checkbox("Fail if Out of Range", ref stack.CheckRange);
+
+            if (save)
                 ReAction.Config.Save();
+        }
 
-            ImGui.Columns(2, null, false);
-
-            if (ImGui.Checkbox("Block Original on Stack Fail", ref stack.BlockOriginal))
-                ReAction.Config.Save();
-
-            ImGui.NextColumn();
-
-            if (ImGui.Checkbox("Fail if Out of Range", ref stack.CheckRange))
-                ReAction.Config.Save();
-
-            ImGui.Columns(1);
-
-            ImGui.Spacing();
-
-            var contentRegion = ImGui.GetContentRegionAvail();
-            ImGui.BeginChild("ReActionActionEditor", new Vector2(contentRegion.X, contentRegion.Y / 2), true);
+        private static void DrawStackEditorLists(Configuration.ActionStack stack)
+        {
             DrawActionEditor(stack);
-            ImGui.EndChild();
-
-            ImGui.BeginChild("ReActionItemEditor", ImGui.GetContentRegionAvail(), true);
             DrawItemEditor(stack);
-            ImGui.EndChild();
         }
 
         private static void DrawActionEditor(Configuration.ActionStack stack)
         {
+            var contentRegion = ImGui.GetContentRegionAvail();
+            ImGui.BeginChild("ReActionActionEditor", new Vector2(contentRegion.X, contentRegion.Y / 2), true);
+
             var buttonWidth = ImGui.GetContentRegionAvail().X / 2;
             for (int i = 0; i < stack.Actions.Count; i++)
             {
@@ -192,10 +207,14 @@ namespace ReAction
             }
 
             AddActionList(stack.Actions, buttonWidth);
+
+            ImGui.EndChild();
         }
 
         private static void DrawItemEditor(Configuration.ActionStack stack)
         {
+            ImGui.BeginChild("ReActionItemEditor", ImGui.GetContentRegionAvail(), true);
+
             var buttonWidth = ImGui.GetContentRegionAvail().X / 3;
             var targets = Enum.GetNames(typeof(ActionStackManager.TargetType));
             for (int i = 0; i < stack.Items.Count; i++)
@@ -246,6 +265,8 @@ namespace ReAction
             }
 
             ImGui.PopFont();
+
+            ImGui.EndChild();
         }
 
         private static string FormatActionRowName(Lumina.Excel.GeneratedSheets.Action a) => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}";
@@ -351,26 +372,22 @@ namespace ReAction
                 Game.enhancedAutoFaceTargetReplacer.Toggle();
                 save = true;
             }
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
+            SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
 
             ImGui.NextColumn();
 
             save |= ImGui.Checkbox("Enable Auto Dismount", ref ReAction.Config.EnableAutoDismount);
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Automatically dismounts when an action is used, prior to using the action.");
+            SetItemTooltip("Automatically dismounts when an action is used, prior to using the action.");
 
             ImGui.NextColumn();
 
             save |= ImGui.Checkbox("Enable Auto Cast Cancel", ref ReAction.Config.EnableAutoCastCancel);
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Automatically cancels casting when the target dies.");
+            SetItemTooltip("Automatically cancels casting when the target dies.");
 
             ImGui.NextColumn();
 
             save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Automatically uses tab target when your main target is incorrect for a targeted attack.");
+            SetItemTooltip("Automatically uses tab target when your main target is incorrect for a targeted attack.");
 
             ImGui.NextColumn();
 
@@ -383,13 +400,18 @@ namespace ReAction
             ImGui.NextColumn();
 
             save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
+            SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
 
             ImGui.Columns(1);
 
             if (save)
                 ReAction.Config.Save();
+        }
+
+        private static void SetItemTooltip(string s, ImGuiHoveredFlags flags = ImGuiHoveredFlags.None)
+        {
+            if (ImGui.IsItemHovered(flags))
+                ImGui.SetTooltip(s);
         }
     }
 }
