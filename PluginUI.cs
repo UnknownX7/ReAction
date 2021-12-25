@@ -99,7 +99,9 @@ namespace ReAction
             ImGui.PopFont();
 
             var firstColumnWidth = 250 * ImGuiHelpers.GlobalScale;
+            ImGui.PushStyleColor(ImGuiCol.Border, ImGui.GetColorU32(ImGuiCol.TabActive));
             ImGui.BeginChild("ReActionPresetList", new Vector2(firstColumnWidth, ImGui.GetContentRegionAvail().Y / 2), true);
+            ImGui.PopStyleColor();
 
             for (int i = 0; i < ReAction.Config.ActionStacks.Count; i++)
             {
@@ -127,7 +129,7 @@ namespace ReAction
             ImGui.EndChild();
 
             ImGui.SetCursorPos(nextLineCursorPos);
-            ImGui.BeginChild("ReActionStackEditorLists", ImGui.GetContentRegionAvail(), true);
+            ImGui.BeginChild("ReActionStackEditorLists", ImGui.GetContentRegionAvail(), false);
             DrawStackEditorLists (currentStack);
             ImGui.EndChild();
         }
@@ -182,9 +184,16 @@ namespace ReAction
 
                 if (ImGui.Checkbox("Adjust ID", ref action.UseAdjustedID))
                     ReAction.Config.Save();
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Allows the action to match any other action that it transforms into. E.g. Aero will match Dia and vice versa." +
-                        "\nEnable this for skills that upgrade. Disable this for compatibility with certain XIVCombos.");
+                var detectedAdjustment = false;
+                unsafe
+                {
+                    if (!action.UseAdjustedID && (detectedAdjustment = Game.actionManager->GetAdjustedActionId(action.ID) != action.ID))
+                        ImGui.GetWindowDrawList().AddRectFilled(ImGui.GetItemRectMin(), ImGui.GetItemRectMax(), 0x2000FF30, ImGui.GetStyle().FrameRounding);
+                }
+                SetItemTooltip("Allows the action to match any other action that it transforms into." +
+                    "\nE.g. Aero will match Dia, Play will match all cards, Diagnosis will match Eukrasian Diagnosis, etc." +
+                    "\nEnable this for skills that upgrade. Disable this for compatibility with certain XIVCombos." +
+                    (detectedAdjustment ? "\n\nThis action is currently adjusted due to a trait, combo or plugin. This option is recommended." : string.Empty));
 
                 ImGui.SameLine();
 
