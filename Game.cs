@@ -13,7 +13,8 @@ namespace ReAction
         public static readonly Memory.Replacer queueGroundTargetsReplacer = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
 
         // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 10
-        public static readonly Memory.Replacer enhancedAutoFaceTargetReplacer = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x10 }, ReAction.Config.EnableEnhancedAutoFaceTarget);
+        public static readonly Memory.Replacer enhancedAutoFaceTargetReplacer1 = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x10 }, ReAction.Config.EnableEnhancedAutoFaceTarget);
+        public static readonly Memory.Replacer enhancedAutoFaceTargetReplacer2 = new("41 80 7F 33 06 74 22 49 8D 8E", new byte[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0xEB }, ReAction.Config.EnableEnhancedAutoFaceTarget);
 
         // test byte ptr [r15+39], 04
         // jnz A7

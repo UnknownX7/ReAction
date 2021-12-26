@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Dalamud.Hooking;
 using Dalamud.Logging;
 
 namespace ReAction
@@ -12,11 +14,12 @@ namespace ReAction
             public IntPtr Address { get; private set; } = IntPtr.Zero;
             private readonly byte[] newBytes;
             private readonly byte[] oldBytes;
+            private readonly AsmHook hook = null;
             public bool IsEnabled { get; private set; } = false;
             public bool IsValid => Address != IntPtr.Zero;
             public string ReadBytes => !IsValid ? string.Empty : oldBytes.Aggregate(string.Empty, (current, b) => current + (b.ToString("X2") + " "));
 
-            public Replacer(IntPtr addr, byte[] bytes, bool startEnabled = false)
+            public Replacer(IntPtr addr, byte[] bytes, bool startEnabled = false, bool useASMHook = false)
             {
                 if (addr == IntPtr.Zero) return;
 
@@ -25,11 +28,14 @@ namespace ReAction
                 SafeMemory.ReadBytes(addr, bytes.Length, out oldBytes);
                 createdReplacers.Add(this);
 
+                if (useASMHook)
+                    hook = new(addr, newBytes, $"{Assembly.GetExecutingAssembly().GetName().Name} Replacer#{createdReplacers.Count}", AsmHookBehaviour.DoNotExecuteOriginal);
+
                 if (startEnabled)
                     Enable();
             }
 
-            public Replacer(string sig, byte[] bytes, bool startEnabled = false)
+            public Replacer(string sig, byte[] bytes, bool startEnabled = false, bool useASMHook = false)
             {
                 var addr = IntPtr.Zero;
                 try { addr = DalamudApi.SigScanner.ScanModule(sig); }
@@ -41,6 +47,25 @@ namespace ReAction
                 SafeMemory.ReadBytes(addr, bytes.Length, out oldBytes);
                 createdReplacers.Add(this);
 
+                if (useASMHook)
+                    hook = new(addr, newBytes, $"{Assembly.GetExecutingAssembly().GetName().Name} Replacer#{createdReplacers.Count}", AsmHookBehaviour.DoNotExecuteOriginal);
+
+                if (startEnabled)
+                    Enable();
+            }
+
+            public Replacer(string sig, string[] asm, bool startEnabled = false)
+            {
+                var addr = IntPtr.Zero;
+                try { addr = DalamudApi.SigScanner.ScanModule(sig); }
+                catch { PluginLog.LogError($"Failed to find signature {sig}"); }
+                if (addr == IntPtr.Zero) return;
+
+                Address = addr;
+                SafeMemory.ReadBytes(addr, 7, out oldBytes);
+                createdReplacers.Add(this);
+                hook = new(addr, asm, $"{Assembly.GetExecutingAssembly().GetName().Name} Replacer#{createdReplacers.Count}", AsmHookBehaviour.DoNotExecuteOriginal);
+
                 if (startEnabled)
                     Enable();
             }
@@ -48,14 +73,24 @@ namespace ReAction
             public void Enable()
             {
                 if (!IsValid) return;
-                SafeMemory.WriteBytes(Address, newBytes);
+
+                if (hook == null)
+                    SafeMemory.WriteBytes(Address, newBytes);
+                else
+                    hook.Enable();
+
                 IsEnabled = true;
             }
 
             public void Disable()
             {
                 if (!IsValid) return;
-                SafeMemory.WriteBytes(Address, oldBytes);
+
+                if (hook == null)
+                    SafeMemory.WriteBytes(Address, oldBytes);
+                else
+                    hook.Disable();
+
                 IsEnabled = false;
             }
 
@@ -71,6 +106,10 @@ namespace ReAction
             {
                 if (IsEnabled)
                     Disable();
+
+                if (hook == null) return;
+                hook.Dispose();
+                SafeMemory.WriteBytes(Address, oldBytes);
             }
         }
 

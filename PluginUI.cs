@@ -462,7 +462,8 @@ namespace ReAction
 
             if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
             {
-                Game.enhancedAutoFaceTargetReplacer.Toggle();
+                Game.enhancedAutoFaceTargetReplacer1.Toggle();
+                Game.enhancedAutoFaceTargetReplacer2.Toggle();
                 save = true;
             }
             SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
