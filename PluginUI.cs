@@ -453,10 +453,12 @@ namespace ReAction
                 Game.queueGroundTargetsReplacer.Toggle();
                 save = true;
             }
+            SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
 
             ImGui.NextColumn();
 
             save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
+            SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when not used in a stack.");
 
             ImGui.NextColumn();
 
@@ -490,6 +492,7 @@ namespace ReAction
                 Game.spellAutoAttackReplacer.Toggle();
                 save = true;
             }
+            SetItemTooltip("Causes spells to start using auto attacks just like weaponskills.");
 
             ImGui.NextColumn();
 
