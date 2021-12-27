@@ -29,15 +29,15 @@ namespace ReAction
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Help"))
-                {
-                    DrawStackHelp();
-                    ImGui.EndTabItem();
-                }
-
                 if (ImGui.BeginTabItem("Other Settings"))
                 {
                     DrawOtherSettings();
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItem("Help"))
+                {
+                    DrawStackHelp();
                     ImGui.EndTabItem();
                 }
 
