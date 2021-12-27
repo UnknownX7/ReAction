@@ -86,7 +86,7 @@ namespace ReAction
                     targetObjectID = newObjectID;
 
                 if (ReAction.Config.EnableCameraRelativeDashes)
-                    TryDashFromCamera(actionType, actionID);
+                    TryDashFromCamera(actionType, adjustedActionID);
 
                 ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
 
@@ -142,18 +142,7 @@ namespace ReAction
                 if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget)) continue;
 
                 action = newID;
-
-                if (newTarget->ObjectID != target)
-                {
-                    target = newTarget->ObjectID;
-                }
-                else
-                {
-                    var localObjectID = *(uint*)((IntPtr)newTarget + 0x78);
-                    if (localObjectID != 0)
-                        target = localObjectID | 0x1_0000_0000;
-                }
-
+                target = Game.GetObjectID(newTarget);
                 return true;
             }
 
@@ -212,9 +201,9 @@ namespace ReAction
         }
 
         private static bool CanUseAction(uint id, GameObject* target)
-            => Game.CanUseActionOnGameObject(id, target) && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID) is 0 or 580 or 582;
+            => Game.CanUseActionOnGameObject(id, target) && Game.GetActionStatus(1, id, target->ObjectID) is 0 or 580 or 582;
 
-        private static bool TryTabTarget(uint actionID, long objectID, out uint newObjectID)
+        private static bool TryTabTarget(uint actionID, long objectID, out long newObjectID)
         {
             newObjectID = 0;
             var targetObject = DalamudApi.TargetManager.Target is { } t ? (GameObject*)t.Address : null;
@@ -230,9 +219,10 @@ namespace ReAction
             Game.TargetEnemyNext();
             if (DalamudApi.TargetManager.Target is not { } target) return false;
 
-            PluginLog.Debug($"Target swapped {objectID:X} -> {target.ObjectId}");
+            newObjectID = Game.GetObjectID((GameObject*)target.Address);
 
-            newObjectID = target.ObjectId;
+            PluginLog.Debug($"Target swapped {objectID:X} -> {newObjectID:X}");
+
             return true;
         }
 
@@ -243,7 +233,7 @@ namespace ReAction
             if (!DalamudApi.Condition[ConditionFlag.Mounted]
                 || actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
                 || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
-                || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, (uint)targetObjectID, 0, 0) == 0)
+                || Game.GetActionStatus(actionType, actionID, targetObjectID, 0, 0) == 0)
                 return false;
 
             ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
@@ -263,7 +253,7 @@ namespace ReAction
                 || !a.AffectsPosition
                 || !a.CanTargetSelf
                 || a.BehaviourType <= 1
-                || Game.actionManager->GetActionStatus((ActionType)actionType, actionID) != 0
+                || Game.GetActionStatus(actionType, actionID) != 0
                 || *((float*)Game.actionManager + 2) != 0)
                 return;
 

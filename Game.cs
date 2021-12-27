@@ -27,6 +27,12 @@ namespace ReAction
         private static IntPtr pronounModule = IntPtr.Zero;
         public static GameObject* UITarget => (GameObject*)*(IntPtr*)(pronounModule + 0x290);
 
+        public static long GetObjectID(GameObject* o)
+        {
+            var id = o->GetObjectID();
+            return (id.Type * 0x1_0000_0000) | id.ObjectID;
+        }
+
         private static delegate* unmanaged<long, GameObject*> getGameObjectFromObjectID;
         public static GameObject* GetGameObjectFromObjectID(long id) => getGameObjectFromObjectID(id);
 
@@ -62,6 +68,12 @@ namespace ReAction
         // The game is dumb and I cannot check LoS easily because not facing the target will override it
         public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
             && getActionOutOfRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566;
+
+        public static uint GetActionStatus(uint actionType, uint actionID, long targetObjectID = 0xE000_0000, byte checkCooldown = 1, byte checkCasting = 1)
+        {
+            var func = (delegate* unmanaged[Stdcall]<ActionManager*, uint, uint, long, uint, uint, uint>)ActionManager.fpGetActionStatus;
+            return func(actionManager, actionType, actionID, targetObjectID, checkCooldown, checkCasting);
+        }
 
         public delegate byte UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);
         public static Hook<UseActionDelegate> UseActionHook;
