@@ -483,7 +483,14 @@ namespace ReAction
             ImGui.NextColumn();
 
             save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
-            SetItemTooltip("Automatically uses tab target when your main target is incorrect for a targeted attack.");
+            SetItemTooltip("Automatically uses tab target when no target is specified for a targeted attack.");
+
+            if (ReAction.Config.EnableAutoTarget)
+            {
+                ImGui.NextColumn();
+                save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
+                SetItemTooltip("Additionally uses tab target when your main target is incorrect for a targeted attack.");
+            }
 
             ImGui.NextColumn();
 

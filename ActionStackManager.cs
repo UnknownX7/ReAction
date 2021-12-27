@@ -208,7 +208,8 @@ namespace ReAction
         {
             newObjectID = 0;
             var targetObject = DalamudApi.TargetManager.Target is { } t ? (GameObject*)t.Address : null;
-            if (objectID != 0xE0000000 && Game.GetGameObjectFromObjectID(objectID) != targetObject
+            if (!ReAction.Config.EnableAutoChangeTarget && targetObject != null
+                || objectID != 0xE0000000 && Game.GetGameObjectFromObjectID(objectID) != targetObject
                 || Game.CanUseActionOnGameObject(actionID, targetObject)
                 || !ReAction.actionSheet.TryGetValue(actionID, out var a)
                 || !a.CanTargetHostile)

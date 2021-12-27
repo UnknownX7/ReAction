@@ -79,6 +79,7 @@ namespace ReAction
         public bool EnableInstantGroundTarget = false;
         public bool EnableAutoCastCancel = false;
         public bool EnableAutoTarget = false;
+        public bool EnableAutoChangeTarget = false;
         public bool EnableSpellAutoAttacks = false;
         public bool EnableCameraRelativeDashes = false;
 
