@@ -95,7 +95,7 @@ namespace ReAction
                     queuedGroundTargetObjectID = 0;
                 }
 
-                if (ReAction.Config.EnableInstantGroundTarget)
+                if (ReAction.Config.EnableInstantGroundTarget && !succeeded)
                     TryInstantGroundTarget(actionType, useType);
 
                 return ret;
