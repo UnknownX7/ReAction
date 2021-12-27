@@ -43,7 +43,9 @@ namespace ReAction
         {
             try
             {
-                var adjustedActionID = actionManager->GetAdjustedActionId(actionID);
+                var adjustedActionID = actionType == 1 ? actionManager->GetAdjustedActionId(actionID) : actionID;
+
+                PluginLog.Debug($"UseAction called {actionType}, {actionID} -> {adjustedActionID}, {targetObjectID:X}, {param}, {useType}, {pvp}");
 
                 if (ReAction.Config.EnableAutoDismount && TryDismount(actionType, adjustedActionID, targetObjectID, useType, pvp, out var ret))
                     return ret;
@@ -51,6 +53,8 @@ namespace ReAction
                 var succeeded = false;
                 if (actionType == 1 && useType == 0 && ReAction.actionSheet.ContainsKey(adjustedActionID))
                 {
+                    PluginLog.Debug("Checking stacks");
+
                     var modifierKeys = GetModifierKeys();
                     foreach (var stack in ReAction.Config.ActionStacks)
                     {
@@ -61,11 +65,17 @@ namespace ReAction
                         if (!CheckActionStack(adjustedActionID, stack, out var newAction, out var newTarget))
                         {
                             if (stack.BlockOriginal)
+                            {
+                                PluginLog.Error("Stack failed, blocking original");
                                 return 0;
+                            }
                             break;
                         }
 
+                        PluginLog.Debug($"Stack succeeded {adjustedActionID} -> {newAction}, {targetObjectID:X} -> {newTarget:X}");
+
                         actionID = newAction;
+                        adjustedActionID = newAction;
                         targetObjectID = newTarget;
                         succeeded = true;
                         break;
@@ -215,8 +225,12 @@ namespace ReAction
                 || !a.CanTargetHostile)
                 return false;
 
+            PluginLog.Debug($"Attempting to swap target {actionID}, {objectID:X}");
+
             Game.TargetEnemyNext();
             if (DalamudApi.TargetManager.Target is not { } target) return false;
+
+            PluginLog.Debug($"Target swapped {objectID:X} -> {target.ObjectId}");
 
             newObjectID = target.ObjectId;
             return true;
@@ -235,6 +249,8 @@ namespace ReAction
             ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
             if (ret == 0) return true;
 
+            PluginLog.Debug($"Dismounting {actionType}, {actionID}, {targetObjectID}, {useType}, {pvp}");
+
             isMountActionQueued = true;
             queuedMountAction = (actionType, actionID, targetObjectID, useType, pvp);
             mountActionTimer.Restart();
@@ -243,15 +259,26 @@ namespace ReAction
 
         private static void TryDashFromCamera(uint actionType, uint actionID)
         {
-            if (ReAction.actionSheet.TryGetValue(actionID, out var a) && a.AffectsPosition && a.CanTargetSelf && a.BehaviourType > 1
-                && Game.actionManager->GetActionStatus((ActionType)actionType, actionID) == 0 && *((float*)Game.actionManager + 2) == 0)
-                Game.SetCharacterRotationToCamera();
+            if (!ReAction.actionSheet.TryGetValue(actionID, out var a)
+                || !a.AffectsPosition
+                || !a.CanTargetSelf
+                || a.BehaviourType <= 1
+                || Game.actionManager->GetActionStatus((ActionType)actionType, actionID) != 0
+                || *((float*)Game.actionManager + 2) != 0)
+                return;
+
+            PluginLog.Debug($"Rotating camera {actionType}, {actionID}");
+
+            Game.SetCharacterRotationToCamera();
         }
 
         private static void TryInstantGroundTarget(uint actionType, uint useType)
         {
-            if ((useType != 2 || actionType != 1) && actionType != 15)
-                *(byte*)((IntPtr)Game.actionManager + 0xB8) = 1;
+            if (useType == 2 && actionType == 1 || actionType == 15) return;
+
+            PluginLog.Debug($"Making ground target instant {actionType}, {useType}");
+
+            *(byte*)((IntPtr)Game.actionManager + 0xB8) = 1;
         }
 
         private static void TryQueuedMountAction()
@@ -260,6 +287,8 @@ namespace ReAction
 
             if (mountActionTimer.ElapsedMilliseconds <= 2000)
             {
+                PluginLog.Debug("Using queued mount action");
+
                 OnUseAction(Game.actionManager, queuedMountAction.actionType, queuedMountAction.actionID,
                     queuedMountAction.targetObjectID, 0, queuedMountAction.useType, queuedMountAction.pvp, null);
             }
@@ -278,6 +307,8 @@ namespace ReAction
 
             var o = Game.GetGameObjectFromObjectID(Game.CastTargetID);
             if (o == null || Game.CanUseActionOnGameObject(Game.CastActionID, o)) return;
+
+            PluginLog.Debug($"Cancelling cast {Game.CastActionType}, {Game.CastActionID}, {Game.CastTargetID:X}");
 
             Game.CancelCast();
             canceledCast = true;
