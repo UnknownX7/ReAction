@@ -506,6 +506,11 @@ namespace ReAction
             save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
             SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
 
+            ImGui.NextColumn();
+
+            save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
+            SetItemTooltip("Allows sprint and items to be queued.");
+
             ImGui.Columns(1);
 
             if (save)

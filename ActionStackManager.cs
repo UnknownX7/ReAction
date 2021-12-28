@@ -38,11 +38,20 @@ namespace ReAction
         private static bool canceledCast = false;
 
         private static long queuedGroundTargetObjectID = 0;
+        private static bool queuedItem = false;
 
         public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
         {
             try
             {
+                if (queuedItem && useType == 1)
+                {
+                    PluginLog.Debug("Applying queued item param");
+
+                    param = 65535;
+                    queuedItem = false;
+                }
+
                 var adjustedActionID = actionType == 1 ? actionManager->GetAdjustedActionId(actionID) : actionID;
 
                 PluginLog.Debug($"UseAction called {actionType}, {actionID} -> {adjustedActionID}, {targetObjectID:X}, {param}, {useType}, {pvp}");
@@ -88,7 +97,16 @@ namespace ReAction
                 if (ReAction.Config.EnableCameraRelativeDashes)
                     TryDashFromCamera(actionType, adjustedActionID);
 
+                if (ReAction.Config.EnableQueuingMore && useType == 0)
+                    TryEnablingQueuing(actionType, adjustedActionID);
+
                 ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
+
+                if (Game.allowQueuingReplacer.IsEnabled)
+                    Game.allowQueuingReplacer.Disable();
+
+                if (queuedItem && !Game.IsQueued)
+                    queuedItem = false;
 
                 if (succeeded && ReAction.actionSheet[adjustedActionID].TargetArea)
                 {
@@ -203,6 +221,27 @@ namespace ReAction
         private static bool CanUseAction(uint id, GameObject* target)
             => Game.CanUseActionOnGameObject(id, target) && Game.GetActionStatus(1, id, target->ObjectID) is 0 or 580 or 582;
 
+        private static bool TryDismount(uint actionType, uint actionID, long targetObjectID, uint useType, int pvp, out byte ret)
+        {
+            ret = 0;
+
+            if (!DalamudApi.Condition[ConditionFlag.Mounted]
+                || actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
+                || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
+                || Game.GetActionStatus(actionType, actionID, targetObjectID, 0, 0) == 0)
+                return false;
+
+            ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
+            if (ret == 0) return true;
+
+            PluginLog.Debug($"Dismounting {actionType}, {actionID}, {targetObjectID}, {useType}, {pvp}");
+
+            isMountActionQueued = true;
+            queuedMountAction = (actionType, actionID, targetObjectID, useType, pvp);
+            mountActionTimer.Restart();
+            return true;
+        }
+
         private static bool TryTabTarget(uint actionID, long objectID, out long newObjectID)
         {
             newObjectID = 0;
@@ -226,27 +265,6 @@ namespace ReAction
             return true;
         }
 
-        private static bool TryDismount(uint actionType, uint actionID, long targetObjectID, uint useType, int pvp, out byte ret)
-        {
-            ret = 0;
-
-            if (!DalamudApi.Condition[ConditionFlag.Mounted]
-                || actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
-                || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
-                || Game.GetActionStatus(actionType, actionID, targetObjectID, 0, 0) == 0)
-                return false;
-
-            ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
-            if (ret == 0) return true;
-
-            PluginLog.Debug($"Dismounting {actionType}, {actionID}, {targetObjectID}, {useType}, {pvp}");
-
-            isMountActionQueued = true;
-            queuedMountAction = (actionType, actionID, targetObjectID, useType, pvp);
-            mountActionTimer.Restart();
-            return true;
-        }
-
         private static void TryDashFromCamera(uint actionType, uint actionID)
         {
             if (!ReAction.actionSheet.TryGetValue(actionID, out var a)
@@ -260,6 +278,16 @@ namespace ReAction
             PluginLog.Debug($"Rotating camera {actionType}, {actionID}");
 
             Game.SetCharacterRotationToCamera();
+        }
+
+        private static void TryEnablingQueuing(uint actionType, uint actionID)
+        {
+            if ((actionType != 1 || actionID != 3) && actionType != 2) return;
+
+            PluginLog.Debug($"Enabling queuing {actionType} {actionID}");
+
+            Game.allowQueuingReplacer.Enable();
+            queuedItem = actionType == 2;
         }
 
         private static void TryInstantGroundTarget(uint actionType, uint useType)

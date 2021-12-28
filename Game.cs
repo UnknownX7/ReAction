@@ -10,6 +10,7 @@ namespace ReAction
     public static unsafe class Game
     {
         public static ActionManager* actionManager;
+        public static readonly Memory.Replacer allowQueuingReplacer = new("76 30 80 F9 04", new byte[] { 0xEB });
         public static readonly Memory.Replacer queueGroundTargetsReplacer = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
 
         // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 10
@@ -23,6 +24,7 @@ namespace ReAction
         public static uint CastActionType => *(uint*)((IntPtr)actionManager + 0x28);
         public static uint CastActionID => *(uint*)((IntPtr)actionManager + 0x2C);
         public static uint CastTargetID => *(uint*)((IntPtr)actionManager + 0x38);
+        public static bool IsQueued => *(bool*)((IntPtr)actionManager + 0x68);
 
         private static IntPtr pronounModule = IntPtr.Zero;
         public static GameObject* UITarget => (GameObject*)*(IntPtr*)(pronounModule + 0x290);
