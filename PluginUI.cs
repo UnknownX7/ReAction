@@ -511,6 +511,11 @@ namespace ReAction
             save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
             SetItemTooltip("Allows sprint and items to be queued.");
 
+            ImGui.NextColumn();
+
+            save |= ImGui.Checkbox("Enable FPS Alignment", ref ReAction.Config.EnableFPSAlignment);
+            SetItemTooltip("Aligns the game's FPS with the GCD and animation lock.\nNote: this option will cause an almost unnoticeable stutter when either of these timers ends.");
+
             ImGui.Columns(1);
 
             if (save)

@@ -40,6 +40,8 @@ namespace ReAction
         private static long queuedGroundTargetObjectID = 0;
         private static bool queuedItem = false;
 
+        private static Stopwatch timer = new();
+
         public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
         {
             try
@@ -272,7 +274,7 @@ namespace ReAction
                 || !a.CanTargetSelf
                 || a.BehaviourType <= 1
                 || Game.GetActionStatus(actionType, actionID) != 0
-                || *((float*)Game.actionManager + 2) != 0)
+                || Game.AnimationLock != 0)
                 return;
 
             PluginLog.Debug($"Rotating camera {actionType}, {actionID}");
@@ -343,6 +345,36 @@ namespace ReAction
                 canceledCast = false;
             else
                 TryCancelingCast();
+
+            if (!ReAction.Config.EnableFPSAlignment) return;
+
+            if (timer.IsRunning && Game.IsQueued)
+            {
+                var elapsedTime = timer.ElapsedTicks / (double)Stopwatch.Frequency;
+                var remainingAnimationLock = Game.AnimationLock - elapsedTime;
+                var remainingGCD = Game.GCDRecastTime - Game.ElapsedGCDRecastTime - elapsedTime;
+                var blockDuration = 0d;
+
+                if (remainingAnimationLock > 0 && remainingAnimationLock <= elapsedTime * 1.5)
+                    blockDuration = Math.Round(remainingAnimationLock * Stopwatch.Frequency);
+
+                if (remainingGCD > 0 && remainingGCD <= elapsedTime * 1.5)
+                {
+                    var newBlockDuration = Math.Round(remainingGCD * Stopwatch.Frequency);
+                    if (newBlockDuration > blockDuration)
+                        blockDuration = newBlockDuration;
+                }
+
+                if (blockDuration > 0)
+                {
+                    PluginLog.Debug($"Blocking main thread for {blockDuration / 10000} ms");
+
+                    timer.Restart();
+                    while (timer.ElapsedTicks < blockDuration) ;
+                }
+            }
+
+            timer.Restart();
         }
     }
 }

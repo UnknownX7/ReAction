@@ -21,10 +21,13 @@ namespace ReAction
         // jnz A7
         public static readonly Memory.Replacer spellAutoAttackReplacer = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", new byte[] { 0x41, 0xF6, 0x47, 0x39, 0x04, 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00, 0x90 }, ReAction.Config.EnableSpellAutoAttacks);
 
+        public static float AnimationLock => *(float*)((IntPtr)actionManager + 0x8);
         public static uint CastActionType => *(uint*)((IntPtr)actionManager + 0x28);
         public static uint CastActionID => *(uint*)((IntPtr)actionManager + 0x2C);
         public static uint CastTargetID => *(uint*)((IntPtr)actionManager + 0x38);
         public static bool IsQueued => *(bool*)((IntPtr)actionManager + 0x68);
+        public static float ElapsedGCDRecastTime => *(float*)((IntPtr)actionManager + 0x618);
+        public static float GCDRecastTime => *(float*)((IntPtr)actionManager + 0x61C);
 
         private static IntPtr pronounModule = IntPtr.Zero;
         public static GameObject* UITarget => (GameObject*)*(IntPtr*)(pronounModule + 0x290);

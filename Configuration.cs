@@ -83,6 +83,7 @@ namespace ReAction
         public bool EnableSpellAutoAttacks = false;
         public bool EnableCameraRelativeDashes = false;
         public bool EnableQueuingMore = false;
+        public bool EnableFPSAlignment = false;
 
         public void Initialize() { }
 
