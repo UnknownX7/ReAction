@@ -339,12 +339,13 @@ namespace ReAction
             if (isMountActionQueued)
                 TryQueuedMountAction();
 
-            if (!ReAction.Config.EnableAutoCastCancel) return;
-
-            if (canceledCast && Game.CastActionType == 0)
-                canceledCast = false;
-            else
-                TryCancelingCast();
+            if (ReAction.Config.EnableAutoCastCancel)
+            {
+                if (canceledCast && Game.CastActionType == 0)
+                    canceledCast = false;
+                else
+                    TryCancelingCast();
+            }
 
             if (!ReAction.Config.EnableFPSAlignment) return;
 
