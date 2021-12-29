@@ -84,6 +84,7 @@ namespace ReAction
         public bool EnableCameraRelativeDashes = false;
         public bool EnableQueuingMore = false;
         public bool EnableFPSAlignment = false;
+        public bool EnableDecomboMeditation = false;
 
         public void Initialize() { }
 

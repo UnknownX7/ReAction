@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Interface;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
 
 namespace ReAction
@@ -11,6 +12,10 @@ namespace ReAction
         public static bool isVisible = false;
         private static int selectedStack = -1;
         private static string search = string.Empty;
+        private static int hotbar = 0;
+        private static int hotbarSlot = 0;
+        private static int commandType = 1;
+        private static int commandID = 0;
 
         private static Configuration.ActionStack CurrentStack => 0 <= selectedStack && selectedStack < ReAction.Config.ActionStacks.Count ? ReAction.Config.ActionStacks[selectedStack] : null;
 
@@ -516,6 +521,51 @@ namespace ReAction
             save |= ImGui.Checkbox("Enable FPS Alignment", ref ReAction.Config.EnableFPSAlignment);
             SetItemTooltip("Aligns the game's FPS with the GCD and animation lock.\nNote: this option will cause an almost unnoticeable stutter when either of these timers ends.");
 
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Enable Uncombo'd Meditation", ref ReAction.Config.EnableDecomboMeditation))
+            {
+                Game.decomboMeditationReplacer.Toggle();
+                save = true;
+            }
+            SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use the\nhotbar feature below to place one of them on your bar in order to use them again.");
+
+            ImGui.Columns(1);
+
+            ImGui.Spacing();
+            ImGui.Separator();
+
+            ImGui.Indent();
+            ImGui.TextUnformatted("Place on Hotbar");
+            SetItemTooltip("This will allow you to place various things on the hotbar that you can't normally." +
+                "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
+                "\nSome examples of things you can do:" +
+                "\n\tPlace a certain Monk action (25761 or 3547) on the hotbar to be used with \"Enable Uncombo'd Meditation\"." +
+                "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
+                "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
+                "\n\tRevive flying mount roulette (GeneralAction, 24).");
+            ImGui.Unindent();
+            ImGui.Columns(5, null, false);
+            ImGui.Combo("Hotbar", ref hotbar, "1\02\03\04\05\06\07\08\09\010");
+            ImGui.NextColumn();
+            ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012");
+            ImGui.NextColumn();
+            var hotbarSlotType = Enum.GetName(typeof(HotbarSlotType), commandType) ?? commandType.ToString();
+            if (ImGui.BeginCombo("Type", hotbarSlotType))
+            {
+                for (int i = 1; i <= 32; i++)
+                {
+                    if (!ImGui.Selectable($"{Enum.GetName(typeof(HotbarSlotType), i) ?? i.ToString()}##{i}", commandType == i)) continue;
+                    commandType = i;
+                }
+                ImGui.EndCombo();
+            }
+            ImGui.NextColumn();
+            ImGui.InputInt("ID", ref commandID);
+            ImGui.NextColumn();
+            if (ImGui.Button("Execute"))
+                Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, (uint)commandID);
+            SetItemTooltip("You need to move whatever you place on the hotbar in order to get it to save.");
             ImGui.Columns(1);
 
             if (save)

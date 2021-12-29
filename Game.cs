@@ -18,8 +18,13 @@ namespace ReAction
         public static readonly Memory.Replacer enhancedAutoFaceTargetReplacer2 = new("41 80 7F 33 06 74 22 49 8D 8E", new byte[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0xEB }, ReAction.Config.EnableEnhancedAutoFaceTarget);
 
         // test byte ptr [r15+39], 04
-        // jnz A7
+        // jnz A7h
         public static readonly Memory.Replacer spellAutoAttackReplacer = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", new byte[] { 0x41, 0xF6, 0x47, 0x39, 0x04, 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00, 0x90 }, ReAction.Config.EnableSpellAutoAttacks);
+
+        // cmp rcx, 0DDAh
+        // jz 41h
+        // jmp 18h
+        public static readonly Memory.Replacer decomboMeditationReplacer = new("48 8B 05 ?? ?? ?? ?? 48 85 C0 74 3E 48 8B 0D", new byte[] { 0x48, 0x81, 0xFA, 0xDA, 0x0D, 0x00, 0x00, 0x74, 0x41, 0xEB, 0x18, 0x90 }, ReAction.Config.EnableDecomboMeditation);
 
         public static float AnimationLock => *(float*)((IntPtr)actionManager + 0x8);
         public static uint CastActionType => *(uint*)((IntPtr)actionManager + 0x28);
@@ -80,6 +85,14 @@ namespace ReAction
             return func(actionManager, actionType, actionID, targetObjectID, checkCooldown, checkCasting);
         }
 
+        private static delegate* unmanaged<IntPtr, IntPtr, byte, uint, void> setHotbarSlot;
+        public static void SetHotbarSlot(int hotbar, int slot, byte type, uint id)
+        {
+            if (hotbar is < 0 or > 9 || slot is < 0 or > 11) return;
+            var raptureHotbarModule = Framework.Instance()->GetUiModule()->GetRaptureHotbarModule();
+            setHotbarSlot((IntPtr)raptureHotbarModule->HotBar[hotbar]->Slot[slot], *(IntPtr*)((IntPtr)raptureHotbarModule + 0x48), type, id);
+        }
+
         public delegate byte UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);
         public static Hook<UseActionDelegate> UseActionHook;
         private static byte UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
@@ -99,6 +112,7 @@ namespace ReAction
                 targetEnemyNext = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 28 33 D2 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 33 C0");
                 setGameObjectRotation = (delegate* unmanaged<GameObject*, float, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 83 FE 4F");
                 cameraManager = (IntPtr*)DalamudApi.SigScanner.GetStaticAddressFromSig("48 8D 35 ?? ?? ?? ?? 48 8B 09");
+                setHotbarSlot = (delegate* unmanaged<IntPtr, IntPtr, byte, uint, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 39 6F 08");
                 UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
                 UseActionHook.Enable();
             }
