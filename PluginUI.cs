@@ -194,6 +194,9 @@ namespace ReAction
             ImGui.TextUnformatted("Modifier Keys");
             save |= ImGui.Checkbox("Block Original on Stack Fail", ref stack.BlockOriginal);
             save |= ImGui.Checkbox("Fail if Out of Range", ref stack.CheckRange);
+            save |= ImGui.Checkbox("Fail if On Cooldown", ref stack.CheckCooldown);
+            SetItemTooltip("Will fail if the action would fail to queue due to cooldown. Which is either" +
+                "\n> 0.5s left on the cooldown, or < 0.5s since the last use (Charges / GCD).");
 
             if (save)
                 ReAction.Config.Save();
@@ -528,7 +531,7 @@ namespace ReAction
                 Game.decomboMeditationReplacer.Toggle();
                 save = true;
             }
-            SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use the\nhotbar feature below to place one of them on your bar in order to use them again.");
+            SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.");
 
             ImGui.Columns(1);
 

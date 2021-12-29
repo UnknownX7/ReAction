@@ -4,6 +4,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 namespace ReAction
 {
@@ -79,18 +80,21 @@ namespace ReAction
         public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
             && getActionOutOfRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566;
 
+        private static delegate* unmanaged<ActionManager*, uint, uint, byte> canActionQueue;
+        public static bool CanActionQueue(uint actionType, uint actionID) => canActionQueue(actionManager, actionType, actionID) != 0;
+
         public static uint GetActionStatus(uint actionType, uint actionID, long targetObjectID = 0xE000_0000, byte checkCooldown = 1, byte checkCasting = 1)
         {
             var func = (delegate* unmanaged[Stdcall]<ActionManager*, uint, uint, long, uint, uint, uint>)ActionManager.fpGetActionStatus;
             return func(actionManager, actionType, actionID, targetObjectID, checkCooldown, checkCasting);
         }
 
-        private static delegate* unmanaged<IntPtr, IntPtr, byte, uint, void> setHotbarSlot;
+        private static delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void> setHotbarSlot;
         public static void SetHotbarSlot(int hotbar, int slot, byte type, uint id)
         {
             if (hotbar is < 0 or > 9 || slot is < 0 or > 11) return;
             var raptureHotbarModule = Framework.Instance()->GetUiModule()->GetRaptureHotbarModule();
-            setHotbarSlot((IntPtr)raptureHotbarModule->HotBar[hotbar]->Slot[slot], *(IntPtr*)((IntPtr)raptureHotbarModule + 0x48), type, id);
+            setHotbarSlot(raptureHotbarModule->HotBar[hotbar]->Slot[slot], *(IntPtr*)((IntPtr)raptureHotbarModule + 0x48), type, id);
         }
 
         public delegate byte UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);
@@ -108,11 +112,12 @@ namespace ReAction
                 getGameObjectFromPronounID = (delegate* unmanaged<IntPtr, uint, GameObject*>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 C0 0F 85 ?? ?? ?? ?? 8D 4F DD");
                 canUseActionOnGameObject = (delegate* unmanaged<uint, GameObject*, byte>)DalamudApi.SigScanner.ScanText("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3");
                 getActionOutOfRangeOrLoS = (delegate* unmanaged<uint, GameObject*, GameObject*, uint>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0");
+                canActionQueue = (delegate* unmanaged<ActionManager*, uint, uint, byte>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 74 37 8B 84 24 90 00 00 00");
                 cancelCast = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9");
                 targetEnemyNext = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 28 33 D2 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 33 C0");
                 setGameObjectRotation = (delegate* unmanaged<GameObject*, float, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 83 FE 4F");
                 cameraManager = (IntPtr*)DalamudApi.SigScanner.GetStaticAddressFromSig("48 8D 35 ?? ?? ?? ?? 48 8B 09");
-                setHotbarSlot = (delegate* unmanaged<IntPtr, IntPtr, byte, uint, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 39 6F 08");
+                setHotbarSlot = (delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 39 6F 08");
                 UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
                 UseActionHook.Enable();
             }

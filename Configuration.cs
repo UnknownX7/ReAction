@@ -31,6 +31,7 @@ namespace ReAction
             public uint ModifierKeys = 0u;
             public bool BlockOriginal = false;
             public bool CheckRange = false;
+            public bool CheckCooldown = false;
         }
 
         public class StackSerializer : DefaultSerializationBinder

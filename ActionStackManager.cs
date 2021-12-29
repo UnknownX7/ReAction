@@ -155,11 +155,12 @@ namespace ReAction
             target = 0xE0000000;
 
             var useRange = stack.CheckRange;
+            var useCooldown = stack.CheckCooldown;
             foreach (var item in stack.Items)
             {
                 var newID = item.ID != 0 ? Game.actionManager->GetAdjustedActionId(item.ID) : id;
                 var newTarget = GetTarget(item.Target);
-                if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget)) continue;
+                if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget) || useCooldown && !Game.CanActionQueue(1, newID)) continue;
 
                 action = newID;
                 target = Game.GetObjectID(newTarget);
@@ -255,7 +256,7 @@ namespace ReAction
                 || !a.CanTargetHostile)
                 return false;
 
-            PluginLog.Debug($"Attempting to swap target {actionID}, {objectID:X}");
+            PluginLog.Debug($"Attempting to swap target {actionID}, {objectID:X}, {a}, {a.CanTargetHostile}");
 
             Game.TargetEnemyNext();
             if (DalamudApi.TargetManager.Target is not { } target) return false;
