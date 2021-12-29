@@ -77,7 +77,7 @@ namespace ReAction
                         {
                             if (stack.BlockOriginal)
                             {
-                                PluginLog.Error("Stack failed, blocking original");
+                                PluginLog.Debug("Stack failed, blocking original");
                                 return 0;
                             }
                             break;
@@ -356,10 +356,10 @@ namespace ReAction
                 var remainingGCD = Game.GCDRecastTime - Game.ElapsedGCDRecastTime - elapsedTime;
                 var blockDuration = 0d;
 
-                if (remainingAnimationLock > 0 && remainingAnimationLock <= elapsedTime * 1.5)
+                if (remainingAnimationLock > 0 && remainingAnimationLock <= elapsedTime * 1.1)
                     blockDuration = Math.Round(remainingAnimationLock * Stopwatch.Frequency);
 
-                if (remainingGCD > 0 && remainingGCD <= elapsedTime * 1.5)
+                if (remainingGCD > 0 && remainingGCD <= elapsedTime * 1.1)
                 {
                     var newBlockDuration = Math.Round(remainingGCD * Stopwatch.Frequency);
                     if (newBlockDuration > blockDuration)
@@ -368,7 +368,7 @@ namespace ReAction
 
                 if (blockDuration > 0)
                 {
-                    PluginLog.Debug($"Blocking main thread for {blockDuration / 10000} ms");
+                    PluginLog.Debug($"Blocking main thread for {blockDuration / Stopwatch.Frequency * 1000} ms");
 
                     timer.Restart();
                     while (timer.ElapsedTicks < blockDuration) ;
