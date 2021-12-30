@@ -55,6 +55,12 @@ namespace ReAction
                     param = 65535;
                     queuedItem = false;
                 }
+                else if (ReAction.Config.EnableQueuingMore && actionType == 5 && actionID == 4 && useType == 1)
+                {
+                    actionType = 1;
+                    actionID = 3;
+                    targetObjectID = DalamudApi.ClientState.LocalPlayer.ObjectId;
+                }
 
                 var adjustedActionID = actionType == 1 ? actionManager->GetAdjustedActionId(actionID) : actionID;
 
@@ -258,7 +264,7 @@ namespace ReAction
                 || !a.CanTargetHostile)
                 return false;
 
-            PluginLog.Debug($"Attempting to swap target {actionID}, {objectID:X}, {a}, {a.CanTargetHostile}");
+            PluginLog.Debug($"Attempting to swap target {actionID}, {objectID:X}");
 
             Game.TargetEnemyNext();
             if (DalamudApi.TargetManager.Target is not { } target) return false;
@@ -287,9 +293,9 @@ namespace ReAction
 
         private static void TryEnablingQueuing(uint actionType, uint actionID)
         {
-            if ((actionType != 1 || actionID != 3) && actionType != 2) return;
+            if ((actionType != 5 || actionID != 4) && actionType != 2) return;
 
-            PluginLog.Debug($"Enabling queuing {actionType} {actionID}");
+            PluginLog.Debug($"Enabling queuing {actionType}, {actionID}");
 
             Game.allowQueuingReplacer.Enable();
             queuedItem = actionType == 2;
