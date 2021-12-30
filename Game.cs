@@ -1,4 +1,5 @@
 using System;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -58,7 +59,15 @@ namespace ReAction
         public static void CancelCast() => cancelCast();
 
         private static delegate* unmanaged<void> targetEnemyNext;
-        public static void TargetEnemyNext() => targetEnemyNext();
+        public static void TargetEnemyNext()
+        {
+            if (DalamudApi.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                DalamudApi.Condition[ConditionFlag.OccupiedInQuestEvent] ||
+                DalamudApi.Condition[ConditionFlag.OccupiedInEvent])
+                return;
+
+            targetEnemyNext();
+        }
 
         private static delegate* unmanaged<GameObject*, float, void> setGameObjectRotation;
         private static IntPtr* cameraManager;

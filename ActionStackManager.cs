@@ -46,6 +46,8 @@ namespace ReAction
         {
             try
             {
+                if (DalamudApi.ClientState.LocalPlayer == null) return 0;
+
                 if (queuedItem && useType == 1)
                 {
                     PluginLog.Debug("Applying queued item param");
