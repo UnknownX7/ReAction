@@ -74,12 +74,18 @@ namespace ReAction
                 {
                     PluginLog.Debug("Checking stacks");
 
+                    var a = ReAction.actionSheet[adjustedActionID];
                     var modifierKeys = GetModifierKeys();
                     foreach (var stack in ReAction.Config.ActionStacks)
                     {
                         var exactMatch = (stack.ModifierKeys & 8) != 0;
                         if (exactMatch ? stack.ModifierKeys != modifierKeys : (stack.ModifierKeys & modifierKeys) != stack.ModifierKeys) continue;
-                        if (stack.Actions.FirstOrDefault(action => action.ID == 0 || (action.UseAdjustedID ? actionManager->GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID) == null) continue;
+                        if (!stack.Actions.Any(action
+                                => action.ID == 0
+                                || action.ID == 1 && a.CanTargetHostile
+                                || action.ID == 2 && (a.CanTargetFriendly || a.CanTargetParty)
+                                || (action.UseAdjustedID ? actionManager->GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID))
+                            continue;
 
                         if (!CheckActionStack(adjustedActionID, stack, out var newAction, out var newTarget))
                         {

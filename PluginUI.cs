@@ -221,7 +221,7 @@ namespace ReAction
                 var action = stack.Actions[i];
 
                 ImGui.SetNextItemWidth(buttonWidth);
-                ActionComboBox(ref action.ID, "All Actions");
+                ActionComboBox(ref action.ID, false);
 
                 ImGui.SameLine();
 
@@ -286,7 +286,7 @@ namespace ReAction
                 ImGui.SameLine();
 
                 ImGui.SetNextItemWidth(buttonWidth);
-                ActionComboBox(ref item.ID, "Same Action");
+                ActionComboBox(ref item.ID, true);
 
                 ImGui.SameLine();
 
@@ -321,11 +321,18 @@ namespace ReAction
             ImGui.EndChild();
         }
 
+        private static readonly List<string> specialActions = new()
+        {
+            "All Actions",
+            "All Harmful Actions",
+            "All Beneficial Actions"
+        };
+
         private static string FormatActionRowName(Lumina.Excel.GeneratedSheets.Action a) => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}";
 
-        private static void ActionComboBox(ref uint option, string initialOption)
+        private static void ActionComboBox(ref uint option, bool isOverrideSelection)
         {
-            var selected = option == 0 ? initialOption : ReAction.actionSheet.TryGetValue(option, out var a) ? FormatActionRowName(a) : option.ToString();
+            var selected = option < specialActions.Count ? (!isOverrideSelection ? specialActions[(int)option] : "Same Action") : ReAction.actionSheet.TryGetValue(option, out var a) ? FormatActionRowName(a) : option.ToString();
             if (!ImGui.BeginCombo("##Action", selected))
                 return;
 
@@ -333,10 +340,20 @@ namespace ReAction
 
             var doSearch = !string.IsNullOrEmpty(search);
 
-            if ((!doSearch || initialOption.Contains(search, StringComparison.CurrentCultureIgnoreCase)) && ImGui.Selectable(initialOption, option == 0))
+            for (uint id = 0; id < (!isOverrideSelection ? specialActions.Count : 1); id++)
             {
-                option = 0;
-                ReAction.Config.Save();
+                var name = !isOverrideSelection ? specialActions[(int)id] : "Same Action";
+                if (doSearch && !name.Contains(search, StringComparison.CurrentCultureIgnoreCase)) continue;
+
+                ImGui.PushID((int)id);
+
+                if (ImGui.Selectable(name, option == id))
+                {
+                    option = id;
+                    ReAction.Config.Save();
+                }
+
+                ImGui.PopID();
             }
 
             foreach (var (id, row) in ReAction.actionSheet)
@@ -375,11 +392,20 @@ namespace ReAction
 
             var doSearch = !string.IsNullOrEmpty(search);
 
-            const string initialOption = "All Actions";
-            if ((!doSearch || initialOption.Contains(search, StringComparison.CurrentCultureIgnoreCase)) && ImGui.Selectable(initialOption))
+            for (uint id = 0; id < specialActions.Count; id++)
             {
-                actions.Add(new() { ID = 0 });
-                ReAction.Config.Save();
+                var name = specialActions[(int)id];
+                if (doSearch && !name.Contains(search, StringComparison.CurrentCultureIgnoreCase)) continue;
+
+                ImGui.PushID((int)id);
+
+                if (ImGui.Selectable(name))
+                {
+                    actions.Add(new() { ID = id });
+                    ReAction.Config.Save();
+                }
+
+                ImGui.PopID();
             }
 
             foreach (var (id, row) in ReAction.actionSheet)
