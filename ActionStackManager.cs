@@ -266,7 +266,7 @@ namespace ReAction
 
             PluginLog.Debug($"Attempting to swap target {actionID}, {objectID:X}");
 
-            Game.TargetEnemyNext();
+            Game.TargetEnemy();
             if (DalamudApi.TargetManager.Target is not { } target) return false;
 
             newObjectID = Game.GetObjectID((GameObject*)target.Address);

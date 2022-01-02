@@ -1,11 +1,12 @@
 using System;
-using Dalamud.Game.ClientState.Conditions;
+using System.Linq;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace ReAction
 {
@@ -58,15 +59,43 @@ namespace ReAction
         private static delegate* unmanaged<void> cancelCast;
         public static void CancelCast() => cancelCast();
 
-        private static delegate* unmanaged<void> targetEnemyNext;
-        public static void TargetEnemyNext()
+        public static void TargetEnemy()
         {
-            if (DalamudApi.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
-                DalamudApi.Condition[ConditionFlag.OccupiedInQuestEvent] ||
-                DalamudApi.Condition[ConditionFlag.OccupiedInEvent])
-                return;
+            if (cameraManager == null || DalamudApi.ClientState.LocalPlayer is not { } p) return;
 
-            targetEnemyNext();
+            var worldCamera = cameraManager[0];
+            if (worldCamera == IntPtr.Zero) return;
+
+            var hRotation = *(float*)(worldCamera + 0x130) + Math.PI * 1.5;
+            var firstPerson = *(int*)(worldCamera + 0x170) == 0;
+            if (firstPerson)
+                hRotation -= Math.PI;
+
+            const double doublePI = Math.PI * 2;
+            const double halfCone = Math.PI * 0.35;
+            var minRotation = (hRotation + doublePI - halfCone) % doublePI;
+            var maxRotation = (hRotation + halfCone) % doublePI;
+
+            static bool IsBetween(double val, double a, double b)
+            {
+                if (a > b)
+                    return val >= a || val <= b;
+                return val >= a && val <= b;
+            }
+
+            Dalamud.Game.ClientState.Objects.Types.GameObject closest = null;
+            foreach (var o in DalamudApi.ObjectTable.Where(o => o.YalmDistanceX < 30
+                && o.ObjectKind is ObjectKind.Player or ObjectKind.BattleNpc
+                && CanUseActionOnGameObject(7, (GameObject*)o.Address)))
+            {
+                var posDiff = o.Position - p.Position;
+                var angle = Math.Atan2(-posDiff.Z, posDiff.X) + Math.PI;
+                if (IsBetween(angle, minRotation, maxRotation) && (closest == null || closest.YalmDistanceX > o.YalmDistanceX))
+                    closest = o;
+            }
+
+            if (closest != null)
+                DalamudApi.TargetManager.Target = closest;
         }
 
         private static delegate* unmanaged<GameObject*, float, void> setGameObjectRotation;
@@ -123,7 +152,6 @@ namespace ReAction
                 getActionOutOfRangeOrLoS = (delegate* unmanaged<uint, GameObject*, GameObject*, uint>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0");
                 canActionQueue = (delegate* unmanaged<ActionManager*, uint, uint, byte>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 74 37 8B 84 24 90 00 00 00");
                 cancelCast = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9");
-                targetEnemyNext = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 28 33 D2 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 33 C0");
                 setGameObjectRotation = (delegate* unmanaged<GameObject*, float, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 83 FE 4F");
                 cameraManager = (IntPtr*)DalamudApi.SigScanner.GetStaticAddressFromSig("48 8D 35 ?? ?? ?? ?? 48 8B 09");
                 setHotbarSlot = (delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 39 6F 08");
