@@ -83,6 +83,7 @@ namespace ReAction
         public bool EnableAutoChangeTarget = false;
         public bool EnableSpellAutoAttacks = false;
         public bool EnableCameraRelativeDashes = false;
+        public bool EnableNormalBackwardDashes = false;
         public bool EnableQueuingMore = false;
         public bool EnableFPSAlignment = false;
         public bool EnableDecomboMeditation = false;

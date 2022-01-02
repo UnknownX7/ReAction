@@ -282,6 +282,7 @@ namespace ReAction
                 || !a.AffectsPosition
                 || !a.CanTargetSelf
                 || a.BehaviourType <= 1
+                || ReAction.Config.EnableNormalBackwardDashes && a.BehaviourType is 3 or 4
                 || Game.GetActionStatus(actionType, actionID) != 0
                 || Game.AnimationLock != 0)
                 return;
