@@ -40,7 +40,7 @@ namespace ReAction
         private static long queuedGroundTargetObjectID = 0;
         private static bool queuedItem = false;
 
-        private static Stopwatch timer = new();
+        private static readonly Stopwatch timer = new();
 
         public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
         {
@@ -230,7 +230,7 @@ namespace ReAction
         }
 
         private static bool CanUseAction(uint id, GameObject* target)
-            => Game.CanUseActionOnGameObject(id, target) && Game.GetActionStatus(1, id, target->ObjectID) is 0 or 580 or 582;
+            => Game.CanUseActionOnGameObject(id, target) && Game.GetActionStatus(1, id, target->ObjectID, 0, 0) == 0;
 
         private static bool TryDismount(uint actionType, uint actionID, long targetObjectID, uint useType, int pvp, out byte ret)
         {
