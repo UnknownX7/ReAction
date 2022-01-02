@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
 using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace ReAction
@@ -86,6 +87,7 @@ namespace ReAction
             Dalamud.Game.ClientState.Objects.Types.GameObject closest = null;
             foreach (var o in DalamudApi.ObjectTable.Where(o => o.YalmDistanceX < 30
                 && o.ObjectKind is ObjectKind.Player or ObjectKind.BattleNpc
+                && ((BattleChara)o).CurrentHp > 0
                 && CanUseActionOnGameObject(7, (GameObject*)o.Address)))
             {
                 var posDiff = o.Position - p.Position;
