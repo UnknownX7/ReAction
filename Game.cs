@@ -4,6 +4,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
@@ -142,6 +143,25 @@ namespace ReAction
         private static byte UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
             => ActionStackManager.OnUseAction(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
 
+        private static (string Name, uint DataID) focusTargetInfo = (null, 0);
+        public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, long objectID);
+        public static Hook<SetFocusTargetByObjectIDDelegate> SetFocusTargetByObjectIDHook;
+        private static void SetFocusTargetByObjectIDDetour(TargetSystem* targetSystem, long objectID)
+        {
+            SetFocusTargetByObjectIDHook.Original(targetSystem, objectID);
+            focusTargetInfo = DalamudApi.TargetManager.FocusTarget is { } o ? (o.Name.ToString(), o.DataId) : (null, 0);
+        }
+
+        public static void RefocusTarget()
+        {
+            if (focusTargetInfo.Name == null || DalamudApi.TargetManager.FocusTarget != null) return;
+
+            var foundTarget = DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == focusTargetInfo.DataID && o.Name.ToString() == focusTargetInfo.Name);
+            if (foundTarget == null) return;
+
+            DalamudApi.TargetManager.FocusTarget = foundTarget;
+        }
+
         public static void Initialize()
         {
             try
@@ -157,8 +177,10 @@ namespace ReAction
                 setGameObjectRotation = (delegate* unmanaged<GameObject*, float, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 83 FE 4F");
                 cameraManager = (IntPtr*)DalamudApi.SigScanner.GetStaticAddressFromSig("48 8D 35 ?? ?? ?? ?? 48 8B 09");
                 setHotbarSlot = (delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 39 6F 08");
-                UseActionHook = new Hook<UseActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 89 9F 14 79 02 00"), UseActionDetour);
+                UseActionHook = new Hook<UseActionDelegate>((IntPtr)ActionManager.fpUseAction, UseActionDetour);
+                SetFocusTargetByObjectIDHook = new Hook<SetFocusTargetByObjectIDDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 80 8B 35 01 00 00 02"), SetFocusTargetByObjectIDDetour);
                 UseActionHook.Enable();
+                SetFocusTargetByObjectIDHook.Enable();
             }
             catch (Exception e)
             {
@@ -166,6 +188,10 @@ namespace ReAction
             }
         }
 
-        public static void Dispose() => UseActionHook?.Dispose();
+        public static void Dispose()
+        {
+            UseActionHook?.Dispose();
+            SetFocusTargetByObjectIDHook?.Dispose();
+        }
     }
 }

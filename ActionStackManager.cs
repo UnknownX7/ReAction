@@ -8,6 +8,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
 namespace ReAction
 {
+    // TODO: for the love of god why am i still putting every feature in this one fucking file
     public static unsafe class ActionStackManager
     {
         public enum TargetType
@@ -362,6 +363,9 @@ namespace ReAction
                 else
                     TryCancelingCast();
             }
+
+            if (ReAction.Config.EnableAutoRefocusTarget && DalamudApi.Condition[ConditionFlag.BoundByDuty])
+                Game.RefocusTarget();
 
             if (!ReAction.Config.EnableFPSAlignment) return;
 

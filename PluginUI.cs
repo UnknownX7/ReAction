@@ -528,6 +528,11 @@ namespace ReAction
 
             ImGui.NextColumn();
 
+            save |= ImGui.Checkbox("Enable Auto Refocus Target", ref ReAction.Config.EnableAutoRefocusTarget);
+            SetItemTooltip("While in duties, attempts to focus target whatever was previously focus targeted if the focus target is lost.");
+
+            ImGui.NextColumn();
+
             if (ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks))
             {
                 Game.spellAutoAttackReplacer.Toggle();
