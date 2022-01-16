@@ -517,13 +517,13 @@ namespace ReAction
             ImGui.NextColumn();
 
             save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
-            SetItemTooltip("Automatically uses tab target when no target is specified for a targeted attack.");
+            SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
 
             if (ReAction.Config.EnableAutoTarget)
             {
                 ImGui.NextColumn();
                 save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
-                SetItemTooltip("Additionally uses tab target when your main target is incorrect for a targeted attack.");
+                SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
             }
 
             ImGui.NextColumn();
@@ -577,7 +577,7 @@ namespace ReAction
             ImGui.Separator();
 
             ImGui.Indent();
-            ImGui.TextUnformatted("Place on Hotbar");
+            ImGui.TextUnformatted("Place on Hotbar (HOVER ME FOR INFORMATION)");
             SetItemTooltip("This will allow you to place various things on the hotbar that you can't normally." +
                 "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
                 "\nSome examples of things you can do:" +
@@ -587,7 +587,7 @@ namespace ReAction
                 "\n\tRevive flying mount roulette (GeneralAction, 24).");
             ImGui.Unindent();
             ImGui.Columns(5, null, false);
-            ImGui.Combo("Hotbar", ref hotbar, "1\02\03\04\05\06\07\08\09\010");
+            ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010");
             ImGui.NextColumn();
             ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012");
             ImGui.NextColumn();
@@ -605,8 +605,11 @@ namespace ReAction
             ImGui.InputInt("ID", ref commandID);
             ImGui.NextColumn();
             if (ImGui.Button("Execute"))
+            {
                 Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, (uint)commandID);
-            SetItemTooltip("You need to move whatever you place on the hotbar in order to get it to save.");
+                ReAction.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
+            }
+            SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
             ImGui.Columns(1);
 
             if (save)
