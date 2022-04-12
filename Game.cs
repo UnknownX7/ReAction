@@ -178,7 +178,7 @@ namespace ReAction
                 cameraManager = (IntPtr*)DalamudApi.SigScanner.GetStaticAddressFromSig("48 8D 35 ?? ?? ?? ?? 48 8B 09");
                 setHotbarSlot = (delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 39 6F 08");
                 UseActionHook = new Hook<UseActionDelegate>((IntPtr)ActionManager.fpUseAction, UseActionDetour);
-                SetFocusTargetByObjectIDHook = new Hook<SetFocusTargetByObjectIDDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 80 8B 35 01 00 00 02"), SetFocusTargetByObjectIDDetour);
+                SetFocusTargetByObjectIDHook = new Hook<SetFocusTargetByObjectIDDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D"), SetFocusTargetByObjectIDDetour);
                 UseActionHook.Enable();
                 SetFocusTargetByObjectIDHook.Enable();
             }

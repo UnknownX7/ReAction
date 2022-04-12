@@ -170,7 +170,7 @@ namespace ReAction
 
             ImGui.SetCursorPos(nextLineCursorPos);
             ImGui.BeginChild("ReActionStackEditorLists", ImGui.GetContentRegionAvail(), false);
-            DrawStackEditorLists (currentStack);
+            DrawStackEditorLists(currentStack);
             ImGui.EndChild();
         }
 
