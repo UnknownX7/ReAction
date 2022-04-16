@@ -562,6 +562,15 @@ namespace ReAction
             save |= ImGui.Checkbox("Enable FPS Alignment", ref ReAction.Config.EnableFPSAlignment);
             SetItemTooltip("Aligns the game's FPS with the GCD and animation lock.\nNote: this option will cause an almost unnoticeable stutter when either of these timers ends.");
 
+            ImGui.Separator();
+            ImGui.NextColumn();
+            ImGui.NextColumn();
+
+            ImGui.Indent();
+            ImGui.TextUnformatted("Decombos");
+            ImGui.Unindent();
+
+            ImGui.NextColumn();
             ImGui.NextColumn();
 
             if (ImGui.Checkbox("Enable Uncombo'd Meditation", ref ReAction.Config.EnableDecomboMeditation))
@@ -569,7 +578,52 @@ namespace ReAction
                 Game.decomboMeditationReplacer.Toggle();
                 save = true;
             }
-            SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.");
+            SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.\nSteel Peak ID: 25761\nForbidden Chakra ID: 3547");
+
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Enable Uncombo'd Mirage Dive", ref ReAction.Config.EnableDecomboMirageDive))
+            {
+                Game.decomboMirageDiveReplacer.Toggle();
+                save = true;
+            }
+            SetItemTooltip("Removes the Jump / High Jump -> Mirage Dive combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nMirage Dive ID: 7399");
+
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Enable Uncombo'd Bunshin", ref ReAction.Config.EnableDecomboBunshin))
+            {
+                Game.decomboBunshinReplacer.Toggle();
+                save = true;
+            }
+            SetItemTooltip("Removes the Bunshin <-> Phantom Kamaitachi combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPhantom Kamaitachi ID: 25774");
+
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Enable Uncombo'd Wanderer's Minuet", ref ReAction.Config.EnableDecomboWanderersMinuet))
+            {
+                Game.decomboWanderersMinuetReplacer.Toggle();
+                save = true;
+            }
+            SetItemTooltip("Removes the Wanderer's Minuet -> Pitch Perfect combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPitch Perfect ID: 7404");
+
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Enable Uncombo'd Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
+            {
+                Game.decomboEarthlyStarReplacer.Toggle();
+                save = true;
+            }
+            SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
+
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Enable Uncombo'd Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy))
+            {
+                Game.decomboLiturgyReplacer.Toggle();
+                save = true;
+            }
+            SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
 
             ImGui.Columns(1);
 
@@ -581,15 +635,15 @@ namespace ReAction
             SetItemTooltip("This will allow you to place various things on the hotbar that you can't normally." +
                 "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
                 "\nSome examples of things you can do:" +
-                "\n\tPlace a certain Monk action (25761 or 3547) on the hotbar to be used with \"Enable Uncombo'd Meditation\"." +
+                "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
                 "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
                 "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
                 "\n\tRevive flying mount roulette (GeneralAction, 24).");
             ImGui.Unindent();
             ImGui.Columns(5, null, false);
-            ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010");
+            ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010\0XHB 1\0XHB 2\0XHB 3\0XHB 4\0XHB 5\0XHB 6\0XHB 7\0XHB 8");
             ImGui.NextColumn();
-            ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012");
+            ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012\013\014\015\016");
             ImGui.NextColumn();
             var hotbarSlotType = Enum.GetName(typeof(HotbarSlotType), commandType) ?? commandType.ToString();
             if (ImGui.BeginCombo("Type", hotbarSlotType))

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 
 namespace ReAction
@@ -23,16 +24,23 @@ namespace ReAction
             Config = (Configuration)DalamudApi.PluginInterface.GetPluginConfig() ?? new();
             Config.Initialize();
 
-            Game.Initialize();
+            try
+            {
+                Game.Initialize();
 
-            actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId is not 7).ToDictionary(i => i.RowId, i => i);
-            mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);
-            if (actionSheet == null || mountActionsSheet == null)
-                throw new ApplicationException("Action sheet failed to load!");
+                actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId is not 7).ToDictionary(i => i.RowId, i => i);
+                mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);
+                if (actionSheet == null || mountActionsSheet == null)
+                    throw new ApplicationException("Action sheet failed to load!");
 
-            DalamudApi.Framework.Update += Update;
-            DalamudApi.PluginInterface.UiBuilder.Draw += Draw;
-            DalamudApi.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfig;
+                DalamudApi.Framework.Update += Update;
+                DalamudApi.PluginInterface.UiBuilder.Draw += Draw;
+                DalamudApi.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfig;
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error($"Failed loading ReAction\n{e}");
+            }
         }
 
         public void ToggleConfig() => PluginUI.isVisible ^= true;

@@ -86,8 +86,14 @@ namespace ReAction
         public bool EnableNormalBackwardDashes = false;
         public bool EnableQueuingMore = false;
         public bool EnableFPSAlignment = false;
-        public bool EnableDecomboMeditation = false;
         public bool EnableAutoRefocusTarget = false;
+
+        public bool EnableDecomboMeditation = false;
+        public bool EnableDecomboMirageDive = false;
+        public bool EnableDecomboBunshin = false;
+        public bool EnableDecomboWanderersMinuet = false;
+        public bool EnableDecomboEarthlyStar = false;
+        public bool EnableDecomboLiturgy = false;
 
         public void Initialize() { }
 

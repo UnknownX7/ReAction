@@ -3,6 +3,7 @@ using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Logging;
+using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
@@ -12,7 +13,7 @@ using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace ReAction
 {
-    public static unsafe class Game
+    public unsafe class Game
     {
         public static ActionManager* actionManager;
         public static readonly Memory.Replacer allowQueuingReplacer = new("76 30 80 F9 04", new byte[] { 0xEB });
@@ -26,10 +27,69 @@ namespace ReAction
         // jnz A7h
         public static readonly Memory.Replacer spellAutoAttackReplacer = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", new byte[] { 0x41, 0xF6, 0x47, 0x39, 0x04, 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00, 0x90 }, ReAction.Config.EnableSpellAutoAttacks);
 
-        // cmp rcx, 0DDAh
+        // cmp rdx, 0DDAh
         // jz 41h
         // jmp 18h
-        public static readonly Memory.Replacer decomboMeditationReplacer = new("48 8B 05 ?? ?? ?? ?? 48 85 C0 74 3E 48 8B 0D", new byte[] { 0x48, 0x81, 0xFA, 0xDA, 0x0D, 0x00, 0x00, 0x74, 0x41, 0xEB, 0x18, 0x90 }, ReAction.Config.EnableDecomboMeditation);
+        public static readonly Memory.Replacer decomboMeditationReplacer = new("48 8B 05 ?? ?? ?? ?? 48 85 C0 74 3E 48 8B 0D",
+            new byte[] {
+                0x48, 0x81, 0xFA, 0xDA, 0x0D, 0x00, 0x00,
+                0x74, 0x41,
+                0xEB, 0x18,
+                0x90
+            },
+            ReAction.Config.EnableDecomboMeditation);
+
+        // cmp rdx, 1CE7h
+        // jne 16h
+        // jmp 0Ah
+        public static readonly Memory.Replacer decomboMirageDiveReplacer = new("BA DB 04 00 00 48 8D 0D ?? ?? ?? ?? E8",
+            new byte[] {
+                0x48, 0x81, 0xFA, 0xE7, 0x1C, 0x00, 0x00,
+                0x75, 0x16,
+                0xEB, 0x0A,
+                0x90
+            },
+            ReAction.Config.EnableDecomboMirageDive);
+
+        // mov eax, edx
+        // ret
+        public static readonly Memory.Replacer decomboBunshinReplacer = new("48 83 EC 28 BA A3 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
+            new byte[] {
+                0x8B, 0xC2,
+                0xC3,
+                0x90
+            },
+            ReAction.Config.EnableDecomboBunshin);
+
+        // mov eax, edx
+        // ret
+        public static readonly Memory.Replacer decomboWanderersMinuetReplacer = new("48 83 EC 28 BA A8 08 00 00 48 8D 0D ?? ?? ?? ?? E8",
+            new byte[] {
+                0x8B, 0xC2,
+                0xC3,
+                0x90
+            },
+            ReAction.Config.EnableDecomboWanderersMinuet);
+
+        // mov eax, edx
+        // ret
+        public static readonly Memory.Replacer decomboLiturgyReplacer = new("48 83 EC 28 BA 95 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
+            new byte[] {
+                0x8B, 0xC2,
+                0xC3,
+                0x90
+            },
+            ReAction.Config.EnableDecomboLiturgy);
+
+        // mov eax, edx
+        // ret
+        public static readonly Memory.Replacer decomboEarthlyStarReplacer = new("48 83 EC 28 48 83 3D ?? ?? ?? ?? ?? 75 0A",
+            new byte[] {
+                0x8B, 0xC2,
+                0xC3,
+                0x90
+            },
+            ReAction.Config.EnableDecomboEarthlyStar);
 
         public static float AnimationLock => *(float*)((IntPtr)actionManager + 0x8);
         public static uint CastActionType => *(uint*)((IntPtr)actionManager + 0x28);
@@ -48,16 +108,20 @@ namespace ReAction
             return (id.Type * 0x1_0000_0000) | id.ObjectID;
         }
 
+        [Signature("E8 ?? ?? ?? ?? 44 0F B6 C3 48 8B D0")]
         private static delegate* unmanaged<long, GameObject*> getGameObjectFromObjectID;
         public static GameObject* GetGameObjectFromObjectID(long id) => getGameObjectFromObjectID(id);
 
+        [Signature("E8 ?? ?? ?? ?? 48 8B D8 48 85 C0 0F 85 ?? ?? ?? ?? 8D 4F DD")]
         private static delegate* unmanaged<IntPtr, uint, GameObject*> getGameObjectFromPronounID;
         public static GameObject* GetGameObjectFromPronounID(uint id) => getGameObjectFromPronounID(pronounModule, id);
 
+        [Signature("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3")]
         private static delegate* unmanaged<uint, GameObject*, byte> canUseActionOnGameObject;
         public static bool CanUseActionOnGameObject(uint actionID, GameObject* o)
             => canUseActionOnGameObject(actionID, o) != 0 || ReAction.actionSheet.TryGetValue(actionID, out var a) && a.TargetArea;
 
+        [Signature("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9")]
         private static delegate* unmanaged<void> cancelCast;
         public static void CancelCast() => cancelCast();
 
@@ -101,7 +165,9 @@ namespace ReAction
                 DalamudApi.TargetManager.Target = closest;
         }
 
+        [Signature("E8 ?? ?? ?? ?? 83 FE 4F")]
         private static delegate* unmanaged<GameObject*, float, void> setGameObjectRotation;
+        [Signature("48 8D 35 ?? ?? ?? ?? 48 8B 09", ScanType = ScanType.StaticAddress)]
         private static IntPtr* cameraManager;
         public static void SetCharacterRotationToCamera()
         {
@@ -116,11 +182,13 @@ namespace ReAction
         }
 
         // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
+        [Signature("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0")]
         private static delegate* unmanaged<uint, GameObject*, GameObject*, uint> getActionOutOfRangeOrLoS;
         // The game is dumb and I cannot check LoS easily because not facing the target will override it
         public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
             && getActionOutOfRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566;
 
+        [Signature("E8 ?? ?? ?? ?? 84 C0 74 37 8B 84 24 90 00 00 00")]
         private static delegate* unmanaged<ActionManager*, uint, uint, byte> canActionQueue;
         public static bool CanActionQueue(uint actionType, uint actionID) => canActionQueue(actionManager, actionType, actionID) != 0;
 
@@ -130,10 +198,11 @@ namespace ReAction
             return func(actionManager, actionType, actionID, targetObjectID, checkCooldown, checkCasting);
         }
 
+        [Signature("E8 ?? ?? ?? ?? 4C 39 6F 08")]
         private static delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void> setHotbarSlot;
         public static void SetHotbarSlot(int hotbar, int slot, byte type, uint id)
         {
-            if (hotbar is < 0 or > 9 || slot is < 0 or > 11) return;
+            if (hotbar is < 0 or > 17 || (hotbar < 10 ? slot is < 0 or > 11 : slot is < 0 or > 15)) return;
             var raptureHotbarModule = Framework.Instance()->GetUiModule()->GetRaptureHotbarModule();
             setHotbarSlot(raptureHotbarModule->HotBar[hotbar]->Slot[slot], *(IntPtr*)((IntPtr)raptureHotbarModule + 0x48), type, id);
         }
@@ -145,6 +214,7 @@ namespace ReAction
 
         private static (string Name, uint DataID) focusTargetInfo = (null, 0);
         public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, long objectID);
+        [Signature("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D")]
         public static Hook<SetFocusTargetByObjectIDDelegate> SetFocusTargetByObjectIDHook;
         private static void SetFocusTargetByObjectIDDetour(TargetSystem* targetSystem, long objectID)
         {
@@ -164,28 +234,15 @@ namespace ReAction
 
         public static void Initialize()
         {
-            try
-            {
-                actionManager = ActionManager.Instance();
-                pronounModule = (IntPtr)Framework.Instance()->GetUiModule()->GetPronounModule();
-                getGameObjectFromObjectID = (delegate* unmanaged<long, GameObject*>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F B6 C3 48 8B D0");
-                getGameObjectFromPronounID = (delegate* unmanaged<IntPtr, uint, GameObject*>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B D8 48 85 C0 0F 85 ?? ?? ?? ?? 8D 4F DD");
-                canUseActionOnGameObject = (delegate* unmanaged<uint, GameObject*, byte>)DalamudApi.SigScanner.ScanText("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3");
-                getActionOutOfRangeOrLoS = (delegate* unmanaged<uint, GameObject*, GameObject*, uint>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 85 C0 75 02 33 C0");
-                canActionQueue = (delegate* unmanaged<ActionManager*, uint, uint, byte>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 74 37 8B 84 24 90 00 00 00");
-                cancelCast = (delegate* unmanaged<void>)DalamudApi.SigScanner.ScanText("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9");
-                setGameObjectRotation = (delegate* unmanaged<GameObject*, float, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 83 FE 4F");
-                cameraManager = (IntPtr*)DalamudApi.SigScanner.GetStaticAddressFromSig("48 8D 35 ?? ?? ?? ?? 48 8B 09");
-                setHotbarSlot = (delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void>)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 4C 39 6F 08");
-                UseActionHook = new Hook<UseActionDelegate>((IntPtr)ActionManager.fpUseAction, UseActionDetour);
-                SetFocusTargetByObjectIDHook = new Hook<SetFocusTargetByObjectIDDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D"), SetFocusTargetByObjectIDDetour);
-                UseActionHook.Enable();
-                SetFocusTargetByObjectIDHook.Enable();
-            }
-            catch (Exception e)
-            {
-                PluginLog.Error($"Failed loading ReAction\n{e}");
-            }
+            actionManager = ActionManager.Instance();
+            pronounModule = (IntPtr)Framework.Instance()->GetUiModule()->GetPronounModule();
+
+            // TODO change back to static whenever support is added
+            //SignatureHelper.Initialise(typeof(Game));
+            SignatureHelper.Initialise(new Game());
+            UseActionHook = new Hook<UseActionDelegate>((IntPtr)ActionManager.fpUseAction, UseActionDetour);
+            UseActionHook.Enable();
+            SetFocusTargetByObjectIDHook.Enable();
         }
 
         public static void Dispose()
