@@ -5,78 +5,77 @@ using Dalamud.Game;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 
-namespace ReAction
+namespace ReAction;
+
+public class ReAction : IDalamudPlugin
 {
-    public class ReAction : IDalamudPlugin
+    public string Name => "ReAction";
+    public static ReAction Plugin { get; private set; }
+    public static Configuration Config { get; private set; }
+
+    public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> actionSheet;
+    public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> mountActionsSheet;
+
+    public ReAction(DalamudPluginInterface pluginInterface)
     {
-        public string Name => "ReAction";
-        public static ReAction Plugin { get; private set; }
-        public static Configuration Config { get; private set; }
+        Plugin = this;
+        DalamudApi.Initialize(this, pluginInterface);
 
-        public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> actionSheet;
-        public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> mountActionsSheet;
+        Config = (Configuration)DalamudApi.PluginInterface.GetPluginConfig() ?? new();
+        Config.Initialize();
 
-        public ReAction(DalamudPluginInterface pluginInterface)
+        try
         {
-            Plugin = this;
-            DalamudApi.Initialize(this, pluginInterface);
+            Game.Initialize();
 
-            Config = (Configuration)DalamudApi.PluginInterface.GetPluginConfig() ?? new();
-            Config.Initialize();
+            actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId is not 7).ToDictionary(i => i.RowId, i => i);
+            mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);
+            if (actionSheet == null || mountActionsSheet == null)
+                throw new ApplicationException("Action sheet failed to load!");
 
-            try
-            {
-                Game.Initialize();
-
-                actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId is not 7).ToDictionary(i => i.RowId, i => i);
-                mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);
-                if (actionSheet == null || mountActionsSheet == null)
-                    throw new ApplicationException("Action sheet failed to load!");
-
-                DalamudApi.Framework.Update += Update;
-                DalamudApi.PluginInterface.UiBuilder.Draw += Draw;
-                DalamudApi.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfig;
-            }
-            catch (Exception e)
-            {
-                PluginLog.Error($"Failed loading ReAction\n{e}");
-            }
+            DalamudApi.Framework.Update += Update;
+            DalamudApi.PluginInterface.UiBuilder.Draw += Draw;
+            DalamudApi.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfig;
         }
-
-        public void ToggleConfig() => PluginUI.isVisible ^= true;
-
-        [Command("/reaction")]
-        [HelpMessage("Opens / closes the config.")]
-        private void ToggleConfig(string command, string argument) => ToggleConfig();
-
-        public static void PrintEcho(string message) => DalamudApi.ChatGui.Print($"[ReAction] {message}");
-        public static void PrintError(string message) => DalamudApi.ChatGui.PrintError($"[ReAction] {message}");
-
-        private void Update(Framework framework) => ActionStackManager.Update();
-
-        private void Draw() => PluginUI.Draw();
-
-        #region IDisposable Support
-        protected virtual void Dispose(bool disposing)
+        catch (Exception e)
         {
-            if (!disposing) return;
-
-            Config.Save();
-
-            DalamudApi.Framework.Update -= Update;
-            DalamudApi.PluginInterface.UiBuilder.Draw -= Draw;
-            DalamudApi.PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfig;
-            DalamudApi.Dispose();
-
-            Game.Dispose();
-            Memory.Dispose();
+            PluginLog.Error($"Failed loading ReAction\n{e}");
         }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
     }
+
+    public void ToggleConfig() => PluginUI.isVisible ^= true;
+
+    [Command("/reaction")]
+    [HelpMessage("Opens / closes the config.")]
+    private void ToggleConfig(string command, string argument) => ToggleConfig();
+
+    public static void PrintEcho(string message) => DalamudApi.ChatGui.Print($"[ReAction] {message}");
+    public static void PrintError(string message) => DalamudApi.ChatGui.PrintError($"[ReAction] {message}");
+
+    private void Update(Framework framework) => ActionStackManager.Update();
+
+    private void Draw() => PluginUI.Draw();
+
+    #region IDisposable Support
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing) return;
+
+        Config.Save();
+
+        DalamudApi.Framework.Update -= Update;
+        DalamudApi.PluginInterface.UiBuilder.Draw -= Draw;
+        DalamudApi.PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfig;
+        DalamudApi.Dispose();
+
+        Game.Dispose();
+        Memory.Dispose();
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+    #endregion
 }
