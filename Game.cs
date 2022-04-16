@@ -135,8 +135,8 @@ public unsafe class Game
         if (worldCamera == IntPtr.Zero) return;
 
         var hRotation = *(float*)(worldCamera + 0x130) + Math.PI * 1.5;
-        var firstPerson = *(int*)(worldCamera + 0x170) == 0;
-        if (firstPerson)
+        var flipped = *(int*)(worldCamera + 0x170) == *(byte*)(worldCamera + 0x1E4);
+        if (flipped)
             hRotation -= Math.PI;
 
         const double doublePI = Math.PI * 2;
@@ -179,8 +179,9 @@ public unsafe class Game
         if (worldCamera == IntPtr.Zero) return;
 
         var hRotation = *(float*)(worldCamera + 0x130);
+        var flipped = *(int*)(worldCamera + 0x170) == *(byte*)(worldCamera + 0x1E4);
         var localPlayer = (GameObject*)DalamudApi.ClientState.LocalPlayer!.Address;
-        setGameObjectRotation(localPlayer, hRotation + MathF.PI);
+        setGameObjectRotation(localPlayer, !flipped ? hRotation + MathF.PI : hRotation);
     }
 
     // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
