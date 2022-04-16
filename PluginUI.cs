@@ -196,7 +196,7 @@ public static class PluginUI
         save |= ImGui.Checkbox("Fail if Out of Range", ref stack.CheckRange);
         save |= ImGui.Checkbox("Fail if On Cooldown", ref stack.CheckCooldown);
         SetItemTooltip("Will fail if the action would fail to queue due to cooldown. Which is either" +
-                       "\n> 0.5s left on the cooldown, or < 0.5s since the last use (Charges / GCD).");
+            "\n> 0.5s left on the cooldown, or < 0.5s since the last use (Charges / GCD).");
 
         if (save)
             ReAction.Config.Save();
@@ -439,7 +439,7 @@ public static class PluginUI
         ImGui.Text("Editing a Stack");
         ImGui.Indent();
         ImGui.TextWrapped("Click on a stack from the top left list to display the editing panes for that it. The bottom left pane is where the " +
-                          "main settings reside, these will change the base functionality for the stack itself.");
+            "main settings reside, these will change the base functionality for the stack itself.");
         ImGui.Unindent();
 
         ImGui.Separator();
@@ -447,12 +447,12 @@ public static class PluginUI
         ImGui.Text("Editing a Stack's Actions");
         ImGui.Indent();
         ImGui.TextWrapped("The top right pane is where you can add actions, click the + to bring up a box that you can search for them through. " +
-                          "After adding every action that you would like to change the functionality of, you can additionally select which ones you would like to " +
-                          "\"adjust\". This means that the selected action will match any other one that replaces it on the hotbar. This can be due to a trait " +
-                          "(Holy <-> Holy III), a buff (Play -> The Balance) or another plugin (XIVCombo). An example case where you might want it off is when the " +
-                          "adjusted action has a separate use case, such as XIVCombo turning Play into Draw. You can change the functionality of the individual " +
-                          "cards while not affecting Draw by adding each of them to the list. Additionally, if the action is currently adjusted by the game, the " +
-                          "option will be highlighted in green as an indicator.");
+            "After adding every action that you would like to change the functionality of, you can additionally select which ones you would like to " +
+            "\"adjust\". This means that the selected action will match any other one that replaces it on the hotbar. This can be due to a trait " +
+            "(Holy <-> Holy III), a buff (Play -> The Balance) or another plugin (XIVCombo). An example case where you might want it off is when the " +
+            "adjusted action has a separate use case, such as XIVCombo turning Play into Draw. You can change the functionality of the individual " +
+            "cards while not affecting Draw by adding each of them to the list. Additionally, if the action is currently adjusted by the game, the " +
+            "option will be highlighted in green as an indicator.");
         ImGui.Unindent();
 
         ImGui.Separator();
@@ -460,9 +460,9 @@ public static class PluginUI
         ImGui.Text("Editing a Stack's Functionality");
         ImGui.Indent();
         ImGui.TextWrapped("The bottom right pane is where you can change the functionality of the selected actions, by setting a list of targets to " +
-                          "extend or replace the game's. When the action is used, the plugin will attempt to determine, from top to bottom, which target is a valid choice. " +
-                          "This will execute before the game's own target priority system and only allow it to continue if not blocked by the stack. If any of the targets " +
-                          "are valid choices, the plugin will change the action's target to the new one and, additionally, replace the action with the override if set.");
+            "extend or replace the game's. When the action is used, the plugin will attempt to determine, from top to bottom, which target is a valid choice. " +
+            "This will execute before the game's own target priority system and only allow it to continue if not blocked by the stack. If any of the targets " +
+            "are valid choices, the plugin will change the action's target to the new one and, additionally, replace the action with the override if set.");
         ImGui.Unindent();
 
         ImGui.Separator();
@@ -470,9 +470,9 @@ public static class PluginUI
         ImGui.Text("Stack Priority");
         ImGui.Indent();
         ImGui.TextWrapped("The executed stack will depend on which one, from top to bottom, first contains the action being used and has its modifier " +
-                          "keys held. If you would like to use \"All Actions\" in a stack, you can utilize this to add overrides above it in the list. Note that a stack " +
-                          "does not need to contain any functionality in the event that you would like for a set of actions to never be changed by \"All Actions\" and " +
-                          "instead use the original.");
+            "keys held. If you would like to use \"All Actions\" in a stack, you can utilize this to add overrides above it in the list. Note that a stack " +
+            "does not need to contain any functionality in the event that you would like for a set of actions to never be changed by \"All Actions\" and " +
+            "instead use the original.");
         ImGui.Unindent();
     }
 
@@ -633,12 +633,12 @@ public static class PluginUI
         ImGui.Indent();
         ImGui.TextUnformatted("Place on Hotbar (HOVER ME FOR INFORMATION)");
         SetItemTooltip("This will allow you to place various things on the hotbar that you can't normally." +
-                       "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
-                       "\nSome examples of things you can do:" +
-                       "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
-                       "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
-                       "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
-                       "\n\tRevive flying mount roulette (GeneralAction, 24).");
+            "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
+            "\nSome examples of things you can do:" +
+            "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
+            "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
+            "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
+            "\n\tRevive flying mount roulette (GeneralAction, 24).");
         ImGui.Unindent();
         ImGui.Columns(5, null, false);
         ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010\0XHB 1\0XHB 2\0XHB 3\0XHB 4\0XHB 5\0XHB 6\0XHB 7\0XHB 8");

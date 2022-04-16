@@ -16,5 +16,5 @@
   "ApplicableVersion": "any",
   "DalamudApiLevel": 6,
   "LoadPriority": 0,
-  "Changelog": "Auto Refocus Target"
+  "Changelog": "New decombos, support for placing things on the cross hotbars, new /macroqueue command"
 }

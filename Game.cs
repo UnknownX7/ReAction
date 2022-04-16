@@ -2,12 +2,12 @@ using System;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
-using Dalamud.Logging;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
 using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
@@ -91,6 +91,8 @@ public unsafe class Game
         },
         ReAction.Config.EnableDecomboEarthlyStar);
 
+    public static readonly Memory.Replacer queueACCommandReplacer = new("02 00 00 00 41 8B D7 89", new byte[] { 0x00 });
+
     public static float AnimationLock => *(float*)((IntPtr)actionManager + 0x8);
     public static uint CastActionType => *(uint*)((IntPtr)actionManager + 0x28);
     public static uint CastActionID => *(uint*)((IntPtr)actionManager + 0x2C);
@@ -151,9 +153,9 @@ public unsafe class Game
 
         Dalamud.Game.ClientState.Objects.Types.GameObject closest = null;
         foreach (var o in DalamudApi.ObjectTable.Where(o => o.YalmDistanceX < 30
-                                                            && o.ObjectKind is ObjectKind.Player or ObjectKind.BattleNpc
-                                                            && ((BattleChara)o).CurrentHp > 0
-                                                            && CanUseActionOnGameObject(7, (GameObject*)o.Address)))
+            && o.ObjectKind is ObjectKind.Player or ObjectKind.BattleNpc
+            && ((BattleChara)o).CurrentHp > 0
+            && CanUseActionOnGameObject(7, (GameObject*)o.Address)))
         {
             var posDiff = o.Position - p.Position;
             var angle = Math.Atan2(-posDiff.Z, posDiff.X) + Math.PI;
@@ -232,22 +234,36 @@ public unsafe class Game
         DalamudApi.TargetManager.FocusTarget = foundTarget;
     }
 
+    private static RaptureShellModule* raptureShellModule;
+    public static bool IsMacroRunning => raptureShellModule->MacroCurrentLine >= 0;
+    public delegate void ExecuteMacroDelegate(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro);
+    public static Hook<ExecuteMacroDelegate> ExecuteMacroHook;
+    public static void ExecuteMacroDetour(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro)
+    {
+        queueACCommandReplacer.Disable();
+        ExecuteMacroHook.Original(raptureShellModule, macro);
+    }
+
     public static void Initialize()
     {
         actionManager = ActionManager.Instance();
         pronounModule = (IntPtr)Framework.Instance()->GetUiModule()->GetPronounModule();
+        raptureShellModule = RaptureShellModule.Instance;
 
         // TODO change back to static whenever support is added
         //SignatureHelper.Initialise(typeof(Game));
         SignatureHelper.Initialise(new Game());
         UseActionHook = new Hook<UseActionDelegate>((IntPtr)ActionManager.fpUseAction, UseActionDetour);
+        ExecuteMacroHook = new Hook<ExecuteMacroDelegate>((IntPtr)RaptureShellModule.fpExecuteMacro, ExecuteMacroDetour);
         UseActionHook.Enable();
         SetFocusTargetByObjectIDHook.Enable();
+        ExecuteMacroHook.Enable();
     }
 
     public static void Dispose()
     {
         UseActionHook?.Dispose();
         SetFocusTargetByObjectIDHook?.Dispose();
+        ExecuteMacroHook?.Dispose();
     }
 }

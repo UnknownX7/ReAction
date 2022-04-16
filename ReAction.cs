@@ -49,14 +49,46 @@ public class ReAction : IDalamudPlugin
     [HelpMessage("Opens / closes the config.")]
     private void ToggleConfig(string command, string argument) => ToggleConfig();
 
+    [Command("/macroqueue")]
+    [Aliases("/mqueue")]
+    [HelpMessage("[on|off] - Toggles (with no argument specified), enables or disables /ac queueing in the current macro.")]
+    private void OnMacroQueue(string command, string argument)
+    {
+        if (!Game.IsMacroRunning)
+        {
+            PrintError("This command requires a macro to be running.");
+            return;
+        }
+
+        switch (argument)
+        {
+            case "on":
+            case "" when !Game.queueACCommandReplacer.IsEnabled:
+                Game.queueACCommandReplacer.Enable();
+                break;
+            case "off":
+            case "" when Game.queueACCommandReplacer.IsEnabled:
+                Game.queueACCommandReplacer.Disable();
+                break;
+            default:
+                PrintError("Invalid usage.");
+                break;
+        }
+    }
+
     public static void PrintEcho(string message) => DalamudApi.ChatGui.Print($"[ReAction] {message}");
     public static void PrintError(string message) => DalamudApi.ChatGui.PrintError($"[ReAction] {message}");
 
-    private void Update(Framework framework) => ActionStackManager.Update();
+    private void Update(Framework framework)
+    {
+        if (Game.queueACCommandReplacer.IsEnabled && !Game.IsMacroRunning)
+            Game.queueACCommandReplacer.Disable();
+
+        ActionStackManager.Update();
+    }
 
     private void Draw() => PluginUI.Draw();
 
-    #region IDisposable Support
     protected virtual void Dispose(bool disposing)
     {
         if (!disposing) return;
@@ -77,5 +109,4 @@ public class ReAction : IDalamudPlugin
         Dispose(true);
         GC.SuppressFinalize(this);
     }
-    #endregion
 }
