@@ -260,18 +260,9 @@ public static unsafe class ActionStackManager
         return true;
     }
 
-    private static bool warn1 = false;
     private static bool TryTabTarget(uint actionID, long objectID, out long newObjectID)
     {
-        if (!warn1)
-        {
-            ReAction.PrintError("The Auto Target feature is currently broken due to a game update, and may or may not be fixed, please use the game's option instead.");
-            warn1 = true;
-        }
-
         newObjectID = 0;
-        return false;
-
         var targetObject = DalamudApi.TargetManager.Target is { } t ? (GameObject*)t.Address : null;
         if (!ReAction.Config.EnableAutoChangeTarget && targetObject != null
             || objectID != 0xE0000000 && Game.GetGameObjectFromObjectID(objectID) != targetObject
@@ -292,17 +283,8 @@ public static unsafe class ActionStackManager
         return true;
     }
 
-    private static bool warn2 = false;
     private static void TryDashFromCamera(uint actionType, uint actionID)
     {
-        if (!warn2)
-        {
-            ReAction.PrintError("The Camera Relative Dashes feature is currently broken due to a game update.");
-            warn2 = true;
-        }
-
-        return;
-
         if (!ReAction.actionSheet.TryGetValue(actionID, out var a)
             || !a.AffectsPosition
             || !a.CanTargetSelf

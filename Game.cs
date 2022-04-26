@@ -169,7 +169,7 @@ public unsafe class Game
 
     [Signature("E8 ?? ?? ?? ?? 83 FE 4F")]
     private static delegate* unmanaged<GameObject*, float, void> setGameObjectRotation;
-    [Signature("48 8D 35 ?? ?? ?? ?? 48 8B 09", ScanType = ScanType.StaticAddress)]
+    [Signature("4C 8D 35 ?? ?? ?? ?? 85 D2", ScanType = ScanType.StaticAddress)]
     private static IntPtr* cameraManager;
     public static void SetCharacterRotationToCamera()
     {
