@@ -63,11 +63,11 @@ public unsafe class Game
 
     // mov eax, edx
     // ret
-    public static readonly Memory.Replacer decomboWanderersMinuetReplacer = new("48 83 EC 28 BA A8 08 00 00 48 8D 0D ?? ?? ?? ?? E8",
+    public static readonly Memory.Replacer decomboWanderersMinuetReplacer = new("48 8B 0D ?? ?? ?? ?? 48 85 C9 74 27 48 8B 05",
         new byte[] {
             0x8B, 0xC2,
             0xC3,
-            0x90
+            0x90, 0x90, 0x90, 0x90
         },
         ReAction.Config.EnableDecomboWanderersMinuet);
 
@@ -194,12 +194,6 @@ public unsafe class Game
     [Signature("E8 ?? ?? ?? ?? 84 C0 74 37 8B 84 24 90 00 00 00")]
     private static delegate* unmanaged<ActionManager*, uint, uint, byte> canActionQueue;
     public static bool CanActionQueue(uint actionType, uint actionID) => canActionQueue(actionManager, actionType, actionID) != 0;
-
-    public static uint GetActionStatus(uint actionType, uint actionID, long targetObjectID = 0xE000_0000, byte checkCooldown = 1, byte checkCasting = 1)
-    {
-        var func = (delegate* unmanaged[Stdcall]<ActionManager*, uint, uint, long, uint, uint, uint>)ActionManager.fpGetActionStatus;
-        return func(actionManager, actionType, actionID, targetObjectID, checkCooldown, checkCasting);
-    }
 
     [Signature("E8 ?? ?? ?? ?? 4C 39 6F 08")]
     private static delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void> setHotbarSlot;

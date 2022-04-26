@@ -237,7 +237,7 @@ public static unsafe class ActionStackManager
     }
 
     private static bool CanUseAction(uint id, GameObject* target)
-        => Game.CanUseActionOnGameObject(id, target) && Game.GetActionStatus(1, id, target->ObjectID, 0, 0) == 0;
+        => Game.CanUseActionOnGameObject(id, target) && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID, 0, 0) == 0;
 
     private static bool TryDismount(uint actionType, uint actionID, long targetObjectID, uint useType, int pvp, out byte ret)
     {
@@ -246,7 +246,7 @@ public static unsafe class ActionStackManager
         if (!DalamudApi.Condition[ConditionFlag.Mounted]
             || actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
             || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
-            || Game.GetActionStatus(actionType, actionID, targetObjectID, 0, 0) == 0)
+            || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, targetObjectID, 0, 0) == 0)
             return false;
 
         ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
@@ -290,7 +290,7 @@ public static unsafe class ActionStackManager
             || !a.CanTargetSelf
             || a.BehaviourType <= 1
             || ReAction.Config.EnableNormalBackwardDashes && a.BehaviourType is 3 or 4
-            || Game.GetActionStatus(actionType, actionID) != 0
+            || Game.actionManager->GetActionStatus((ActionType)actionType, actionID) != 0
             || Game.AnimationLock != 0)
             return;
 
