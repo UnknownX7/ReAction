@@ -64,7 +64,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ReAction_Custom.json">
+    <None Update="ReAction.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
