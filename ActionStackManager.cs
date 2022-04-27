@@ -234,9 +234,17 @@ public static unsafe class ActionStackManager
             case TargetType.P8:
                 return Game.GetGameObjectFromPronounID(50);
             case TargetType.LowestHP:
-                var partyListSnapshot = DalamudApi.PartyList;
-                uint minHP = partyListSnapshot.Where(member => member.CurrentHP > 0).Min(member => member.CurrentHP);
-                o = partyListSnapshot.Where(member => member.CurrentHP == minHP).First().GameObject;
+                var partyListSnapshot = DalamudApi.PartyList.Where(member => member.CurrentHP > 0);
+                if (!partyListSnapshot.Any())
+                {
+                    return null;
+                }
+
+                uint minHP = partyListSnapshot.Min(member => member.CurrentHP);
+                if(minHP != 0)
+                {
+                    o = partyListSnapshot.Where(member => member.CurrentHP == minHP).First().GameObject;
+                }
                 break;
         }
 
