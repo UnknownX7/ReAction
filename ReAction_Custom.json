@@ -1,18 +1,18 @@
 ﻿{
-  "Author": "UnknownX",
-  "Name": "ReAction",
+  "Author": "eqbot",
+  "Name": "ReAction_Custom",
   "Punchline": "QoL for the battle system.",
   "Description": "Improves aspects of the battle system with action stacks (like MOAction) and various QoL settings.",
   "IconUrl": "",
   "ImageUrls": [
     ""
   ],
-  "RepoUrl": "https://github.com/UnknownX7/ReAction",
+  "RepoUrl": "https://github.com/eqbot/ReAction",
   "CategoryTags": [
     "jobs"
   ],
-  "InternalName": "ReAction",
-  "AssemblyVersion": "9.9.9.9",
+  "InternalName": "ReAction_Custom",
+  "AssemblyVersion": "9.9.9.9_c",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 6,
   "LoadPriority": 0,

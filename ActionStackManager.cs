@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
@@ -29,7 +30,8 @@ public static unsafe class ActionStackManager
         P5,
         P6,
         P7,
-        P8
+        P8,
+        LowestHP
     }
 
     private static bool isMountActionQueued = false;
@@ -231,6 +233,11 @@ public static unsafe class ActionStackManager
                 return Game.GetGameObjectFromPronounID(49);
             case TargetType.P8:
                 return Game.GetGameObjectFromPronounID(50);
+            case TargetType.LowestHP:
+                var partyListSnapshot = DalamudApi.PartyList;
+                uint minHP = partyListSnapshot.Where(member => member.CurrentHP > 0).Min(member => member.CurrentHP);
+                o = partyListSnapshot.Where(member => member.CurrentHP == minHP).First().GameObject;
+                break;
         }
 
         return o != null ? (GameObject*)o.Address : null;
