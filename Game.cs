@@ -27,67 +27,58 @@ public unsafe class Game
     // jnz A7h
     public static readonly Memory.Replacer spellAutoAttackReplacer = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", new byte[] { 0x41, 0xF6, 0x47, 0x39, 0x04, 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00, 0x90 }, ReAction.Config.EnableSpellAutoAttacks);
 
-    // cmp rdx, 0DDAh
+    // 6.2 inlined this function, but the original still exists so the sig matches both
+    // cmp rbx, 0DDAh
     // jz 41h
     // jmp 18h
     public static readonly Memory.Replacer decomboMeditationReplacer = new("48 8B 05 ?? ?? ?? ?? 48 85 C0 74 3E 48 8B 0D",
         new byte[] {
-            0x48, 0x81, 0xFA, 0xDA, 0x0D, 0x00, 0x00,
+            0x48, 0x81, 0xFB, 0xDA, 0x0D, 0x00, 0x00,
             0x74, 0x41,
             0xEB, 0x18,
             0x90
         },
         ReAction.Config.EnableDecomboMeditation);
 
-    // cmp rdx, 1CE7h
-    // jne 16h
-    // jmp 0Ah
-    public static readonly Memory.Replacer decomboMirageDiveReplacer = new("BA DB 04 00 00 48 8D 0D ?? ?? ?? ?? E8",
+    // Inlined, same as above
+    // mov eax, ebx
+    // jmp 1Eh
+    public static readonly Memory.Replacer decomboBunshinReplacer = new("BA A3 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
         new byte[] {
-            0x48, 0x81, 0xFA, 0xE7, 0x1C, 0x00, 0x00,
-            0x75, 0x16,
-            0xEB, 0x0A,
-            0x90
-        },
-        ReAction.Config.EnableDecomboMirageDive);
-
-    // mov eax, edx
-    // ret
-    public static readonly Memory.Replacer decomboBunshinReplacer = new("48 83 EC 28 BA A3 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
-        new byte[] {
-            0x8B, 0xC2,
-            0xC3,
-            0x90
+            0x8B, 0xC3,
+            0xEB, 0x1E
         },
         ReAction.Config.EnableDecomboBunshin);
 
-    // mov eax, edx
+    // mov eax, ebx
     // ret
     public static readonly Memory.Replacer decomboWanderersMinuetReplacer = new("48 8B 0D ?? ?? ?? ?? 48 85 C9 74 27 48 8B 05",
         new byte[] {
-            0x8B, 0xC2,
+            0x8B, 0xC3,
             0xC3,
             0x90, 0x90, 0x90, 0x90
         },
         ReAction.Config.EnableDecomboWanderersMinuet);
 
-    // mov eax, edx
-    // ret
-    public static readonly Memory.Replacer decomboLiturgyReplacer = new("48 83 EC 28 BA 95 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
+    // Also inlined
+    // mov eax, ebx
+    // jmp 1Eh
+    public static readonly Memory.Replacer decomboLiturgyReplacer = new("BA 95 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
         new byte[] {
-            0x8B, 0xC2,
-            0xC3,
-            0x90
+            0x8B, 0xC3,
+            0xEB, 0x1E
         },
         ReAction.Config.EnableDecomboLiturgy);
 
-    // mov eax, edx
-    // ret
-    public static readonly Memory.Replacer decomboEarthlyStarReplacer = new("48 83 EC 28 48 83 3D ?? ?? ?? ?? ?? 75 0A",
+    // Again... inlined...
+    // mov eax, ebx
+    // nop (until an already existing jmp to a ret)
+    public static readonly Memory.Replacer decomboEarthlyStarReplacer = new("48 83 3D ?? ?? ?? ?? ?? 75 0A B8 0F 1D 00 00",
         new byte[] {
-            0x8B, 0xC2,
-            0xC3,
-            0x90
+            0x8B, 0xC3,
+            0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
+            0x90, 0x90,
+            0x90, 0x90, 0x90, 0x90, 0x90
         },
         ReAction.Config.EnableDecomboEarthlyStar);
 
