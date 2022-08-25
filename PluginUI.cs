@@ -492,7 +492,7 @@ public static class PluginUI
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
-        SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when not used in a stack.");
+        SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
 
         ImGui.NextColumn();
 
@@ -582,15 +582,6 @@ public static class PluginUI
 
         ImGui.NextColumn();
 
-        if (ImGui.Checkbox("Enable Uncombo'd Mirage Dive", ref ReAction.Config.EnableDecomboMirageDive))
-        {
-            Game.decomboMirageDiveReplacer.Toggle();
-            save = true;
-        }
-        SetItemTooltip("Removes the Jump / High Jump -> Mirage Dive combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nMirage Dive ID: 7399");
-
-        ImGui.NextColumn();
-
         if (ImGui.Checkbox("Enable Uncombo'd Bunshin", ref ReAction.Config.EnableDecomboBunshin))
         {
             Game.decomboBunshinReplacer.Toggle();
@@ -609,21 +600,21 @@ public static class PluginUI
 
         ImGui.NextColumn();
 
-        if (ImGui.Checkbox("Enable Uncombo'd Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
-        {
-            Game.decomboEarthlyStarReplacer.Toggle();
-            save = true;
-        }
-        SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
-
-        ImGui.NextColumn();
-
         if (ImGui.Checkbox("Enable Uncombo'd Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy))
         {
             Game.decomboLiturgyReplacer.Toggle();
             save = true;
         }
         SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
+
+        ImGui.NextColumn();
+
+        if (ImGui.Checkbox("Enable Uncombo'd Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
+        {
+            Game.decomboEarthlyStarReplacer.Toggle();
+            save = true;
+        }
+        SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
 
         ImGui.Columns(1);
 

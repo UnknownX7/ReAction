@@ -267,7 +267,7 @@ public static unsafe class ActionStackManager
         ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
         if (ret == 0) return true;
 
-        PluginLog.Debug($"Dismounting {actionType}, {actionID}, {targetObjectID}, {useType}, {pvp}");
+        PluginLog.Debug($"Dismounting {actionType}, {actionID}, {targetObjectID:X}, {useType}, {pvp}");
 
         isMountActionQueued = true;
         queuedMountAction = (actionType, actionID, targetObjectID, useType, pvp);

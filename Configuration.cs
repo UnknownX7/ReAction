@@ -89,7 +89,6 @@ public class Configuration : IPluginConfiguration
     public bool EnableAutoRefocusTarget = false;
 
     public bool EnableDecomboMeditation = false;
-    public bool EnableDecomboMirageDive = false;
     public bool EnableDecomboBunshin = false;
     public bool EnableDecomboWanderersMinuet = false;
     public bool EnableDecomboEarthlyStar = false;
