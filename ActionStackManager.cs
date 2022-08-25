@@ -198,19 +198,16 @@ public static unsafe class ActionStackManager
                 o = DalamudApi.TargetManager.SoftTarget;
                 break;
             case TargetType.FocusTarget:
-                o = DalamudApi.TargetManager.FocusTarget;
-                break;
+                return Game.GetGameObjectFromPronounID(1004);
             case TargetType.UITarget:
                 return Game.UITarget;
             case TargetType.FieldTarget:
                 o = DalamudApi.TargetManager.MouseOverTarget;
                 break;
-            case TargetType.TargetsTarget when DalamudApi.TargetManager.Target is { TargetObjectId: not 0xE0000000 }:
-                o = DalamudApi.TargetManager.Target.TargetObject;
-                break;
+            case TargetType.TargetsTarget:
+                return Game.GetGameObjectFromPronounID(1002);
             case TargetType.Self:
-                o = DalamudApi.ClientState.LocalPlayer;
-                break;
+                return Game.GetGameObjectFromPronounID(1014);
             case TargetType.LastTarget:
                 return Game.GetGameObjectFromPronounID(1006);
             case TargetType.LastEnemy:
