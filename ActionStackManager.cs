@@ -243,7 +243,7 @@ public static unsafe class ActionStackManager
                 .Where(member => member.CurrentHP > 0)
                 .MinBy(member => member.CurrentHP)
                 .ObjectId
-        )
+        );
     }
 
     private static bool CanUseAction(uint id, GameObject* target)
