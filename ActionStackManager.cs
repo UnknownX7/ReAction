@@ -238,8 +238,9 @@ public static unsafe class ActionStackManager
 
     private static GameObject* GetTargetWithLowestHP()
     {
-        return Game.GetGameObjectFromObjectID(DalamudApi.PartyList.First().ObjectId);
+        return &(DalamudApi.PartyList.First().GameObject)
         /*
+        return Game.GetGameObjectFromObjectID(DalamudApi.PartyList.First().ObjectId);
         return Game.GetGameObjectFromObjectID(
             DalamudApi.PartyList
                 .Where(member => member.CurrentHP > 0)
