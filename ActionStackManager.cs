@@ -23,6 +23,7 @@ public static unsafe class ActionStackManager
         LastTarget,
         LastEnemy,
         LastAttacker,
+        LowestHPPartyMember,
         P2,
         P3,
         P4,
@@ -214,6 +215,8 @@ public static unsafe class ActionStackManager
                 return Game.GetGameObjectFromPronounID(1084);
             case TargetType.LastAttacker:
                 return Game.GetGameObjectFromPronounID(1008);
+            case TargetType.LowestHPPartyMember:
+                return GetTargetWithLowestHP();
             case TargetType.P2:
                 return Game.GetGameObjectFromPronounID(44);
             case TargetType.P3:
@@ -231,6 +234,11 @@ public static unsafe class ActionStackManager
         }
 
         return o != null ? (GameObject*)o.Address : null;
+    }
+
+    private static GameObject* GetTargetWithLowestHP()
+    {
+        return DalamudApi.PartyList.Where(member -> member.CurrentHP > 0).Min(member -> member.CurrentHP);
     }
 
     private static bool CanUseAction(uint id, GameObject* target)
