@@ -242,7 +242,7 @@ public static unsafe class ActionStackManager
             DalamudApi.PartyList
                 .Where(member => member.CurrentHP > 0)
                 .MinBy(member => member.CurrentHP)
-                .ObjectId;
+                .ObjectId
         )
     }
 
