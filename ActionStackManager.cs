@@ -23,14 +23,14 @@ public static unsafe class ActionStackManager
         LastTarget,
         LastEnemy,
         LastAttacker,
-        LowestHPPartyMember,
         P2,
         P3,
         P4,
         P5,
         P6,
         P7,
-        P8
+        P8,
+        LowestHPPartyMember
     }
 
     private static bool isMountActionQueued = false;
@@ -215,8 +215,6 @@ public static unsafe class ActionStackManager
                 return Game.GetGameObjectFromPronounID(1084);
             case TargetType.LastAttacker:
                 return Game.GetGameObjectFromPronounID(1008);
-            case TargetType.LowestHPPartyMember:
-                return GetTargetWithLowestHP();
             case TargetType.P2:
                 return Game.GetGameObjectFromPronounID(44);
             case TargetType.P3:
@@ -231,6 +229,8 @@ public static unsafe class ActionStackManager
                 return Game.GetGameObjectFromPronounID(49);
             case TargetType.P8:
                 return Game.GetGameObjectFromPronounID(50);
+            case TargetType.LowestHPPartyMember:
+                return GetTargetWithLowestHP();
         }
 
         return o != null ? (GameObject*)o.Address : null;
