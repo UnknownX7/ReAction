@@ -243,6 +243,7 @@ public static unsafe class ActionStackManager
             return Game.GetGameObjectFromObjectID(
                 DalamudApi.PartyList
                     .Where(member => member.CurrentHP > 0)
+                    .Where(member => member.CurrentHP < member.MaxHP)
                     .MinBy(member => member.CurrentHP)
                     .ObjectId
             );
