@@ -127,12 +127,12 @@ public static unsafe class ActionStackManager
 
             if (succeeded && ReAction.actionSheet[adjustedActionID].TargetArea)
             {
-                *(long*)((IntPtr)Game.actionManager + 0x98) = targetObjectID;
+                *(long*)((nint)Game.actionManager + 0x98) = targetObjectID;
                 queuedGroundTargetObjectID = targetObjectID;
             }
             else if (useType == 1 && queuedGroundTargetObjectID != 0)
             {
-                *(long*)((IntPtr)Game.actionManager + 0x98) = queuedGroundTargetObjectID;
+                *(long*)((nint)Game.actionManager + 0x98) = queuedGroundTargetObjectID;
                 queuedGroundTargetObjectID = 0;
             }
             else
@@ -234,7 +234,7 @@ public static unsafe class ActionStackManager
     }
 
     private static bool CanUseAction(uint id, GameObject* target)
-        => Game.CanUseActionOnGameObject(id, target) && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID, 0, 0) == 0;
+        => Game.CanUseActionOnGameObject(id, target) && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID, false, false) == 0;
 
     private static bool TryDismount(uint actionType, uint actionID, long targetObjectID, uint useType, int pvp, out byte ret)
     {
@@ -243,7 +243,7 @@ public static unsafe class ActionStackManager
         if (!DalamudApi.Condition[ConditionFlag.Mounted]
             || actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
             || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
-            || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, targetObjectID, 0, 0) == 0)
+            || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, targetObjectID, false, false) == 0)
             return false;
 
         ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
@@ -312,7 +312,7 @@ public static unsafe class ActionStackManager
 
         PluginLog.Debug($"Making ground target instant {actionType}, {useType}");
 
-        *(byte*)((IntPtr)Game.actionManager + 0xB8) = 1;
+        *(byte*)((nint)Game.actionManager + 0xB8) = 1;
     }
 
     private static void TryQueuedMountAction()

@@ -16,7 +16,7 @@ namespace ReAction;
 public unsafe class Game
 {
     public static ActionManager* actionManager;
-    public static readonly Memory.Replacer allowQueuingReplacer = new("76 30 80 F9 04", new byte[] { 0xEB });
+    public static readonly Memory.Replacer allowQueuingReplacer = new("76 2F 80 F9 04", new byte[] { 0xEB });
     public static readonly Memory.Replacer queueGroundTargetsReplacer = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
 
     // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 10
@@ -84,16 +84,16 @@ public unsafe class Game
 
     public static readonly Memory.Replacer queueACCommandReplacer = new("02 00 00 00 41 8B D7 89", new byte[] { 0x00 });
 
-    public static float AnimationLock => *(float*)((IntPtr)actionManager + 0x8);
-    public static uint CastActionType => *(uint*)((IntPtr)actionManager + 0x28);
-    public static uint CastActionID => *(uint*)((IntPtr)actionManager + 0x2C);
-    public static uint CastTargetID => *(uint*)((IntPtr)actionManager + 0x38);
-    public static bool IsQueued => *(bool*)((IntPtr)actionManager + 0x68);
-    public static float ElapsedGCDRecastTime => *(float*)((IntPtr)actionManager + 0x618);
-    public static float GCDRecastTime => *(float*)((IntPtr)actionManager + 0x61C);
+    public static float AnimationLock => *(float*)((nint)actionManager + 0x8);
+    public static uint CastActionType => *(uint*)((nint)actionManager + 0x28);
+    public static uint CastActionID => *(uint*)((nint)actionManager + 0x2C);
+    public static uint CastTargetID => *(uint*)((nint)actionManager + 0x38);
+    public static bool IsQueued => *(bool*)((nint)actionManager + 0x68);
+    public static float ElapsedGCDRecastTime => *(float*)((nint)actionManager + 0x5F0);
+    public static float GCDRecastTime => *(float*)((nint)actionManager + 0x5F4);
 
-    private static IntPtr pronounModule = IntPtr.Zero;
-    public static GameObject* UITarget => (GameObject*)*(IntPtr*)(pronounModule + 0x290);
+    private static nint pronounModule = nint.Zero;
+    public static GameObject* UITarget => (GameObject*)*(nint*)(pronounModule + 0x290);
 
     public static long GetObjectID(GameObject* o)
     {
@@ -106,7 +106,7 @@ public unsafe class Game
     public static GameObject* GetGameObjectFromObjectID(long id) => getGameObjectFromObjectID(id);
 
     [Signature("E8 ?? ?? ?? ?? 48 8B D8 48 85 C0 0F 85 ?? ?? ?? ?? 8D 4F DD")]
-    private static delegate* unmanaged<IntPtr, uint, GameObject*> getGameObjectFromPronounID;
+    private static delegate* unmanaged<nint, uint, GameObject*> getGameObjectFromPronounID;
     public static GameObject* GetGameObjectFromPronounID(uint id) => getGameObjectFromPronounID(pronounModule, id);
 
     [Signature("48 89 5C 24 08 57 48 83 EC 20 48 8B DA 8B F9 E8 ?? ?? ?? ?? 4C 8B C3")]
@@ -123,7 +123,7 @@ public unsafe class Game
         if (cameraManager == null || DalamudApi.ClientState.LocalPlayer is not { } p) return;
 
         var worldCamera = cameraManager[0];
-        if (worldCamera == IntPtr.Zero) return;
+        if (worldCamera == nint.Zero) return;
 
         var hRotation = *(float*)(worldCamera + 0x130) + Math.PI * 1.5;
         var flipped = *(int*)(worldCamera + 0x170) == *(byte*)(worldCamera + 0x1E4);
@@ -161,13 +161,13 @@ public unsafe class Game
     [Signature("E8 ?? ?? ?? ?? 83 FE 4F")]
     private static delegate* unmanaged<GameObject*, float, void> setGameObjectRotation;
     [Signature("4C 8D 35 ?? ?? ?? ?? 85 D2", ScanType = ScanType.StaticAddress)]
-    private static IntPtr* cameraManager;
+    private static nint* cameraManager;
     public static void SetCharacterRotationToCamera()
     {
         if (cameraManager == null) return;
 
         var worldCamera = cameraManager[0];
-        if (worldCamera == IntPtr.Zero) return;
+        if (worldCamera == nint.Zero) return;
 
         var hRotation = *(float*)(worldCamera + 0x130);
         var flipped = *(int*)(worldCamera + 0x170) == *(byte*)(worldCamera + 0x1E4);
@@ -182,17 +182,17 @@ public unsafe class Game
     public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
         && getActionOutOfRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566;
 
-    [Signature("E8 ?? ?? ?? ?? 84 C0 74 37 8B 84 24 90 00 00 00")]
+    [Signature("E8 ?? ?? ?? ?? 84 C0 74 37 8B 84 24 ?? ?? 00 00")]
     private static delegate* unmanaged<ActionManager*, uint, uint, byte> canActionQueue;
     public static bool CanActionQueue(uint actionType, uint actionID) => canActionQueue(actionManager, actionType, actionID) != 0;
 
     [Signature("E8 ?? ?? ?? ?? 4C 39 6F 08")]
-    private static delegate* unmanaged<HotBarSlot*, IntPtr, byte, uint, void> setHotbarSlot;
+    private static delegate* unmanaged<HotBarSlot*, nint, byte, uint, void> setHotbarSlot;
     public static void SetHotbarSlot(int hotbar, int slot, byte type, uint id)
     {
         if (hotbar is < 0 or > 17 || (hotbar < 10 ? slot is < 0 or > 11 : slot is < 0 or > 15)) return;
         var raptureHotbarModule = Framework.Instance()->GetUiModule()->GetRaptureHotbarModule();
-        setHotbarSlot(raptureHotbarModule->HotBar[hotbar]->Slot[slot], *(IntPtr*)((IntPtr)raptureHotbarModule + 0x48), type, id);
+        setHotbarSlot(raptureHotbarModule->HotBar[hotbar]->Slot[slot], *(nint*)((nint)raptureHotbarModule + 0x48), type, id);
     }
 
     public delegate byte UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);
@@ -233,14 +233,14 @@ public unsafe class Game
     public static void Initialize()
     {
         actionManager = ActionManager.Instance();
-        pronounModule = (IntPtr)Framework.Instance()->GetUiModule()->GetPronounModule();
+        pronounModule = (nint)Framework.Instance()->GetUiModule()->GetPronounModule();
         raptureShellModule = RaptureShellModule.Instance;
 
         // TODO change back to static whenever support is added
         //SignatureHelper.Initialise(typeof(Game));
         SignatureHelper.Initialise(new Game());
-        UseActionHook = new Hook<UseActionDelegate>((IntPtr)ActionManager.fpUseAction, UseActionDetour);
-        ExecuteMacroHook = new Hook<ExecuteMacroDelegate>((IntPtr)RaptureShellModule.fpExecuteMacro, ExecuteMacroDetour);
+        UseActionHook = new Hook<UseActionDelegate>((nint)ActionManager.MemberFunctionPointers.UseAction, UseActionDetour);
+        ExecuteMacroHook = new Hook<ExecuteMacroDelegate>((nint)RaptureShellModule.MemberFunctionPointers.ExecuteMacro, ExecuteMacroDetour);
         UseActionHook.Enable();
         SetFocusTargetByObjectIDHook.Enable();
         ExecuteMacroHook.Enable();

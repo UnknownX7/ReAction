@@ -121,29 +121,20 @@ public class Configuration : IPluginConfiguration
     public static string CompressString(string s)
     {
         var bytes = Encoding.UTF8.GetBytes(s);
-        using var mso = new MemoryStream();
-        using (var gs = new GZipStream(mso, CompressionMode.Compress))
-        {
+        using var ms = new MemoryStream();
+        using (var gs = new GZipStream(ms, CompressionMode.Compress))
             gs.Write(bytes, 0, bytes.Length);
-        }
-        return exportPrefix + Convert.ToBase64String(mso.ToArray());
+        return exportPrefix + Convert.ToBase64String(ms.ToArray());
     }
 
     public static string DecompressString(string s)
     {
         if (!s.StartsWith(exportPrefix))
             throw new ApplicationException("This is not a ReAction export.");
-        var data = Convert.FromBase64String(s[exportPrefix.Length..]);
-        var lengthBuffer = new byte[4];
-        Array.Copy(data, data.Length - 4, lengthBuffer, 0, 4);
-        var uncompressedSize = BitConverter.ToInt32(lengthBuffer, 0);
-
-        var buffer = new byte[uncompressedSize];
-        using (var ms = new MemoryStream(data))
-        {
-            using var gzip = new GZipStream(ms, CompressionMode.Decompress);
-            gzip.Read(buffer, 0, uncompressedSize);
-        }
-        return Encoding.UTF8.GetString(buffer);
+        var data = Convert.FromBase64String(s);
+        using var ms = new MemoryStream(data);
+        using var gs = new GZipStream(ms, CompressionMode.Decompress);
+        using var r = new StreamReader(gs);
+        return r.ReadToEnd();
     }
 }
