@@ -9,13 +9,18 @@ namespace ReAction;
 
 public static class PluginUI
 {
-    public static bool isVisible = false;
+    private static bool isVisible = false;
     private static int selectedStack = -1;
-    private static string search = string.Empty;
     private static int hotbar = 0;
     private static int hotbarSlot = 0;
     private static int commandType = 1;
     private static int commandID = 0;
+
+    public static bool IsVisible
+    {
+        get => isVisible;
+        set => isVisible = value;
+    }
 
     private static Configuration.ActionStack CurrentStack => 0 <= selectedStack && selectedStack < ReAction.Config.ActionStacks.Count ? ReAction.Config.ActionStacks[selectedStack] : null;
 
@@ -25,6 +30,7 @@ public static class PluginUI
 
         ImGui.SetNextWindowSizeConstraints(new Vector2(700, 660) * ImGuiHelpers.GlobalScale, new Vector2(9999));
         ImGui.Begin("ReAction Configuration", ref isVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+        ImGuiEx.AddDonationHeader(2);
 
         if (ImGui.BeginTabBar("ReActionTabs"))
         {
@@ -72,7 +78,7 @@ public static class PluginUI
         if (ImGui.Button(FontAwesomeIcon.SignOutAlt.ToIconString(), buttonSize) && hasSelectedStack)
             ImGui.SetClipboardText(Configuration.ExportActionStack(CurrentStack));
         ImGui.PopFont();
-        SetItemTooltip("Export stack to clipboard.");
+        ImGuiEx.SetItemTooltip("Export stack to clipboard.");
         ImGui.PushFont(UiBuilder.IconFont);
 
         ImGui.SameLine();
@@ -91,7 +97,7 @@ public static class PluginUI
             }
         }
         ImGui.PopFont();
-        SetItemTooltip("Import stack from clipboard.");
+        ImGuiEx.SetItemTooltip("Import stack from clipboard.");
         ImGui.PushFont(UiBuilder.IconFont);
 
         ImGui.SameLine();
@@ -180,22 +186,22 @@ public static class PluginUI
 
         save |= ImGui.InputText("Name", ref stack.Name, 64);
         save |= ImGui.CheckboxFlags("##Shift", ref stack.ModifierKeys, 1);
-        SetItemTooltip("Shift");
+        ImGuiEx.SetItemTooltip("Shift");
         ImGui.SameLine();
         save |= ImGui.CheckboxFlags("##Ctrl", ref stack.ModifierKeys, 2);
-        SetItemTooltip("Control");
+        ImGuiEx.SetItemTooltip("Control");
         ImGui.SameLine();
         save |= ImGui.CheckboxFlags("##Alt", ref stack.ModifierKeys, 4);
-        SetItemTooltip("Alt");
+        ImGuiEx.SetItemTooltip("Alt");
         ImGui.SameLine();
         save |= ImGui.CheckboxFlags("##Exact", ref stack.ModifierKeys, 8);
-        SetItemTooltip("Match exactly these modifiers. E.g. Shift + Control ticked will match Shift + Control held, but not Shift + Control + Alt held.");
+        ImGuiEx.SetItemTooltip("Match exactly these modifiers. E.g. Shift + Control ticked will match Shift + Control held, but not Shift + Control + Alt held.");
         ImGui.SameLine();
         ImGui.TextUnformatted("Modifier Keys");
         save |= ImGui.Checkbox("Block Original on Stack Fail", ref stack.BlockOriginal);
         save |= ImGui.Checkbox("Fail if Out of Range", ref stack.CheckRange);
         save |= ImGui.Checkbox("Fail if On Cooldown", ref stack.CheckCooldown);
-        SetItemTooltip("Will fail if the action would fail to queue due to cooldown. Which is either" +
+        ImGuiEx.SetItemTooltip("Will fail if the action would fail to queue due to cooldown. Which is either" +
             "\n> 0.5s left on the cooldown, or < 0.5s since the last use (Charges / GCD).");
 
         if (save)
@@ -207,6 +213,21 @@ public static class PluginUI
         DrawActionEditor(stack);
         DrawItemEditor(stack);
     }
+
+    private static string FormatActionRow(Lumina.Excel.GeneratedSheets.Action a) => a.RowId switch
+    {
+        0 => "All Actions",
+        1 => "All Harmful Actions",
+        2 => "All Beneficial Actions",
+        _ => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}"
+    };
+
+    private static readonly ImGuiEx.ExcelSheetComboOptions<Lumina.Excel.GeneratedSheets.Action> actionComboOptions = new()
+    {
+        FormatRow = FormatActionRow,
+        SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
+            && FormatActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
+    };
 
     private static void DrawActionEditor(Configuration.ActionStack stack)
     {
@@ -221,7 +242,9 @@ public static class PluginUI
             var action = stack.Actions[i];
 
             ImGui.SetNextItemWidth(buttonWidth);
-            ActionComboBox(ref action.ID, false);
+            if (ImGuiEx.ExcelSheetCombo("##Action", ref action.ID, actionComboOptions))
+                ReAction.Config.Save();
+
 
             ImGui.SameLine();
 
@@ -230,13 +253,13 @@ public static class PluginUI
             var detectedAdjustment = false;
             unsafe
             {
-                if (!action.UseAdjustedID && (detectedAdjustment = Game.actionManager->GetAdjustedActionId(action.ID) != action.ID))
+                if (!action.UseAdjustedID && (detectedAdjustment = Common.ActionManager->CS.GetAdjustedActionId(action.ID) != action.ID))
                     ImGui.GetWindowDrawList().AddRectFilled(ImGui.GetItemRectMin(), ImGui.GetItemRectMax(), 0x2000FF30, ImGui.GetStyle().FrameRounding);
             }
-            SetItemTooltip("Allows the action to match any other action that it transforms into." +
-                           "\nE.g. Aero will match Dia, Play will match all cards, Diagnosis will match Eukrasian Diagnosis, etc." +
-                           "\nEnable this for skills that upgrade. Disable this for compatibility with certain XIVCombos." +
-                           (detectedAdjustment ? "\n\nThis action is currently adjusted due to a trait, combo or plugin. This option is recommended." : string.Empty));
+            ImGuiEx.SetItemTooltip("Allows the action to match any other action that it transforms into." +
+                "\nE.g. Aero will match Dia, Play will match all cards, Diagnosis will match Eukrasian Diagnosis, etc." +
+                "\nEnable this for skills that upgrade. Disable this for compatibility with certain XIVCombos." +
+                (detectedAdjustment ? "\n\nThis action is currently adjusted due to a trait, combo or plugin. This option is recommended." : string.Empty));
 
             ImGui.SameLine();
 
@@ -263,6 +286,19 @@ public static class PluginUI
         ImGui.EndChild();
     }
 
+    private static string FormatOverrideActionRow(Lumina.Excel.GeneratedSheets.Action a) => a.RowId switch
+    {
+        0 => "Same Action",
+        _ => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}"
+    };
+
+    private static readonly ImGuiEx.ExcelSheetComboOptions<Lumina.Excel.GeneratedSheets.Action> actionOverrideComboOptions = new()
+    {
+        FormatRow = FormatOverrideActionRow,
+        SearchPredicate = (row, s) => (row.RowId == 0 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
+            && FormatOverrideActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
+    };
+
     private static void DrawItemEditor(Configuration.ActionStack stack)
     {
         ImGui.BeginChild("ReActionItemEditor", ImGui.GetContentRegionAvail(), true);
@@ -286,7 +322,8 @@ public static class PluginUI
             ImGui.SameLine();
 
             ImGui.SetNextItemWidth(buttonWidth);
-            ActionComboBox(ref item.ID, true);
+            if (ImGuiEx.ExcelSheetCombo("##Action", ref item.ID, actionOverrideComboOptions))
+                ReAction.Config.Save();
 
             ImGui.SameLine();
 
@@ -321,110 +358,26 @@ public static class PluginUI
         ImGui.EndChild();
     }
 
-    private static readonly List<string> specialActions = new()
-    {
-        "All Actions",
-        "All Harmful Actions",
-        "All Beneficial Actions"
-    };
-
-    private static string FormatActionRowName(Lumina.Excel.GeneratedSheets.Action a) => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}";
-
-    private static void ActionComboBox(ref uint option, bool isOverrideSelection)
-    {
-        var selected = option < specialActions.Count ? (!isOverrideSelection ? specialActions[(int)option] : "Same Action") : ReAction.actionSheet.TryGetValue(option, out var a) ? FormatActionRowName(a) : option.ToString();
-        if (!ImGui.BeginCombo("##Action", selected))
-            return;
-
-        ImGui.InputText("##ActionSearch", ref search, 64);
-
-        var doSearch = !string.IsNullOrEmpty(search);
-
-        for (uint id = 0; id < (!isOverrideSelection ? specialActions.Count : 1); id++)
+    private static readonly ImGuiEx.ExcelSheetPopupOptions<Lumina.Excel.GeneratedSheets.Action> actionPopupOptions = new()
         {
-            var name = !isOverrideSelection ? specialActions[(int)id] : "Same Action";
-            if (doSearch && !name.Contains(search, StringComparison.CurrentCultureIgnoreCase)) continue;
-
-            ImGui.PushID((int)id);
-
-            if (ImGui.Selectable(name, option == id))
-            {
-                option = id;
-                ReAction.Config.Save();
-            }
-
-            ImGui.PopID();
-        }
-
-        foreach (var (id, row) in ReAction.actionSheet)
-        {
-            var name = FormatActionRowName(row);
-            if (doSearch && !name.Contains(search, StringComparison.CurrentCultureIgnoreCase)) continue;
-
-            ImGui.PushID((int)id);
-
-            if (ImGui.Selectable(name, option == id))
-            {
-                option = id;
-                ReAction.Config.Save();
-            }
-
-            ImGui.PopID();
-        }
-
-        ImGui.EndCombo();
-    }
+            FormatRow = FormatActionRow,
+            SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
+                && FormatActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
+        };
 
     private static void AddActionList(ICollection<Configuration.Action> actions, float buttonWidth)
     {
         ImGui.PushFont(UiBuilder.IconFont);
 
+        const string id = "ReActionAddSkillsPopup";
         if (ImGui.Button(FontAwesomeIcon.PlusCircle.ToIconString(), new Vector2(buttonWidth, 0)))
-            ImGui.OpenPopup("ReActionAddSkillsPopup");
+            ImGui.OpenPopup(id);
 
         ImGui.PopFont();
 
-        ImGui.SetNextWindowSize(new Vector2(0, 200 * ImGuiHelpers.GlobalScale));
-
-        if (!ImGui.BeginPopup("ReActionAddSkillsPopup")) return;
-
-        ImGui.InputText("##ActionSearch", ref search, 64);
-
-        var doSearch = !string.IsNullOrEmpty(search);
-
-        for (uint id = 0; id < specialActions.Count; id++)
-        {
-            var name = specialActions[(int)id];
-            if (doSearch && !name.Contains(search, StringComparison.CurrentCultureIgnoreCase)) continue;
-
-            ImGui.PushID((int)id);
-
-            if (ImGui.Selectable(name))
-            {
-                actions.Add(new() { ID = id });
-                ReAction.Config.Save();
-            }
-
-            ImGui.PopID();
-        }
-
-        foreach (var (id, row) in ReAction.actionSheet)
-        {
-            var name = FormatActionRowName(row);
-            if (doSearch && !name.Contains(search, StringComparison.CurrentCultureIgnoreCase)) continue;
-
-            ImGui.PushID((int)id);
-
-            if (ImGui.Selectable(name, false, ImGuiSelectableFlags.DontClosePopups))
-            {
-                actions.Add(new() { ID = id });
-                ReAction.Config.Save();
-            }
-
-            ImGui.PopID();
-        }
-
-        ImGui.EndPopup();
+        if (!ImGuiEx.ExcelSheetPopup(id, out var row, actionPopupOptions)) return;
+        actions.Add(new() { ID = row });
+        ReAction.Config.Save();
     }
 
     private static void DrawStackHelp()
@@ -484,83 +437,83 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Ground Target Queuing", ref ReAction.Config.EnableGroundTargetQueuing))
         {
-            Game.queueGroundTargetsReplacer.Toggle();
+            Game.queueGroundTargetsEdit.Toggle();
             save = true;
         }
-        SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
+        ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
 
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
-        SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
+        ImGuiEx.SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
 
         ImGui.NextColumn();
 
         if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
         {
-            Game.enhancedAutoFaceTargetReplacer1.Toggle();
-            Game.enhancedAutoFaceTargetReplacer2.Toggle();
+            Game.enhancedAutoFaceTargetEdit1.Toggle();
+            Game.enhancedAutoFaceTargetEdit2.Toggle();
             save = true;
         }
-        SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
+        ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
 
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Auto Dismount", ref ReAction.Config.EnableAutoDismount);
-        SetItemTooltip("Automatically dismounts when an action is used, prior to using the action.");
+        ImGuiEx.SetItemTooltip("Automatically dismounts when an action is used, prior to using the action.");
 
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Auto Cast Cancel", ref ReAction.Config.EnableAutoCastCancel);
-        SetItemTooltip("Automatically cancels casting when the target dies.");
+        ImGuiEx.SetItemTooltip("Automatically cancels casting when the target dies.");
 
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
-        SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
+        ImGuiEx.SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
 
         if (ReAction.Config.EnableAutoTarget)
         {
             ImGui.NextColumn();
             save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
-            SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
+            ImGuiEx.SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
         }
 
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Auto Refocus Target", ref ReAction.Config.EnableAutoRefocusTarget);
-        SetItemTooltip("While in duties, attempts to focus target whatever was previously focus targeted if the focus target is lost.");
+        ImGuiEx.SetItemTooltip("While in duties, attempts to focus target whatever was previously focus targeted if the focus target is lost.");
 
         ImGui.NextColumn();
 
         if (ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks))
         {
-            Game.spellAutoAttackReplacer.Toggle();
+            Game.spellAutoAttackEdit.Toggle();
             save = true;
         }
-        SetItemTooltip("Causes spells to start using auto attacks just like weaponskills.");
+        ImGuiEx.SetItemTooltip("Causes spells to start using auto attacks just like weaponskills.");
 
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
-        SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
+        ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
 
         if (ReAction.Config.EnableCameraRelativeDashes)
         {
             ImGui.NextColumn();
             save |= ImGui.Checkbox("Enable Normal Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
-            SetItemTooltip("Ignores \"Enable Camera Relative Dashes\" for any backward dash, such as Elusive Jump.");
+            ImGuiEx.SetItemTooltip("Ignores \"Enable Camera Relative Dashes\" for any backward dash, such as Elusive Jump.");
         }
 
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
-        SetItemTooltip("Allows sprint and items to be queued.");
+        ImGuiEx.SetItemTooltip("Allows sprint and items to be queued.");
 
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable FPS Alignment", ref ReAction.Config.EnableFPSAlignment);
-        SetItemTooltip("Aligns the game's FPS with the GCD and animation lock.\nNote: this option will cause an almost unnoticeable stutter when either of these timers ends.");
+        ImGuiEx.SetItemTooltip("Aligns the game's FPS with the GCD and animation lock.\nNote: this option will cause an almost unnoticeable stutter when either of these timers ends.");
 
         ImGui.Columns(1);
         ImGui.Separator();
@@ -575,46 +528,46 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Uncombo'd Meditation", ref ReAction.Config.EnableDecomboMeditation))
         {
-            Game.decomboMeditationReplacer.Toggle();
+            Game.decomboMeditationEdit.Toggle();
             save = true;
         }
-        SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.\nSteel Peak ID: 25761\nForbidden Chakra ID: 3547");
+        ImGuiEx.SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.\nSteel Peak ID: 25761\nForbidden Chakra ID: 3547");
 
         ImGui.NextColumn();
 
         if (ImGui.Checkbox("Enable Uncombo'd Bunshin", ref ReAction.Config.EnableDecomboBunshin))
         {
-            Game.decomboBunshinReplacer.Toggle();
+            Game.decomboBunshinEdit.Toggle();
             save = true;
         }
-        SetItemTooltip("Removes the Bunshin <-> Phantom Kamaitachi combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPhantom Kamaitachi ID: 25774");
+        ImGuiEx.SetItemTooltip("Removes the Bunshin <-> Phantom Kamaitachi combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPhantom Kamaitachi ID: 25774");
 
         ImGui.NextColumn();
 
         if (ImGui.Checkbox("Enable Uncombo'd Wanderer's Minuet", ref ReAction.Config.EnableDecomboWanderersMinuet))
         {
-            Game.decomboWanderersMinuetReplacer.Toggle();
+            Game.decomboWanderersMinuetEdit.Toggle();
             save = true;
         }
-        SetItemTooltip("Removes the Wanderer's Minuet -> Pitch Perfect combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPitch Perfect ID: 7404");
+        ImGuiEx.SetItemTooltip("Removes the Wanderer's Minuet -> Pitch Perfect combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPitch Perfect ID: 7404");
 
         ImGui.NextColumn();
 
         if (ImGui.Checkbox("Enable Uncombo'd Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy))
         {
-            Game.decomboLiturgyReplacer.Toggle();
+            Game.decomboLiturgyEdit.Toggle();
             save = true;
         }
-        SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
+        ImGuiEx.SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
 
         ImGui.NextColumn();
 
         if (ImGui.Checkbox("Enable Uncombo'd Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
         {
-            Game.decomboEarthlyStarReplacer.Toggle();
+            Game.decomboEarthlyStarEdit.Toggle();
             save = true;
         }
-        SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
+        ImGuiEx.SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
 
         ImGui.Columns(1);
 
@@ -623,7 +576,7 @@ public static class PluginUI
 
         ImGui.Indent();
         ImGui.TextUnformatted("Place on Hotbar (HOVER ME FOR INFORMATION)");
-        SetItemTooltip("This will allow you to place various things on the hotbar that you can't normally." +
+        ImGuiEx.SetItemTooltip("This will allow you to place various things on the hotbar that you can't normally." +
             "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
             "\nSome examples of things you can do:" +
             "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
@@ -654,16 +607,10 @@ public static class PluginUI
             Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, (uint)commandID);
             ReAction.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
         }
-        SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
+        ImGuiEx.SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
         ImGui.Columns(1);
 
         if (save)
             ReAction.Config.Save();
-    }
-
-    private static void SetItemTooltip(string s, ImGuiHoveredFlags flags = ImGuiHoveredFlags.None)
-    {
-        if (ImGui.IsItemHovered(flags))
-            ImGui.SetTooltip(s);
     }
 }

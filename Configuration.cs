@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Text;
 using Dalamud.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace ReAction;
 
-public class Configuration : IPluginConfiguration
+public class Configuration : PluginConfiguration<Configuration>, IPluginConfiguration
 {
     public class Action
     {
@@ -71,7 +68,7 @@ public class Configuration : IPluginConfiguration
         }
     }
 
-    public int Version { get; set; }
+    public override int Version { get; set; }
 
     public List<ActionStack> ActionStacks = new();
     public bool EnableEnhancedAutoFaceTarget = false;
@@ -94,47 +91,25 @@ public class Configuration : IPluginConfiguration
     public bool EnableDecomboEarthlyStar = false;
     public bool EnableDecomboLiturgy = false;
 
-    public void Initialize() { }
-
-    public void Save() => DalamudApi.PluginInterface.SavePluginConfig(this);
+    public override void Initialize() { }
 
     private static readonly StackSerializer serializer = new ();
 
+    private const string exportPrefix = "RE_";
+
     public static string ExportActionStack(ActionStack stack)
-        => CompressString(JsonConvert.SerializeObject(stack, new JsonSerializerSettings
+        => Util.CompressString(JsonConvert.SerializeObject(stack, new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.Objects,
             NullValueHandling = NullValueHandling.Ignore,
             DefaultValueHandling = DefaultValueHandling.Ignore,
             SerializationBinder = serializer
-        }));
+        }), exportPrefix);
 
     public static ActionStack ImportActionStack(string import)
-        => JsonConvert.DeserializeObject<ActionStack>(DecompressString(import), new JsonSerializerSettings
+        => JsonConvert.DeserializeObject<ActionStack>(Util.DecompressString(import, exportPrefix), new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.Objects,
             SerializationBinder = serializer
         });
-
-    private const string exportPrefix = "RE_";
-
-    public static string CompressString(string s)
-    {
-        var bytes = Encoding.UTF8.GetBytes(s);
-        using var ms = new MemoryStream();
-        using (var gs = new GZipStream(ms, CompressionMode.Compress))
-            gs.Write(bytes, 0, bytes.Length);
-        return exportPrefix + Convert.ToBase64String(ms.ToArray());
-    }
-
-    public static string DecompressString(string s)
-    {
-        if (!s.StartsWith(exportPrefix))
-            throw new ApplicationException("This is not a ReAction export.");
-        var data = Convert.FromBase64String(s);
-        using var ms = new MemoryStream(data);
-        using var gs = new GZipStream(ms, CompressionMode.Decompress);
-        using var r = new StreamReader(gs);
-        return r.ReadToEnd();
-    }
 }

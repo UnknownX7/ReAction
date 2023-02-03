@@ -2,59 +2,38 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game;
-using Dalamud.Logging;
 using Dalamud.Plugin;
 
 namespace ReAction;
 
-public class ReAction : IDalamudPlugin
+public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
 {
-    public string Name => "ReAction";
-    public static ReAction Plugin { get; private set; }
-    public static Configuration Config { get; private set; }
+    public override string Name => "ReAction";
 
     public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> actionSheet;
     public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> mountActionsSheet;
 
-    public ReAction(DalamudPluginInterface pluginInterface)
+    public ReAction(DalamudPluginInterface pluginInterface) : base(pluginInterface) { }
+
+    protected override void Initialize()
     {
-        Plugin = this;
-        DalamudApi.Initialize(this, pluginInterface);
+        Game.Initialize();
 
-        Config = (Configuration)DalamudApi.PluginInterface.GetPluginConfig() ?? new();
-        Config.Initialize();
-
-        try
-        {
-            Game.Initialize();
-
-            actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId is not 7).ToDictionary(i => i.RowId, i => i);
-            mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);
-            if (actionSheet == null || mountActionsSheet == null)
-                throw new ApplicationException("Action sheet failed to load!");
-
-            DalamudApi.Framework.Update += Update;
-            DalamudApi.PluginInterface.UiBuilder.Draw += Draw;
-            DalamudApi.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfig;
-        }
-        catch (Exception e)
-        {
-            PluginLog.Error($"Failed loading ReAction\n{e}");
-        }
+        actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId is not 7).ToDictionary(i => i.RowId, i => i);
+        mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);
+        if (actionSheet == null || mountActionsSheet == null)
+            throw new ApplicationException("Action sheet failed to load!");
     }
 
-    public void ToggleConfig() => PluginUI.isVisible ^= true;
+    protected override void ToggleConfig() => PluginUI.IsVisible ^= true;
 
-    [Command("/reaction")]
-    [HelpMessage("Opens / closes the config.")]
+    [PluginCommand("/reaction", HelpMessage = "Opens / closes the config.")]
     private void ToggleConfig(string command, string argument) => ToggleConfig();
 
-    [Command("/macroqueue")]
-    [Aliases("/mqueue")]
-    [HelpMessage("[on|off] - Toggles (with no argument specified), enables or disables /ac queueing in the current macro.")]
+    [PluginCommand("/macroqueue", "/mqueue", HelpMessage = "[on|off] - Toggles (with no argument specified), enables or disables /ac queueing in the current macro.")]
     private void OnMacroQueue(string command, string argument)
     {
-        if (!Game.IsMacroRunning)
+        if (!Common.IsMacroRunning)
         {
             PrintError("This command requires a macro to be running.");
             return;
@@ -63,12 +42,12 @@ public class ReAction : IDalamudPlugin
         switch (argument)
         {
             case "on":
-            case "" when !Game.queueACCommandReplacer.IsEnabled:
-                Game.queueACCommandReplacer.Enable();
+            case "" when !Game.queueACCommandEdit.IsEnabled:
+                Game.queueACCommandEdit.Enable();
                 break;
             case "off":
-            case "" when Game.queueACCommandReplacer.IsEnabled:
-                Game.queueACCommandReplacer.Disable();
+            case "" when Game.queueACCommandEdit.IsEnabled:
+                Game.queueACCommandEdit.Disable();
                 break;
             default:
                 PrintError("Invalid usage.");
@@ -76,37 +55,19 @@ public class ReAction : IDalamudPlugin
         }
     }
 
-    public static void PrintEcho(string message) => DalamudApi.ChatGui.Print($"[ReAction] {message}");
-    public static void PrintError(string message) => DalamudApi.ChatGui.PrintError($"[ReAction] {message}");
-
-    private void Update(Framework framework)
+    protected override void Update(Framework framework)
     {
-        if (Game.queueACCommandReplacer.IsEnabled && !Game.IsMacroRunning)
-            Game.queueACCommandReplacer.Disable();
+        if (Game.queueACCommandEdit.IsEnabled && !Common.IsMacroRunning)
+            Game.queueACCommandEdit.Disable();
 
         ActionStackManager.Update();
     }
 
-    private void Draw() => PluginUI.Draw();
+    protected override void Draw() => PluginUI.Draw();
 
-    protected virtual void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
     {
         if (!disposing) return;
-
-        Config.Save();
-
-        DalamudApi.Framework.Update -= Update;
-        DalamudApi.PluginInterface.UiBuilder.Draw -= Draw;
-        DalamudApi.PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfig;
-        DalamudApi.Dispose();
-
         Game.Dispose();
-        Memory.Dispose();
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
     }
 }
