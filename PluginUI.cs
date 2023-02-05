@@ -245,7 +245,6 @@ public static class PluginUI
             if (ImGuiEx.ExcelSheetCombo("##Action", ref action.ID, actionComboOptions))
                 ReAction.Config.Save();
 
-
             ImGui.SameLine();
 
             if (ImGui.Checkbox("Adjust ID", ref action.UseAdjustedID))
@@ -512,8 +511,8 @@ public static class PluginUI
 
         ImGui.NextColumn();
 
-        save |= ImGui.Checkbox("Enable FPS Alignment", ref ReAction.Config.EnableFPSAlignment);
-        ImGuiEx.SetItemTooltip("Aligns the game's FPS with the GCD and animation lock.\nNote: this option will cause an almost unnoticeable stutter when either of these timers ends.");
+        save |= ImGui.Checkbox("Enable Frame Alignment", ref ReAction.Config.EnableFrameAlignment);
+        ImGuiEx.SetItemTooltip("Aligns the game's frames with the GCD and animation lock.\nNote: this option will cause an almost unnoticeable stutter when either of these timers ends.");
 
         ImGui.Columns(1);
         ImGui.Separator();

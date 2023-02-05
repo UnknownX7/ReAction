@@ -82,7 +82,8 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableCameraRelativeDashes = false;
     public bool EnableNormalBackwardDashes = false;
     public bool EnableQueuingMore = false;
-    public bool EnableFPSAlignment = false;
+    [Obsolete] public bool EnableFPSAlignment { internal get; set; } // TODO: Remove in 6.4
+    public bool EnableFrameAlignment = false;
     public bool EnableAutoRefocusTarget = false;
 
     public bool EnableDecomboMeditation = false;
@@ -91,7 +92,11 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableDecomboEarthlyStar = false;
     public bool EnableDecomboLiturgy = false;
 
-    public override void Initialize() { }
+    public override void Initialize()
+    {
+        if (EnableFPSAlignment)
+            EnableFrameAlignment = true;
+    }
 
     private static readonly StackSerializer serializer = new ();
 

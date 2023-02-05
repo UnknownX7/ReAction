@@ -42,12 +42,13 @@ public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
         switch (argument)
         {
             case "on":
-            case "" when !Game.queueACCommandEdit.IsEnabled:
                 Game.queueACCommandEdit.Enable();
                 break;
             case "off":
-            case "" when Game.queueACCommandEdit.IsEnabled:
                 Game.queueACCommandEdit.Disable();
+                break;
+            case "":
+                Game.queueACCommandEdit.Toggle();
                 break;
             default:
                 PrintError("Invalid usage.");
@@ -59,8 +60,6 @@ public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
     {
         if (Game.queueACCommandEdit.IsEnabled && !Common.IsMacroRunning)
             Game.queueACCommandEdit.Disable();
-
-        ActionStackManager.Update();
     }
 
     protected override void Draw() => PluginUI.Draw();

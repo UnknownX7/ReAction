@@ -91,12 +91,12 @@ public static unsafe class Game
     }
 
     [Signature("E8 ?? ?? ?? ?? 44 0F B6 C3 48 8B D0")]
-    private static delegate* unmanaged<long, GameObject*> getGameObjectFromObjectID;
-    public static GameObject* GetGameObjectFromObjectID(long id) => getGameObjectFromObjectID(id);
+    public static delegate* unmanaged<long, GameObject*> fpGetGameObjectFromObjectID;
+    public static GameObject* GetGameObjectFromObjectID(long id) => fpGetGameObjectFromObjectID(id);
 
     [Signature("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9")]
-    private static delegate* unmanaged<void> cancelCast;
-    public static void CancelCast() => cancelCast();
+    public static delegate* unmanaged<void> fpCancelCast;
+    public static void CancelCast() => fpCancelCast();
 
     public static void TargetEnemy()
     {
@@ -138,12 +138,12 @@ public static unsafe class Game
     }
 
     [Signature("E8 ?? ?? ?? ?? 83 FE 4F")]
-    private static delegate* unmanaged<GameObject*, float, void> setGameObjectRotation;
+    public static delegate* unmanaged<GameObject*, float, void> fpSetGameObjectRotation;
     public static void SetCharacterRotationToCamera()
     {
         var worldCamera = Common.CameraManager->WorldCamera;
         if (worldCamera == null) return;
-        setGameObjectRotation((GameObject*)DalamudApi.ClientState.LocalPlayer!.Address, worldCamera->GameObjectHRotation);
+        fpSetGameObjectRotation((GameObject*)DalamudApi.ClientState.LocalPlayer!.Address, worldCamera->GameObjectHRotation);
     }
 
     // The game is dumb and I cannot check LoS easily because not facing the target will override it
@@ -151,12 +151,12 @@ public static unsafe class Game
         && FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionInRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566; // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
 
     [Signature("E8 ?? ?? ?? ?? 4C 39 6F 08")]
-    private static delegate* unmanaged<HotBarSlot*, UIModule*, byte, uint, void> setHotbarSlot;
+    public static delegate* unmanaged<HotBarSlot*, UIModule*, byte, uint, void> fpSetHotbarSlot;
     public static void SetHotbarSlot(int hotbar, int slot, byte type, uint id)
     {
         if (hotbar is < 0 or > 17 || (hotbar < 10 ? slot is < 0 or > 11 : slot is < 0 or > 15)) return;
         var raptureHotbarModule = Framework.Instance()->GetUiModule()->GetRaptureHotbarModule();
-        setHotbarSlot(raptureHotbarModule->HotBar[hotbar]->Slot[slot], raptureHotbarModule->UiModule, type, id);
+        fpSetHotbarSlot(raptureHotbarModule->HotBar[hotbar]->Slot[slot], raptureHotbarModule->UiModule, type, id);
     }
 
     public delegate byte UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);
@@ -197,7 +197,10 @@ public static unsafe class Game
     public static void Initialize()
     {
         DalamudApi.SigScanner.Inject(typeof(Game));
-        Common.InitializeStructure<ActionManager>();
+        Common.InitializeStructure<ActionManager>(false);
+        Common.GetGameObjectFromPronounID(0); // Test that this is working
+        if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanActionQueue == null)
+            throw new ApplicationException("Failed to find core signatures!");
     }
 
     public static void Dispose()
