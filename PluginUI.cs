@@ -485,12 +485,8 @@ public static class PluginUI
 
         ImGui.NextColumn();
 
-        if (ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks))
-        {
-            Game.spellAutoAttackPatch.Toggle();
-            save = true;
-        }
-        ImGuiEx.SetItemTooltip("Causes spells to start using auto attacks just like weaponskills.");
+        save |= ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks);
+        ImGuiEx.SetItemTooltip("Causes spells (and some other actions) to start using auto attacks just like weaponskills.");
 
         ImGui.NextColumn();
 

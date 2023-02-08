@@ -59,8 +59,7 @@ public unsafe class QueueMore : Module
 
     private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp)
     {
-        if (Game.allowQueuingPatch.IsEnabled)
-            Game.allowQueuingPatch.Disable();
+        Game.allowQueuingPatch.Disable();
 
         if (queuedItem && !actionManager->isQueued)
             queuedItem = false;
