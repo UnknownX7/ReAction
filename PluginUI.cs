@@ -507,7 +507,7 @@ public static class PluginUI
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
-        ImGuiEx.SetItemTooltip("Allows sprint and items to be queued.");
+        ImGuiEx.SetItemTooltip("Allows sprint, items and LBs to be queued.");
 
         ImGui.NextColumn();
 

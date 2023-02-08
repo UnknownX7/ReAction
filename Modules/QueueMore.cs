@@ -1,5 +1,6 @@
 using Dalamud.Logging;
 using Hypostasis.Game.Structures;
+using Lumina.Excel.GeneratedSheets;
 
 namespace ReAction.Modules;
 
@@ -44,7 +45,11 @@ public unsafe class QueueMore : Module
 
     private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp)
     {
-        if (useType != 0 || ((actionType != 5 || adjustedActionID != 4) && actionType != 2)) return;
+        if (useType != 0
+            || ((actionType != 5 || actionID != 4) // Sprint
+                && actionType != 2 // Item
+                && (actionType != 1 || DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is not { ActionCategory.Row: 9 or 15 }))) // LB
+            return;
 
         PluginLog.Debug($"Enabling queuing {actionType}, {adjustedActionID}");
 
