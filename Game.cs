@@ -16,22 +16,22 @@ namespace ReAction;
 
 public static unsafe class Game
 {
-    public static readonly AsmEdit allowQueuingEdit = new("76 2F 80 F9 04", new byte[] { 0xEB });
-    public static readonly AsmEdit queueGroundTargetsEdit = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
+    public static readonly AsmPatch allowQueuingPatch = new("76 2F 80 F9 04", new byte[] { 0xEB });
+    public static readonly AsmPatch queueGroundTargetsPatch = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
 
-    // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 10
-    public static readonly AsmEdit enhancedAutoFaceTargetEdit1 = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x10 }, ReAction.Config.EnableEnhancedAutoFaceTarget);
-    public static readonly AsmEdit enhancedAutoFaceTargetEdit2 = new("41 80 7F 33 06 74 22 49 8D 8E", new byte[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0xEB }, ReAction.Config.EnableEnhancedAutoFaceTarget);
+    // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 20
+    public static readonly AsmPatch enhancedAutoFaceTargetPatch1 = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x20 }, ReAction.Config.EnableEnhancedAutoFaceTarget);
+    public static readonly AsmPatch enhancedAutoFaceTargetPatch2 = new("41 80 7F 33 06 74 22 49 8D 8E", new byte[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0xEB }, ReAction.Config.EnableEnhancedAutoFaceTarget);
 
     // test byte ptr [r15+39], 04
     // jnz A7h
-    public static readonly AsmEdit spellAutoAttackEdit = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", new byte[] { 0x41, 0xF6, 0x47, 0x39, 0x04, 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00, 0x90 }, ReAction.Config.EnableSpellAutoAttacks);
+    public static readonly AsmPatch spellAutoAttackPatch = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", new byte[] { 0x41, 0xF6, 0x47, 0x39, 0x04, 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00, 0x90 }, ReAction.Config.EnableSpellAutoAttacks);
 
     // 6.2 inlined this function, but the original still exists so the sig matches both
     // cmp rbx, 0DDAh
     // jz 41h
     // jmp 18h
-    public static readonly AsmEdit decomboMeditationEdit = new("48 8B 05 ?? ?? ?? ?? 48 85 C0 74 3E 48 8B 0D",
+    public static readonly AsmPatch decomboMeditationPatch = new("48 8B 05 ?? ?? ?? ?? 48 85 C0 74 3E 48 8B 0D",
         new byte[] {
             0x48, 0x81, 0xFB, 0xDA, 0x0D, 0x00, 0x00,
             0x74, 0x41,
@@ -43,7 +43,7 @@ public static unsafe class Game
     // Inlined, same as above
     // mov eax, ebx
     // jmp 1Eh
-    public static readonly AsmEdit decomboBunshinEdit = new("BA A3 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
+    public static readonly AsmPatch decomboBunshinPatch = new("BA A3 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
         new byte[] {
             0x8B, 0xC3,
             0xEB, 0x1E
@@ -52,7 +52,7 @@ public static unsafe class Game
 
     // mov eax, ebx
     // ret
-    public static readonly AsmEdit decomboWanderersMinuetEdit = new("48 8B 0D ?? ?? ?? ?? 48 85 C9 74 27 48 8B 05",
+    public static readonly AsmPatch decomboWanderersMinuetPatch = new("48 8B 0D ?? ?? ?? ?? 48 85 C9 74 27 48 8B 05",
         new byte[] {
             0x8B, 0xC3,
             0xC3,
@@ -63,7 +63,7 @@ public static unsafe class Game
     // Also inlined
     // mov eax, ebx
     // jmp 1Eh
-    public static readonly AsmEdit decomboLiturgyEdit = new("BA 95 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
+    public static readonly AsmPatch decomboLiturgyPatch = new("BA 95 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
         new byte[] {
             0x8B, 0xC3,
             0xEB, 0x1E
@@ -73,7 +73,7 @@ public static unsafe class Game
     // Again... inlined...
     // mov eax, ebx
     // nop (until an already existing jmp to a ret)
-    public static readonly AsmEdit decomboEarthlyStarEdit = new("48 83 3D ?? ?? ?? ?? ?? 75 0A B8 0F 1D 00 00",
+    public static readonly AsmPatch decomboEarthlyStarPatch = new("48 83 3D ?? ?? ?? ?? ?? 75 0A B8 0F 1D 00 00",
         new byte[] {
             0x8B, 0xC3,
             0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
@@ -82,7 +82,7 @@ public static unsafe class Game
         },
         ReAction.Config.EnableDecomboEarthlyStar);
 
-    public static readonly AsmEdit queueACCommandEdit = new("02 00 00 00 41 8B D7 89", new byte[] { 0x64 }, ReAction.Config.EnableMacroQueue);
+    public static readonly AsmPatch queueACCommandPatch = new("02 00 00 00 41 8B D7 89", new byte[] { 0x64 }, ReAction.Config.EnableMacroQueue);
 
     public static long GetObjectID(GameObject* o)
     {
@@ -191,9 +191,9 @@ public static unsafe class Game
     public static void ExecuteMacroDetour(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro)
     {
         if (ReAction.Config.EnableMacroQueue)
-            queueACCommandEdit.Enable();
+            queueACCommandPatch.Enable();
         else
-            queueACCommandEdit.Disable();
+            queueACCommandPatch.Disable();
         ExecuteMacroHook.Original(raptureShellModule, macro);
     }
 

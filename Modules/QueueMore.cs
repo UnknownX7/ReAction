@@ -10,7 +10,7 @@ public unsafe class QueueMore : Module
 
     public override bool ShouldEnable => ReAction.Config.EnableQueuingMore;
 
-    protected override bool Validate() => Game.allowQueuingEdit.IsValid;
+    protected override bool Validate() => Game.allowQueuingPatch.IsValid;
 
     protected override void Enable()
     {
@@ -53,14 +53,14 @@ public unsafe class QueueMore : Module
 
         PluginLog.Debug($"Enabling queuing {actionType}, {adjustedActionID}");
 
-        Game.allowQueuingEdit.Enable();
+        Game.allowQueuingPatch.Enable();
         queuedItem = actionType == 2;
     }
 
     private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp)
     {
-        if (Game.allowQueuingEdit.IsEnabled)
-            Game.allowQueuingEdit.Disable();
+        if (Game.allowQueuingPatch.IsEnabled)
+            Game.allowQueuingPatch.Disable();
 
         if (queuedItem && !actionManager->isQueued)
             queuedItem = false;

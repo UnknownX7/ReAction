@@ -42,14 +42,14 @@ public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
         switch (argument)
         {
             case "on":
-                Game.queueACCommandEdit.Enable();
+                Game.queueACCommandPatch.Enable();
                 break;
             case "off":
-                Game.queueACCommandEdit.Disable();
+                Game.queueACCommandPatch.Disable();
                 break;
             case "":
                 if (!Config.EnableMacroQueue) // Bug, users could use two /macroqueue and would expect the second to disable it, but scenario is very unlikely
-                    Game.queueACCommandEdit.Toggle();
+                    Game.queueACCommandPatch.Toggle();
                 break;
             default:
                 PrintError("Invalid usage.");
@@ -61,13 +61,13 @@ public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
     {
         if (Config.EnableMacroQueue)
         {
-            if (!Game.queueACCommandEdit.IsEnabled && !Common.IsMacroRunning)
-                Game.queueACCommandEdit.Enable();
+            if (!Game.queueACCommandPatch.IsEnabled && !Common.IsMacroRunning)
+                Game.queueACCommandPatch.Enable();
         }
         else
         {
-            if (Game.queueACCommandEdit.IsEnabled && !Common.IsMacroRunning)
-                Game.queueACCommandEdit.Disable();
+            if (Game.queueACCommandPatch.IsEnabled && !Common.IsMacroRunning)
+                Game.queueACCommandPatch.Disable();
         }
     }
 

@@ -436,7 +436,7 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Ground Target Queuing", ref ReAction.Config.EnableGroundTargetQueuing))
         {
-            Game.queueGroundTargetsEdit.Toggle();
+            Game.queueGroundTargetsPatch.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
@@ -450,8 +450,8 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
         {
-            Game.enhancedAutoFaceTargetEdit1.Toggle();
-            Game.enhancedAutoFaceTargetEdit2.Toggle();
+            Game.enhancedAutoFaceTargetPatch1.Toggle();
+            Game.enhancedAutoFaceTargetPatch2.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
@@ -487,7 +487,7 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks))
         {
-            Game.spellAutoAttackEdit.Toggle();
+            Game.spellAutoAttackPatch.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Causes spells to start using auto attacks just like weaponskills.");
@@ -532,7 +532,7 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Uncombo'd Meditation", ref ReAction.Config.EnableDecomboMeditation))
         {
-            Game.decomboMeditationEdit.Toggle();
+            Game.decomboMeditationPatch.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.\nSteel Peak ID: 25761\nForbidden Chakra ID: 3547");
@@ -541,7 +541,7 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Uncombo'd Bunshin", ref ReAction.Config.EnableDecomboBunshin))
         {
-            Game.decomboBunshinEdit.Toggle();
+            Game.decomboBunshinPatch.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Removes the Bunshin <-> Phantom Kamaitachi combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPhantom Kamaitachi ID: 25774");
@@ -550,7 +550,7 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Uncombo'd Wanderer's Minuet", ref ReAction.Config.EnableDecomboWanderersMinuet))
         {
-            Game.decomboWanderersMinuetEdit.Toggle();
+            Game.decomboWanderersMinuetPatch.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Removes the Wanderer's Minuet -> Pitch Perfect combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPitch Perfect ID: 7404");
@@ -559,7 +559,7 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Uncombo'd Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy))
         {
-            Game.decomboLiturgyEdit.Toggle();
+            Game.decomboLiturgyPatch.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
@@ -568,7 +568,7 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Uncombo'd Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
         {
-            Game.decomboEarthlyStarEdit.Toggle();
+            Game.decomboEarthlyStarPatch.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
