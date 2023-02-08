@@ -511,8 +511,13 @@ public static class PluginUI
 
         ImGui.NextColumn();
 
+        save |= ImGui.Checkbox("Always Queue Macros", ref ReAction.Config.EnableMacroQueue);
+        ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");
+
+        ImGui.NextColumn();
+
         save |= ImGui.Checkbox("Enable Frame Alignment", ref ReAction.Config.EnableFrameAlignment);
-        ImGuiEx.SetItemTooltip("Aligns the game's frames with the GCD and animation lock.\nNote: this option will cause an almost unnoticeable stutter when either of these timers ends.");
+        ImGuiEx.SetItemTooltip("Aligns the game's frames with the GCD and animation lock.\nNote: This option will cause an almost unnoticeable stutter when either of these timers ends.");
 
         ImGui.Columns(1);
         ImGui.Separator();

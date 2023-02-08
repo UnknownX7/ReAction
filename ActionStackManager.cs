@@ -47,6 +47,13 @@ public static unsafe class ActionStackManager
         {
             if (DalamudApi.ClientState.LocalPlayer == null) return 0;
 
+            var tryStack = useType == 0;
+            if (useType == 100)
+            {
+                useType = 0;
+                PluginLog.Debug("UseAction called from a macro using /macroqueue");
+            }
+
             PreUseAction?.Invoke(actionManager, ref actionType, ref actionID, ref targetObjectID, ref param, ref useType, ref pvp);
 
             var adjustedActionID = actionType == 1 ? actionManager->CS.GetAdjustedActionId(actionID) : actionID;
@@ -59,7 +66,7 @@ public static unsafe class ActionStackManager
                 return ret.Value;
 
             var succeeded = false;
-            if (actionType == 1 && useType == 0 && ReAction.actionSheet.ContainsKey(adjustedActionID))
+            if (tryStack && actionType == 1 && ReAction.actionSheet.ContainsKey(adjustedActionID))
             {
                 PluginLog.Debug("Checking stacks");
 

@@ -85,6 +85,7 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     [Obsolete] public bool EnableFPSAlignment { internal get; set; } // TODO: Remove in 6.4
     public bool EnableFrameAlignment = false;
     public bool EnableAutoRefocusTarget = false;
+    public bool EnableMacroQueue = false;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;

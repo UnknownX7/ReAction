@@ -82,7 +82,7 @@ public static unsafe class Game
         },
         ReAction.Config.EnableDecomboEarthlyStar);
 
-    public static readonly AsmEdit queueACCommandEdit = new("02 00 00 00 41 8B D7 89", new byte[] { 0x00 });
+    public static readonly AsmEdit queueACCommandEdit = new("02 00 00 00 41 8B D7 89", new byte[] { 0x64 }, ReAction.Config.EnableMacroQueue);
 
     public static long GetObjectID(GameObject* o)
     {
@@ -190,7 +190,10 @@ public static unsafe class Game
     public static Hook<ExecuteMacroDelegate> ExecuteMacroHook;
     public static void ExecuteMacroDetour(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro)
     {
-        queueACCommandEdit.Disable();
+        if (ReAction.Config.EnableMacroQueue)
+            queueACCommandEdit.Enable();
+        else
+            queueACCommandEdit.Disable();
         ExecuteMacroHook.Original(raptureShellModule, macro);
     }
 
