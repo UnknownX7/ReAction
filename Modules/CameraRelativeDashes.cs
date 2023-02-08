@@ -15,7 +15,7 @@ public unsafe class CameraRelativeDashes : Module
     private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp)
     {
         if (!ReAction.actionSheet.TryGetValue(adjustedActionID, out var a)
-            || !a.AffectsPosition
+            || (!a.AffectsPosition && adjustedActionID != 29494) // Elusive Jump isn't classified as a movement ability for some reason
             || !a.CanTargetSelf
             || a.BehaviourType <= 1
             || ReAction.Config.EnableNormalBackwardDashes && a.BehaviourType is 3 or 4
