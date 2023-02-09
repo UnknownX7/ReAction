@@ -182,36 +182,36 @@ public static unsafe class ActionStackManager
                 o = DalamudApi.TargetManager.SoftTarget;
                 break;
             case TargetType.FocusTarget:
-                return Common.GetGameObjectFromPronounID(1004);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.FocusTarget);
             case TargetType.UITarget:
                 return Common.UITarget;
             case TargetType.FieldTarget:
                 o = DalamudApi.TargetManager.MouseOverTarget;
                 break;
             case TargetType.TargetsTarget:
-                return Common.GetGameObjectFromPronounID(1002);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.TargetsTarget);
             case TargetType.Self:
-                return Common.GetGameObjectFromPronounID(1014);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.Me);
             case TargetType.LastTarget:
-                return Common.GetGameObjectFromPronounID(1006);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.LastTarget);
             case TargetType.LastEnemy:
-                return Common.GetGameObjectFromPronounID(1084);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.LastEnemy);
             case TargetType.LastAttacker:
-                return Common.GetGameObjectFromPronounID(1008);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.LastAttacker);
             case TargetType.P2:
-                return Common.GetGameObjectFromPronounID(44);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P2);
             case TargetType.P3:
-                return Common.GetGameObjectFromPronounID(45);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P3);
             case TargetType.P4:
-                return Common.GetGameObjectFromPronounID(46);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P4);
             case TargetType.P5:
-                return Common.GetGameObjectFromPronounID(47);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P5);
             case TargetType.P6:
-                return Common.GetGameObjectFromPronounID(48);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P6);
             case TargetType.P7:
-                return Common.GetGameObjectFromPronounID(49);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P7);
             case TargetType.P8:
-                return Common.GetGameObjectFromPronounID(50);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P8);
         }
 
         return o != null ? (GameObject*)o.Address : null;

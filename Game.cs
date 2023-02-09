@@ -201,7 +201,7 @@ public static unsafe class Game
     {
         DalamudApi.SigScanner.Inject(typeof(Game));
         Common.InitializeStructure<ActionManager>(false);
-        Common.GetGameObjectFromPronounID(0); // Test that this is working
+        Common.GetGameObjectFromPronounID(Common.PronounID.None); // Test that this is working
         if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanActionQueue == null)
             throw new ApplicationException("Failed to find core signatures!");
     }
