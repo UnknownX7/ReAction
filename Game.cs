@@ -14,6 +14,7 @@ using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace ReAction;
 
+[InjectSignatures]
 public static unsafe class Game
 {
     public static readonly AsmPatch allowQueuingPatch = new("76 2F 80 F9 04", new byte[] { 0xEB });
@@ -199,7 +200,6 @@ public static unsafe class Game
 
     public static void Initialize()
     {
-        DalamudApi.SigScanner.Inject(typeof(Game));
         Common.InitializeStructure<ActionManager>(false);
         Common.GetGameObjectFromPronounID(Common.PronounID.None); // Test that this is working
         if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanActionQueue == null)
