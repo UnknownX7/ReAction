@@ -512,6 +512,16 @@ public static class PluginUI
 
         ImGui.NextColumn();
 
+        if (ImGui.Checkbox("Enable Decimal Waits (Fractionality)", ref ReAction.Config.EnableFractionality))
+        {
+            Game.waitSyntaxDecimalPatch.Toggle();
+            Game.waitCommandDecimalPatch.Toggle();
+            save = true;
+        }
+        ImGuiEx.SetItemTooltip("Allows decimals in wait commands and removes the 60 seconds cap (e.g. <wait.0.5> or /wait 0.5).");
+
+        ImGui.NextColumn();
+
         save |= ImGui.Checkbox("Enable Frame Alignment", ref ReAction.Config.EnableFrameAlignment);
         ImGuiEx.SetItemTooltip("Aligns the game's frames with the GCD and animation lock.\nNote: This option will cause an almost unnoticeable stutter when either of these timers ends.");
 

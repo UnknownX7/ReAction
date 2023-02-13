@@ -86,6 +86,7 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableFrameAlignment = false;
     public bool EnableAutoRefocusTarget = false;
     public bool EnableMacroQueue = false;
+    public bool EnableFractionality = false;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;

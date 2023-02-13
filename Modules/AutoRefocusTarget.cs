@@ -7,7 +7,7 @@ public class AutoRefocusTarget : Module
 {
     public override bool ShouldEnable => ReAction.Config.EnableAutoRefocusTarget;
 
-    protected override bool Validate() => Game.SetFocusTargetByObjectIDHook.Address != nint.Zero;
+    protected override bool Validate() => Game.SetFocusTargetByObjectIDHook is { Address: not 0 };
     protected override void Enable() => DalamudApi.Framework.Update += Update;
     protected override void Disable() => DalamudApi.Framework.Update -= Update;
 
