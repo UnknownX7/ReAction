@@ -514,9 +514,17 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Decimal Waits (Fractionality)", ref ReAction.Config.EnableFractionality))
         {
-            Game.waitSyntaxDecimalPatch.Toggle();
-            Game.waitCommandDecimalPatch.Toggle();
-            save = true;
+            if (!DalamudApi.PluginInterface.PluginNames.Contains("Fractionality") || !ReAction.Config.EnableFractionality)
+            {
+                Game.waitSyntaxDecimalPatch.Toggle();
+                Game.waitCommandDecimalPatch.Toggle();
+                save = true;
+            }
+            else
+            {
+                ReAction.Config.EnableFractionality = false;
+                ReAction.PrintError("Please disable and delete Fractionality by using the trashcan icon on the plugin installer before enabling this!");
+            }
         }
         ImGuiEx.SetItemTooltip("Allows decimals in wait commands and removes the 60 seconds cap (e.g. <wait.0.5> or /wait 0.5).");
 
