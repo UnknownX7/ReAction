@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin;
 
 namespace ReAction;
@@ -69,16 +68,6 @@ public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
         {
             if (Game.queueACCommandPatch.IsEnabled && !Common.IsMacroRunning)
                 Game.queueACCommandPatch.Disable();
-        }
-
-        if (Config.EnableSpellAutoAttacks)
-        {
-            if (Game.spellAutoAttackPatch.IsEnabled != DalamudApi.Condition[ConditionFlag.InCombat])
-                Game.spellAutoAttackPatch.Toggle();
-        }
-        else
-        {
-            Game.spellAutoAttackPatch.Disable();
         }
     }
 

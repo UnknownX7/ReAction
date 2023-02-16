@@ -488,6 +488,20 @@ public static class PluginUI
         save |= ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks);
         ImGuiEx.SetItemTooltip("Causes spells (and some other actions) to start using auto attacks just like weaponskills.");
 
+        if (ReAction.Config.EnableSpellAutoAttacks)
+        {
+            ImGui.NextColumn();
+            if (ImGui.Checkbox("Enable Auto Attacks on Spells Out of Combat", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
+            {
+                if (ReAction.Config.EnableSpellAutoAttacksOutOfCombat)
+                    Game.spellAutoAttackPatch.Enable();
+                else
+                    Game.spellAutoAttackPatch.Disable();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nNote: This can cause early pulls on certain bosses!");
+        }
+
         ImGui.NextColumn();
 
         save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
