@@ -13,5 +13,5 @@
   ],
   "InternalName": "ReAction",
   "AssemblyVersion": "9.9.9.9",
-  "Changelog": ""
+  "Changelog": "Plugin rework, early pull protection for spell autos, LB queuing, universal macro queue option, Fractionality feature, several bug fixes"
 }
