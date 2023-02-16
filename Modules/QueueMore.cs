@@ -4,7 +4,7 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace ReAction.Modules;
 
-public unsafe class QueueMore : Module
+public unsafe class QueueMore : PluginModule
 {
     private static bool queuedItem = false;
 

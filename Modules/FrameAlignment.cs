@@ -5,7 +5,7 @@ using System;
 
 namespace ReAction.Modules;
 
-public unsafe class FrameAlignment : Module
+public unsafe class FrameAlignment : PluginModule
 {
     private static readonly Stopwatch timer = new();
 

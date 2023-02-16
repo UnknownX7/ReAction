@@ -4,7 +4,7 @@ using Hypostasis.Game.Structures;
 
 namespace ReAction.Modules;
 
-public unsafe class AutoTarget : Module
+public unsafe class AutoTarget : PluginModule
 {
     public override bool ShouldEnable => ReAction.Config.EnableAutoTarget;
 

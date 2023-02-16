@@ -3,7 +3,7 @@ using Dalamud.Game.ClientState.Conditions;
 
 namespace ReAction.Modules;
 
-public class AutoRefocusTarget : Module
+public class AutoRefocusTarget : PluginModule
 {
     public override bool ShouldEnable => ReAction.Config.EnableAutoRefocusTarget;
 

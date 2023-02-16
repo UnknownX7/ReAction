@@ -7,7 +7,7 @@ using ActionManager = Hypostasis.Game.Structures.ActionManager;
 
 namespace ReAction.Modules;
 
-public unsafe class AutoDismount : Module
+public unsafe class AutoDismount : PluginModule
 {
     private static bool isMountActionQueued = false;
     private static (uint actionType, uint actionID, long targetObjectID, uint useType, int pvp) queuedMountAction;

@@ -4,7 +4,7 @@ using ActionManager = Hypostasis.Game.Structures.ActionManager;
 
 namespace ReAction.Modules;
 
-public unsafe class CameraRelativeDashes : Module
+public unsafe class CameraRelativeDashes : PluginModule
 {
     public override bool ShouldEnable => ReAction.Config.EnableCameraRelativeDashes;
 

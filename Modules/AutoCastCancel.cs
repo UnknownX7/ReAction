@@ -4,7 +4,7 @@ using Hypostasis.Game.Structures;
 
 namespace ReAction.Modules;
 
-public unsafe class AutoCastCancel : Module
+public unsafe class AutoCastCancel : PluginModule
 {
     private static bool canceledCast = false;
 
