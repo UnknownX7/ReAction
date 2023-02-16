@@ -450,8 +450,8 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
         {
-            Game.enhancedAutoFaceTargetPatch1.Toggle();
-            Game.enhancedAutoFaceTargetPatch2.Toggle();
+            Game.enhancedAutoFaceTargetPatch.Toggle();
+            Game.removeAutoFaceGroundTargetPatch.Toggle();
             save = true;
         }
         ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
