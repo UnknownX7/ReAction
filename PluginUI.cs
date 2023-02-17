@@ -450,7 +450,7 @@ public static class PluginUI
 
         if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
         {
-            Game.enhancedAutoFaceTargetPatch.Toggle();
+            Game.enhancedAutoFaceTargetPatch.Disable(); // This is managed by the plugin module
             Game.removeAutoFaceGroundTargetPatch.Toggle();
             save = true;
         }
