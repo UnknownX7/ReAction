@@ -344,15 +344,11 @@ public static class PluginUI
             ImGui.PopID();
         }
 
-        ImGui.PushFont(UiBuilder.IconFont);
-
-        if (ImGui.Button(FontAwesomeIcon.PlusCircle.ToIconString(), new Vector2(buttonWidth, 0)))
+        if (ImGuiEx.FontButton(FontAwesomeIcon.PlusCircle.ToIconString(), UiBuilder.IconFont, new Vector2(buttonWidth, 0)))
         {
             stack.Items.Add(new());
             ReAction.Config.Save();
         }
-
-        ImGui.PopFont();
 
         ImGui.EndChild();
     }
@@ -366,15 +362,8 @@ public static class PluginUI
 
     private static void AddActionList(ICollection<Configuration.Action> actions, float buttonWidth)
     {
-        ImGui.PushFont(UiBuilder.IconFont);
-
-        const string id = "ReActionAddSkillsPopup";
-        if (ImGui.Button(FontAwesomeIcon.PlusCircle.ToIconString(), new Vector2(buttonWidth, 0)))
-            ImGui.OpenPopup(id);
-
-        ImGui.PopFont();
-
-        if (!ImGuiEx.ExcelSheetPopup(id, out var row, actionPopupOptions)) return;
+        ImGuiEx.FontButton(FontAwesomeIcon.PlusCircle.ToIconString(), UiBuilder.IconFont, new Vector2(buttonWidth, 0));
+        if (!ImGuiEx.ExcelSheetPopup("ReActionAddSkillsPopup", out var row, actionPopupOptions)) return;
         actions.Add(new() { ID = row });
         ReAction.Config.Save();
     }
@@ -430,217 +419,206 @@ public static class PluginUI
 
     private static void DrawOtherSettings()
     {
-        ImGui.Columns(2, null, false);
-
         var save = false;
 
-        if (ImGui.Checkbox("Enable Ground Target Queuing", ref ReAction.Config.EnableGroundTargetQueuing))
+        if (ImGuiEx.BeginGroupBox("Actions", 0.5f))
         {
-            Game.queueGroundTargetsPatch.Toggle();
-            save = true;
-        }
-        ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
+            save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
+            ImGuiEx.SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
 
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
-        ImGuiEx.SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
-
-        ImGui.NextColumn();
-
-        if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
-        {
-            Game.enhancedAutoFaceTargetPatch.Disable(); // This is managed by the plugin module
-            Game.removeAutoFaceGroundTargetPatch.Toggle();
-            save = true;
-        }
-        ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
-
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Auto Dismount", ref ReAction.Config.EnableAutoDismount);
-        ImGuiEx.SetItemTooltip("Automatically dismounts when an action is used, prior to using the action.");
-
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Auto Cast Cancel", ref ReAction.Config.EnableAutoCastCancel);
-        ImGuiEx.SetItemTooltip("Automatically cancels casting when the target dies.");
-
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
-        ImGuiEx.SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
-
-        if (ReAction.Config.EnableAutoTarget)
-        {
-            ImGui.NextColumn();
-            save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
-            ImGuiEx.SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
-        }
-
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Auto Refocus Target", ref ReAction.Config.EnableAutoRefocusTarget);
-        ImGuiEx.SetItemTooltip("While in duties, attempts to focus target whatever was previously focus targeted if the focus target is lost.");
-
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks);
-        ImGuiEx.SetItemTooltip("Causes spells (and some other actions) to start using auto attacks just like weaponskills.");
-
-        if (ReAction.Config.EnableSpellAutoAttacks)
-        {
-            ImGui.NextColumn();
-            if (ImGui.Checkbox("Enable Auto Attacks on Spells Out of Combat", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
+            if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
             {
-                if (ReAction.Config.EnableSpellAutoAttacksOutOfCombat)
-                    Game.spellAutoAttackPatch.Enable();
+                Game.enhancedAutoFaceTargetPatch.Disable(); // This is managed by the plugin module
+                Game.removeAutoFaceGroundTargetPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
+
+            save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
+            ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
+
+            if (ReAction.Config.EnableCameraRelativeDashes)
+            {
+                ImGuiEx.Prefix();
+                save |= ImGui.Checkbox("Enable Normal Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
+                ImGuiEx.SetItemTooltip("Ignores \"Enable Camera Relative Dashes\" for any backward dash, such as Elusive Jump.");
+            }
+
+            ImGuiEx.EndGroupBox();
+        }
+
+        ImGui.SameLine();
+
+        if (ImGuiEx.BeginGroupBox("Queuing", 0.5f))
+        {
+            if (ImGui.Checkbox("Enable Ground Target Queuing", ref ReAction.Config.EnableGroundTargetQueuing))
+            {
+                Game.queueGroundTargetsPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
+
+            save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
+            ImGuiEx.SetItemTooltip("Allows sprint, items and LBs to be queued.");
+
+            save |= ImGui.Checkbox("Always Queue Macros", ref ReAction.Config.EnableMacroQueue);
+            ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");
+
+            ImGuiEx.EndGroupBox();
+        }
+
+        if (ImGuiEx.BeginGroupBox("Auto", 0.5f))
+        {
+            save |= ImGui.Checkbox("Enable Auto Dismount", ref ReAction.Config.EnableAutoDismount);
+            ImGuiEx.SetItemTooltip("Automatically dismounts when an action is used, prior to using the action.");
+
+            save |= ImGui.Checkbox("Enable Auto Cast Cancel", ref ReAction.Config.EnableAutoCastCancel);
+            ImGuiEx.SetItemTooltip("Automatically cancels casting when the target dies.");
+
+            save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
+            ImGuiEx.SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
+
+            if (ReAction.Config.EnableAutoTarget)
+            {
+                ImGuiEx.Prefix();
+                save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
+                ImGuiEx.SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
+            }
+
+            save |= ImGui.Checkbox("Enable Auto Refocus Target", ref ReAction.Config.EnableAutoRefocusTarget);
+            ImGuiEx.SetItemTooltip("While in duties, attempts to focus target whatever was previously focus targeted if the focus target is lost.");
+
+            save |= ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks);
+            ImGuiEx.SetItemTooltip("Causes spells (and some other actions) to start using auto attacks just like weaponskills.");
+
+            if (ReAction.Config.EnableSpellAutoAttacks)
+            {
+                ImGuiEx.Prefix();
+                if (ImGui.Checkbox("Enable Out of Combat", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
+                {
+                    if (ReAction.Config.EnableSpellAutoAttacksOutOfCombat)
+                        Game.spellAutoAttackPatch.Enable();
+                    else
+                        Game.spellAutoAttackPatch.Disable();
+                    save = true;
+                }
+                ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nNote: This can cause early pulls on certain bosses!");
+            }
+
+            ImGuiEx.EndGroupBox();
+        }
+
+        ImGui.SameLine();
+
+        if (ImGuiEx.BeginGroupBox("Decombos", 0.5f))
+        {
+            if (ImGui.Checkbox("Enable Uncombo'd Meditation", ref ReAction.Config.EnableDecomboMeditation))
+            {
+                Game.decomboMeditationPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.\nSteel Peak ID: 25761\nForbidden Chakra ID: 3547");
+
+            if (ImGui.Checkbox("Enable Uncombo'd Bunshin", ref ReAction.Config.EnableDecomboBunshin))
+            {
+                Game.decomboBunshinPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Removes the Bunshin <-> Phantom Kamaitachi combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPhantom Kamaitachi ID: 25774");
+
+            if (ImGui.Checkbox("Enable Uncombo'd Wanderer's Minuet", ref ReAction.Config.EnableDecomboWanderersMinuet))
+            {
+                Game.decomboWanderersMinuetPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Removes the Wanderer's Minuet -> Pitch Perfect combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPitch Perfect ID: 7404");
+
+            if (ImGui.Checkbox("Enable Uncombo'd Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy))
+            {
+                Game.decomboLiturgyPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
+
+            if (ImGui.Checkbox("Enable Uncombo'd Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
+            {
+                Game.decomboEarthlyStarPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
+
+            ImGuiEx.EndGroupBox();
+        }
+
+        if (ImGuiEx.BeginGroupBox("Misc"))
+        {
+            ImGui.Columns(2, null, false);
+
+            save |= ImGui.Checkbox("Enable Frame Alignment", ref ReAction.Config.EnableFrameAlignment);
+            ImGuiEx.SetItemTooltip("Aligns the game's frames with the GCD and animation lock.\nNote: This option will cause an almost unnoticeable stutter when either of these timers ends.");
+
+            ImGui.NextColumn();
+
+            if (ImGui.Checkbox("Enable Decimal Waits (Fractionality)", ref ReAction.Config.EnableFractionality))
+            {
+                if (!DalamudApi.PluginInterface.PluginNames.Contains("Fractionality") || !ReAction.Config.EnableFractionality)
+                {
+                    Game.waitSyntaxDecimalPatch.Toggle();
+                    Game.waitCommandDecimalPatch.Toggle();
+                    save = true;
+                }
                 else
-                    Game.spellAutoAttackPatch.Disable();
-                save = true;
+                {
+                    ReAction.Config.EnableFractionality = false;
+                    ReAction.PrintError("Please disable and delete Fractionality by using the trashcan icon on the plugin installer before enabling this!");
+                }
             }
-            ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nNote: This can cause early pulls on certain bosses!");
+            ImGuiEx.SetItemTooltip("Allows decimals in wait commands and removes the 60 seconds cap (e.g. <wait.0.5> or /wait 0.5).");
+
+            ImGui.Columns(1);
+            ImGuiEx.EndGroupBox();
         }
 
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
-        ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
-
-        if (ReAction.Config.EnableCameraRelativeDashes)
+        if (ImGuiEx.BeginGroupBox("Place on Hotbar (HOVER ME FOR INFORMATION)", new ImGuiEx.GroupBoxOptions
+                {
+                    HeaderTextAction = () => ImGuiEx.SetItemTooltip(
+                        "This will allow you to place various things on the hotbar that you can't normally." +
+                        "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
+                        "\nSome examples of things you can do:" +
+                        "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
+                        "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
+                        "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
+                        "\n\tRevive flying mount roulette (GeneralAction, 24).")
+                }
+            ))
         {
+            ImGui.Columns(5, null, false);
+            ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010\0XHB 1\0XHB 2\0XHB 3\0XHB 4\0XHB 5\0XHB 6\0XHB 7\0XHB 8");
             ImGui.NextColumn();
-            save |= ImGui.Checkbox("Enable Normal Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
-            ImGuiEx.SetItemTooltip("Ignores \"Enable Camera Relative Dashes\" for any backward dash, such as Elusive Jump.");
-        }
-
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
-        ImGuiEx.SetItemTooltip("Allows sprint, items and LBs to be queued.");
-
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Always Queue Macros", ref ReAction.Config.EnableMacroQueue);
-        ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");
-
-        ImGui.NextColumn();
-
-        if (ImGui.Checkbox("Enable Decimal Waits (Fractionality)", ref ReAction.Config.EnableFractionality))
-        {
-            if (!DalamudApi.PluginInterface.PluginNames.Contains("Fractionality") || !ReAction.Config.EnableFractionality)
+            ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012\013\014\015\016");
+            ImGui.NextColumn();
+            var hotbarSlotType = Enum.GetName(typeof(HotbarSlotType), commandType) ?? commandType.ToString();
+            if (ImGui.BeginCombo("Type", hotbarSlotType))
             {
-                Game.waitSyntaxDecimalPatch.Toggle();
-                Game.waitCommandDecimalPatch.Toggle();
-                save = true;
+                for (int i = 1; i <= 32; i++)
+                {
+                    if (!ImGui.Selectable($"{Enum.GetName(typeof(HotbarSlotType), i) ?? i.ToString()}##{i}", commandType == i)) continue;
+                    commandType = i;
+                }
+                ImGui.EndCombo();
             }
-            else
+            ImGui.NextColumn();
+            ImGui.InputInt("ID", ref commandID);
+            ImGui.NextColumn();
+            if (ImGui.Button("Execute"))
             {
-                ReAction.Config.EnableFractionality = false;
-                ReAction.PrintError("Please disable and delete Fractionality by using the trashcan icon on the plugin installer before enabling this!");
+                Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, (uint)commandID);
+                ReAction.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
             }
+            ImGuiEx.SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
+            ImGui.Columns(1);
+            ImGuiEx.EndGroupBox();
         }
-        ImGuiEx.SetItemTooltip("Allows decimals in wait commands and removes the 60 seconds cap (e.g. <wait.0.5> or /wait 0.5).");
-
-        ImGui.NextColumn();
-
-        save |= ImGui.Checkbox("Enable Frame Alignment", ref ReAction.Config.EnableFrameAlignment);
-        ImGuiEx.SetItemTooltip("Aligns the game's frames with the GCD and animation lock.\nNote: This option will cause an almost unnoticeable stutter when either of these timers ends.");
-
-        ImGui.Columns(1);
-        ImGui.Separator();
-        ImGui.Columns(2, null, false);
-
-        ImGui.Indent();
-        ImGui.TextUnformatted("Decombos");
-        ImGui.Unindent();
-
-        ImGui.NextColumn();
-        ImGui.NextColumn();
-
-        if (ImGui.Checkbox("Enable Uncombo'd Meditation", ref ReAction.Config.EnableDecomboMeditation))
-        {
-            Game.decomboMeditationPatch.Toggle();
-            save = true;
-        }
-        ImGuiEx.SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.\nSteel Peak ID: 25761\nForbidden Chakra ID: 3547");
-
-        ImGui.NextColumn();
-
-        if (ImGui.Checkbox("Enable Uncombo'd Bunshin", ref ReAction.Config.EnableDecomboBunshin))
-        {
-            Game.decomboBunshinPatch.Toggle();
-            save = true;
-        }
-        ImGuiEx.SetItemTooltip("Removes the Bunshin <-> Phantom Kamaitachi combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPhantom Kamaitachi ID: 25774");
-
-        ImGui.NextColumn();
-
-        if (ImGui.Checkbox("Enable Uncombo'd Wanderer's Minuet", ref ReAction.Config.EnableDecomboWanderersMinuet))
-        {
-            Game.decomboWanderersMinuetPatch.Toggle();
-            save = true;
-        }
-        ImGuiEx.SetItemTooltip("Removes the Wanderer's Minuet -> Pitch Perfect combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPitch Perfect ID: 7404");
-
-        ImGui.NextColumn();
-
-        if (ImGui.Checkbox("Enable Uncombo'd Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy))
-        {
-            Game.decomboLiturgyPatch.Toggle();
-            save = true;
-        }
-        ImGuiEx.SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
-
-        ImGui.NextColumn();
-
-        if (ImGui.Checkbox("Enable Uncombo'd Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
-        {
-            Game.decomboEarthlyStarPatch.Toggle();
-            save = true;
-        }
-        ImGuiEx.SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
-
-        ImGui.Columns(1);
-
-        ImGui.Spacing();
-        ImGui.Separator();
-
-        ImGui.Indent();
-        ImGui.TextUnformatted("Place on Hotbar (HOVER ME FOR INFORMATION)");
-        ImGuiEx.SetItemTooltip("This will allow you to place various things on the hotbar that you can't normally." +
-            "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
-            "\nSome examples of things you can do:" +
-            "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
-            "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
-            "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
-            "\n\tRevive flying mount roulette (GeneralAction, 24).");
-        ImGui.Unindent();
-        ImGui.Columns(5, null, false);
-        ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010\0XHB 1\0XHB 2\0XHB 3\0XHB 4\0XHB 5\0XHB 6\0XHB 7\0XHB 8");
-        ImGui.NextColumn();
-        ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012\013\014\015\016");
-        ImGui.NextColumn();
-        var hotbarSlotType = Enum.GetName(typeof(HotbarSlotType), commandType) ?? commandType.ToString();
-        if (ImGui.BeginCombo("Type", hotbarSlotType))
-        {
-            for (int i = 1; i <= 32; i++)
-            {
-                if (!ImGui.Selectable($"{Enum.GetName(typeof(HotbarSlotType), i) ?? i.ToString()}##{i}", commandType == i)) continue;
-                commandType = i;
-            }
-            ImGui.EndCombo();
-        }
-        ImGui.NextColumn();
-        ImGui.InputInt("ID", ref commandID);
-        ImGui.NextColumn();
-        if (ImGui.Button("Execute"))
-        {
-            Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, (uint)commandID);
-            ReAction.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
-        }
-        ImGuiEx.SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
-        ImGui.Columns(1);
 
         if (save)
             ReAction.Config.Save();
