@@ -45,11 +45,7 @@ public unsafe class QueueMore : PluginModule
 
     private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp)
     {
-        if (useType != 0
-            || ((actionType != 5 || actionID != 4) // Sprint
-                && actionType != 2 // Item
-                && (actionType != 1 || DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is not { ActionCategory.Row: 9 or 15 }))) // LB
-            return;
+        if (useType != 0 || !CheckAction(actionType, actionID, adjustedActionID)) return;
 
         PluginLog.Debug($"Enabling queuing {actionType}, {adjustedActionID}");
 
@@ -64,4 +60,13 @@ public unsafe class QueueMore : PluginModule
         if (queuedItem && !actionManager->isQueued)
             queuedItem = false;
     }
+
+    private static bool CheckAction(uint actionType, uint actionID, uint adjustedActionID) =>
+        actionType switch
+        {
+            1 when DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { ActionCategory.Row: 9 or 15 } => true, // Allow LB
+            2 => true, // Allow items
+            5 when actionID == 4 => true, // Allow Sprint
+            _ => false
+        };
 }

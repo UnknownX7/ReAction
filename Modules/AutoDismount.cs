@@ -31,9 +31,7 @@ public unsafe class AutoDismount : PluginModule
     {
         ret = null;
 
-        if (!DalamudApi.Condition[ConditionFlag.Mounted]
-            || actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
-            || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
+        if (!DalamudApi.Condition[ConditionFlag.Mounted] || !CheckAction(actionType, actionID, adjustedActionID)
             || actionManager->CS.GetActionStatus((ActionType)actionType, actionID, targetObjectID, false, false) == 0)
             return;
 
@@ -62,4 +60,12 @@ public unsafe class AutoDismount : PluginModule
         isMountActionQueued = false;
         mountActionTimer.Stop();
     }
+
+    private static bool CheckAction(uint actionType, uint actionID, uint adjustedActionID) =>
+        actionType switch
+        {
+            1 when !ReAction.mountActionsSheet.ContainsKey(adjustedActionID) && actionID is not (5 or 6) => true, // Block mount actions, Teleport and Return
+            5 when actionID is 3 or 4 => true, // Allow LB and Sprint
+            _ => false
+        };
 }

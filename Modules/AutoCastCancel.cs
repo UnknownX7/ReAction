@@ -22,11 +22,7 @@ public unsafe class AutoCastCancel : PluginModule
         }
         else
         {
-            if (canceledCast
-                || Common.ActionManager->castActionType != 1
-                || !ReAction.actionSheet.TryGetValue(Common.ActionManager->castActionID, out var a)
-                || a.TargetArea)
-                return;
+            if (canceledCast || !CheckAction(Common.ActionManager->castActionType, Common.ActionManager->castActionID)) return;
 
             var o = Game.GetGameObjectFromObjectID(Common.ActionManager->castTargetObjectID);
             if (o == null || ActionManager.CanUseActionOnGameObject(Common.ActionManager->castActionID, o)) return;
@@ -36,5 +32,12 @@ public unsafe class AutoCastCancel : PluginModule
             Game.CancelCast();
             canceledCast = true;
         }
+    }
+
+    private static bool CheckAction(uint actionType, uint actionID)
+    {
+        if (actionType != 1) return false; // Block non normal actions
+        if (!ReAction.actionSheet.TryGetValue(actionID, out var a)) return false;
+        return !a.TargetArea; // Block ground targets
     }
 }
