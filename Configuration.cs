@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Dalamud.Configuration;
 using Newtonsoft.Json;
@@ -17,7 +17,38 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public class ActionStackItem
     {
         public uint ID = 0;
-        public ActionStackManager.TargetType Target = ActionStackManager.TargetType.Target;
+
+        [Obsolete]
+        public uint Target
+        {
+            set
+            {
+                TargetID = value switch
+                {
+                    0 => 10_000,
+                    1 => 10_001,
+                    2 => (uint)PronounID.FocusTarget,
+                    3 => 10_002,
+                    4 => 10_003,
+                    5 => (uint)PronounID.TargetsTarget,
+                    6 => (uint)PronounID.Me,
+                    7 => (uint)PronounID.LastTarget,
+                    8 => (uint)PronounID.LastEnemy,
+                    9 => (uint)PronounID.LastAttacker,
+                    10 => (uint)PronounID.P2,
+                    11 => (uint)PronounID.P3,
+                    12 => (uint)PronounID.P4,
+                    13 => (uint)PronounID.P5,
+                    14 => (uint)PronounID.P6,
+                    15 => (uint)PronounID.P7,
+                    16 => (uint)PronounID.P8,
+                    17 => 10_010,
+                    _ => 10_000
+                };
+            }
+        }
+
+        public uint TargetID = 10_000;
     }
 
     public class ActionStack

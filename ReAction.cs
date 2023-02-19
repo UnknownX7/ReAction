@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game;
@@ -18,6 +18,7 @@ public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
     protected override void Initialize()
     {
         Game.Initialize();
+        PronounManager.Initialize();
 
         actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId is not 7).ToDictionary(i => i.RowId, i => i);
         mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);

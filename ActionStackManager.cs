@@ -9,27 +9,6 @@ namespace ReAction;
 
 public static unsafe class ActionStackManager
 {
-    public enum TargetType
-    {
-        Target,
-        SoftTarget,
-        FocusTarget,
-        UITarget,
-        FieldTarget,
-        TargetsTarget,
-        Self,
-        LastTarget,
-        LastEnemy,
-        LastAttacker,
-        P2,
-        P3,
-        P4,
-        P5,
-        P6,
-        P7,
-        P8
-    }
-
     public delegate void PreUseActionEventDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref long targetObjectID, ref uint param, ref uint useType, ref int pvp);
     public static event PreUseActionEventDelegate PreUseAction;
     public delegate void PreActionStackDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref uint adjustedActionID, ref long targetObjectID, ref uint param, uint useType, ref int pvp, out byte? ret);
@@ -158,7 +137,7 @@ public static unsafe class ActionStackManager
         foreach (var item in stack.Items)
         {
             var newID = item.ID != 0 ? Common.ActionManager->CS.GetAdjustedActionId(item.ID) : id;
-            var newTarget = GetTarget(item.Target);
+            var newTarget = PronounManager.GetGameObjectFromID(item.TargetID);
             if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget) || useCooldown && !Common.ActionManager->CanActionQueue(1, newID)) continue;
 
             action = newID;
@@ -167,54 +146,6 @@ public static unsafe class ActionStackManager
         }
 
         return false;
-    }
-
-    private static GameObject* GetTarget(TargetType target)
-    {
-        Dalamud.Game.ClientState.Objects.Types.GameObject o = null;
-
-        switch (target)
-        {
-            case TargetType.Target:
-                o = DalamudApi.TargetManager.Target;
-                break;
-            case TargetType.SoftTarget:
-                o = DalamudApi.TargetManager.SoftTarget;
-                break;
-            case TargetType.FocusTarget:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.FocusTarget);
-            case TargetType.UITarget:
-                return Common.UITarget;
-            case TargetType.FieldTarget:
-                o = DalamudApi.TargetManager.MouseOverTarget;
-                break;
-            case TargetType.TargetsTarget:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.TargetsTarget);
-            case TargetType.Self:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.Me);
-            case TargetType.LastTarget:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.LastTarget);
-            case TargetType.LastEnemy:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.LastEnemy);
-            case TargetType.LastAttacker:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.LastAttacker);
-            case TargetType.P2:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.P2);
-            case TargetType.P3:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.P3);
-            case TargetType.P4:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.P4);
-            case TargetType.P5:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.P5);
-            case TargetType.P6:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.P6);
-            case TargetType.P7:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.P7);
-            case TargetType.P8:
-                return Common.GetGameObjectFromPronounID(Common.PronounID.P8);
-        }
-
-        return o != null ? (GameObject*)o.Address : null;
     }
 
     private static bool CanUseAction(uint id, GameObject* target)

@@ -303,7 +303,6 @@ public static class PluginUI
         ImGui.BeginChild("ReActionItemEditor", ImGui.GetContentRegionAvail(), true);
 
         var buttonWidth = ImGui.GetContentRegionAvail().X / 3;
-        var targets = Enum.GetNames(typeof(ActionStackManager.TargetType));
         for (int i = 0; i < stack.Items.Count; i++)
         {
             ImGui.PushID(i);
@@ -311,11 +310,15 @@ public static class PluginUI
             var item = stack.Items[i];
 
             ImGui.SetNextItemWidth(buttonWidth);
-            var _ = (int)item.Target;
-            if (ImGui.Combo("##TargetType", ref _, targets, targets.Length))
+            if (ImGui.BeginCombo("##TargetType", PronounManager.GetPronounName(item.TargetID)))
             {
-                item.Target = (ActionStackManager.TargetType)_;
-                ReAction.Config.Save();
+                foreach (var id in PronounManager.OrderedIDs)
+                {
+                    if (!ImGui.Selectable(PronounManager.GetPronounName(id), id == item.TargetID)) continue;
+                    item.TargetID = id;
+                    ReAction.Config.Save();
+                }
+                ImGui.EndCombo();
             }
 
             ImGui.SameLine();

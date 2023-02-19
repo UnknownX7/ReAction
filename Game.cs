@@ -235,7 +235,7 @@ public static unsafe class Game
     public static void Initialize()
     {
         Common.InitializeStructure<ActionManager>(false);
-        Common.GetGameObjectFromPronounID(Common.PronounID.None); // Test that this is working
+        Common.GetGameObjectFromPronounID(PronounID.None); // Test that this is working
         if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanActionQueue == null)
             throw new ApplicationException("Failed to find core signatures!");
     }
