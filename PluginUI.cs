@@ -513,37 +513,37 @@ public static class PluginUI
 
         ImGui.SameLine();
 
-        if (ImGuiEx.BeginGroupBox("Decombos", 0.5f))
+        if (ImGuiEx.BeginGroupBox("Sunderings", 0.5f))
         {
-            if (ImGui.Checkbox("Enable Uncombo'd Meditation", ref ReAction.Config.EnableDecomboMeditation))
+            if (ImGui.Checkbox("Sunder Meditation", ref ReAction.Config.EnableDecomboMeditation))
             {
                 Game.decomboMeditationPatch.Toggle();
                 save = true;
             }
             ImGuiEx.SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.\nSteel Peak ID: 25761\nForbidden Chakra ID: 3547");
 
-            if (ImGui.Checkbox("Enable Uncombo'd Bunshin", ref ReAction.Config.EnableDecomboBunshin))
+            if (ImGui.Checkbox("Sunder Bunshin", ref ReAction.Config.EnableDecomboBunshin))
             {
                 Game.decomboBunshinPatch.Toggle();
                 save = true;
             }
             ImGuiEx.SetItemTooltip("Removes the Bunshin <-> Phantom Kamaitachi combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPhantom Kamaitachi ID: 25774");
 
-            if (ImGui.Checkbox("Enable Uncombo'd Wanderer's Minuet", ref ReAction.Config.EnableDecomboWanderersMinuet))
+            if (ImGui.Checkbox("Sunder Wanderer's Minuet", ref ReAction.Config.EnableDecomboWanderersMinuet))
             {
                 Game.decomboWanderersMinuetPatch.Toggle();
                 save = true;
             }
             ImGuiEx.SetItemTooltip("Removes the Wanderer's Minuet -> Pitch Perfect combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPitch Perfect ID: 7404");
 
-            if (ImGui.Checkbox("Enable Uncombo'd Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy))
+            if (ImGui.Checkbox("Sunder Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy))
             {
                 Game.decomboLiturgyPatch.Toggle();
                 save = true;
             }
             ImGuiEx.SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
 
-            if (ImGui.Checkbox("Enable Uncombo'd Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
+            if (ImGui.Checkbox("Sunder Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar))
             {
                 Game.decomboEarthlyStarPatch.Toggle();
                 save = true;
