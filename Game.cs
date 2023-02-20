@@ -210,6 +210,17 @@ public static unsafe class Game
         focusTargetInfo = DalamudApi.TargetManager.FocusTarget is { } o ? (o.Name.ToString(), o.DataId) : (null, 0);
     }
 
+    private delegate GameObject* ResolvePlaceholderDelegate(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames);
+    [Signature("E8 ?? ?? ?? ?? 48 8B 5C 24 30 EB 0C")]
+    private static Hook<ResolvePlaceholderDelegate> ResolvePlaceholderHook;
+    private static GameObject* ResolvePlaceholderDetour(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames)
+    {
+        var ret = ResolvePlaceholderHook.Original(pronounModule, text, defaultToTarget, allowPlayerNames || ReAction.Config.EnablePlayerNamesInCommands);
+        if (ret == null)
+            ret = PronounManager.ResolveCustomPlaceholder(text);
+        return ret;
+    }
+
     public static void RefocusTarget()
     {
         if (focusTargetInfo.Name == null || DalamudApi.TargetManager.FocusTarget != null) return;
@@ -235,7 +246,7 @@ public static unsafe class Game
     public static void Initialize()
     {
         Common.InitializeStructure<ActionManager>(false);
-        Common.GetGameObjectFromPronounID(Common.PronounID.None); // Test that this is working
+        Common.GetGameObjectFromPronounID(PronounID.None); // Test that this is working
         if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanActionQueue == null)
             throw new ApplicationException("Failed to find core signatures!");
     }
