@@ -27,7 +27,8 @@ public static unsafe class ActionStackManager
         P5,
         P6,
         P7,
-        P8
+        P8,
+        LowestHPPartyMember
     }
 
     public delegate void PreUseActionEventDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref long targetObjectID, ref uint param, ref uint useType, ref int pvp);
@@ -212,9 +213,30 @@ public static unsafe class ActionStackManager
                 return Common.GetGameObjectFromPronounID(Common.PronounID.P7);
             case TargetType.P8:
                 return Common.GetGameObjectFromPronounID(Common.PronounID.P8);
+            case TargetType.LowestHPPartyMember:
+                return GetTargetWithLowestHP();
         }
 
         return o != null ? (GameObject*)o.Address : null;
+    }
+
+    private static GameObject* GetTargetWithLowestHP()
+    {
+        try 
+        {
+            return Game.GetGameObjectFromObjectID(
+                DalamudApi.PartyList
+                    .Where(member => member.CurrentHP > 0)
+                    .Where(member => member.CurrentHP < member.MaxHP)
+                    .MinBy(member => member.CurrentHP)
+                    .ObjectId
+            );
+        }
+        catch (Exception e)
+        {
+            // When party is not formed.
+            return GetTarget(TargetType.Self);
+        }
     }
 
     private static bool CanUseAction(uint id, GameObject* target)
