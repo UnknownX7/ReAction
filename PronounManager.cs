@@ -140,4 +140,5 @@ public static class PronounManager
         : formalPronounIDName.TryGetValue((PronounID)id, out var name) ? name : ((PronounID)id).ToString();
 
     public static unsafe GameObject* GetGameObjectFromID(uint id) => id >= 10_000 && CustomPronouns.TryGetValue(id, out var pronoun) ? pronoun.GetGameObject() : Common.GetGameObjectFromPronounID((PronounID)id);
+    public static unsafe GameObject* ResolveCustomPlaceholder(string placeholder) => CustomPlaceholders.TryGetValue(placeholder, out var pronoun) ? pronoun.GetGameObject() : null;
 }

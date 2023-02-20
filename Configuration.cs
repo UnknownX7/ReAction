@@ -119,6 +119,7 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableAutoRefocusTarget = false;
     public bool EnableMacroQueue = false;
     public bool EnableFractionality = false;
+    public bool EnablePlayerNamesInCommands = false;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;
