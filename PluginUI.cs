@@ -440,7 +440,7 @@ public static class PluginUI
             save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
             ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
 
-            if (ReAction.Config.EnableCameraRelativeDashes)
+            using (new ImGuiEx.DisabledBlock(!ReAction.Config.EnableCameraRelativeDashes))
             {
                 ImGuiEx.Prefix();
                 save |= ImGui.Checkbox("Enable Normal Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
@@ -481,7 +481,7 @@ public static class PluginUI
             save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
             ImGuiEx.SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
 
-            if (ReAction.Config.EnableAutoTarget)
+            using (new ImGuiEx.DisabledBlock(!ReAction.Config.EnableAutoTarget))
             {
                 ImGuiEx.Prefix();
                 save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
@@ -494,7 +494,7 @@ public static class PluginUI
             save |= ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks);
             ImGuiEx.SetItemTooltip("Causes spells (and some other actions) to start using auto attacks just like weaponskills.");
 
-            if (ReAction.Config.EnableSpellAutoAttacks)
+            using (new ImGuiEx.DisabledBlock(!ReAction.Config.EnableSpellAutoAttacks))
             {
                 ImGuiEx.Prefix();
                 if (ImGui.Checkbox("Enable Out of Combat", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
@@ -553,14 +553,10 @@ public static class PluginUI
             ImGuiEx.EndGroupBox();
         }
 
-        if (ImGuiEx.BeginGroupBox("Misc"))
+        if (ImGuiEx.BeginGroupBox("Misc", 0.5f))
         {
-            ImGui.Columns(2, null, false);
-
             save |= ImGui.Checkbox("Enable Frame Alignment", ref ReAction.Config.EnableFrameAlignment);
             ImGuiEx.SetItemTooltip("Aligns the game's frames with the GCD and animation lock.\nNote: This option will cause an almost unnoticeable stutter when either of these timers ends.");
-
-            ImGui.NextColumn();
 
             if (ImGui.Checkbox("Enable Decimal Waits (Fractionality)", ref ReAction.Config.EnableFractionality))
             {
@@ -578,28 +574,26 @@ public static class PluginUI
             }
             ImGuiEx.SetItemTooltip("Allows decimals in wait commands and removes the 60 seconds cap (e.g. <wait.0.5> or /wait 0.5).");
 
-            ImGui.Columns(1);
             ImGuiEx.EndGroupBox();
         }
 
-        if (ImGuiEx.BeginGroupBox("Place on Hotbar (HOVER ME FOR INFORMATION)", new ImGuiEx.GroupBoxOptions
-                {
-                    HeaderTextAction = () => ImGuiEx.SetItemTooltip(
-                        "This will allow you to place various things on the hotbar that you can't normally." +
-                        "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
-                        "\nSome examples of things you can do:" +
-                        "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
-                        "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
-                        "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
-                        "\n\tRevive flying mount roulette (GeneralAction, 24).")
-                }
+        ImGui.SameLine();
+
+        if (ImGuiEx.BeginGroupBox("Place on Hotbar (HOVER ME FOR INFORMATION)", 0.5f, new ImGuiEx.GroupBoxOptions
+        {
+            HeaderTextAction = () => ImGuiEx.SetItemTooltip(
+                "This will allow you to place various things on the hotbar that you can't normally." +
+                "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
+                "\nSome examples of things you can do:" +
+                "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
+                "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
+                "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
+                "\n\tRevive flying mount roulette (GeneralAction, 24).")
+        }
             ))
         {
-            ImGui.Columns(5, null, false);
             ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010\0XHB 1\0XHB 2\0XHB 3\0XHB 4\0XHB 5\0XHB 6\0XHB 7\0XHB 8");
-            ImGui.NextColumn();
             ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012\013\014\015\016");
-            ImGui.NextColumn();
             var hotbarSlotType = Enum.GetName(typeof(HotbarSlotType), commandType) ?? commandType.ToString();
             if (ImGui.BeginCombo("Type", hotbarSlotType))
             {
@@ -610,16 +604,13 @@ public static class PluginUI
                 }
                 ImGui.EndCombo();
             }
-            ImGui.NextColumn();
             ImGui.InputInt("ID", ref commandID);
-            ImGui.NextColumn();
             if (ImGui.Button("Execute"))
             {
                 Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, (uint)commandID);
                 ReAction.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
             }
             ImGuiEx.SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
-            ImGui.Columns(1);
             ImGuiEx.EndGroupBox();
         }
 
