@@ -1,14 +1,12 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.Game;
+using ActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using Hypostasis.Game.Structures;
 
 namespace ReAction;
 
-// TODO: for the love of god why am i still putting every feature in this one fucking file
 public static unsafe class ActionStackManager
 {
     public enum TargetType
@@ -33,16 +31,16 @@ public static unsafe class ActionStackManager
         LowestHPPartyMember
     }
 
-    private static bool isMountActionQueued = false;
-    private static (uint actionType, uint actionID, long targetObjectID, uint useType, int pvp) queuedMountAction;
-    private static readonly Stopwatch mountActionTimer = new();
-
-    private static bool canceledCast = false;
+    public delegate void PreUseActionEventDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref long targetObjectID, ref uint param, ref uint useType, ref int pvp);
+    public static event PreUseActionEventDelegate PreUseAction;
+    public delegate void PreActionStackDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref uint adjustedActionID, ref long targetObjectID, ref uint param, uint useType, ref int pvp, out byte? ret);
+    public static event PreActionStackDelegate PreActionStack;
+    public delegate void PostActionStackDelegate(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp);
+    public static event PostActionStackDelegate PostActionStack;
+    public delegate void PostUseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp);
+    public static event PostUseActionDelegate PostUseAction;
 
     private static long queuedGroundTargetObjectID = 0;
-    private static bool queuedItem = false;
-
-    private static readonly Stopwatch timer = new();
 
     public static byte OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
     {
@@ -50,29 +48,26 @@ public static unsafe class ActionStackManager
         {
             if (DalamudApi.ClientState.LocalPlayer == null) return 0;
 
-            if (queuedItem && useType == 1)
+            var tryStack = useType == 0;
+            if (useType == 100)
             {
-                PluginLog.Debug("Applying queued item param");
-
-                param = 65535;
-                queuedItem = false;
-            }
-            else if (ReAction.Config.EnableQueuingMore && actionType == 5 && actionID == 4 && useType == 1)
-            {
-                actionType = 1;
-                actionID = 3;
-                targetObjectID = DalamudApi.ClientState.LocalPlayer.ObjectId;
+                useType = 0;
+                PluginLog.Debug("UseAction called from a macro using /macroqueue");
             }
 
-            var adjustedActionID = actionType == 1 ? actionManager->GetAdjustedActionId(actionID) : actionID;
+            PreUseAction?.Invoke(actionManager, ref actionType, ref actionID, ref targetObjectID, ref param, ref useType, ref pvp);
+
+            var adjustedActionID = actionType == 1 ? actionManager->CS.GetAdjustedActionId(actionID) : actionID;
 
             PluginLog.Debug($"UseAction called {actionType}, {actionID} -> {adjustedActionID}, {targetObjectID:X}, {param}, {useType}, {pvp}");
 
-            if (ReAction.Config.EnableAutoDismount && TryDismount(actionType, adjustedActionID, targetObjectID, useType, pvp, out var ret))
-                return ret;
+            byte? ret = null;
+            PreActionStack?.Invoke(actionManager, ref actionType, ref actionID, ref adjustedActionID, ref targetObjectID, ref param, useType, ref pvp, out ret);
+            if (ret.HasValue)
+                return ret.Value;
 
             var succeeded = false;
-            if (actionType == 1 && useType == 0 && ReAction.actionSheet.ContainsKey(adjustedActionID))
+            if (tryStack && actionType == 1 && ReAction.actionSheet.ContainsKey(adjustedActionID))
             {
                 PluginLog.Debug("Checking stacks");
 
@@ -86,7 +81,7 @@ public static unsafe class ActionStackManager
                             => action.ID == 0
                                || action.ID == 1 && a.CanTargetHostile
                                || action.ID == 2 && (a.CanTargetFriendly || a.CanTargetParty)
-                               || (action.UseAdjustedID ? actionManager->GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID))
+                               || (action.UseAdjustedID ? actionManager->CS.GetAdjustedActionId(action.ID) : action.ID) == adjustedActionID))
                         continue;
 
                     if (!CheckActionStack(adjustedActionID, stack, out var newAction, out var newTarget))
@@ -109,31 +104,20 @@ public static unsafe class ActionStackManager
                 }
             }
 
-            if (ReAction.Config.EnableAutoTarget && actionType == 1 && TryTabTarget(adjustedActionID, targetObjectID, out var newObjectID))
-                targetObjectID = newObjectID;
-
-            if (ReAction.Config.EnableCameraRelativeDashes)
-                TryDashFromCamera(actionType, adjustedActionID);
-
-            if (ReAction.Config.EnableQueuingMore && useType == 0)
-                TryEnablingQueuing(actionType, adjustedActionID);
+            PostActionStack?.Invoke(actionManager, actionType, actionID, adjustedActionID, ref targetObjectID, param, useType, pvp);
 
             ret = Game.UseActionHook.Original(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
 
-            if (Game.allowQueuingReplacer.IsEnabled)
-                Game.allowQueuingReplacer.Disable();
-
-            if (queuedItem && !Game.IsQueued)
-                queuedItem = false;
+            PostUseAction?.Invoke(actionManager, actionType, actionID, adjustedActionID, targetObjectID, param, useType, pvp);
 
             if (succeeded && ReAction.actionSheet[adjustedActionID].TargetArea)
             {
-                *(long*)((IntPtr)Game.actionManager + 0x98) = targetObjectID;
+                actionManager->queuedGroundTargetObjectID = targetObjectID;
                 queuedGroundTargetObjectID = targetObjectID;
             }
             else if (useType == 1 && queuedGroundTargetObjectID != 0)
             {
-                *(long*)((IntPtr)Game.actionManager + 0x98) = queuedGroundTargetObjectID;
+                actionManager->queuedGroundTargetObjectID = queuedGroundTargetObjectID;
                 queuedGroundTargetObjectID = 0;
             }
             else
@@ -142,9 +126,9 @@ public static unsafe class ActionStackManager
             }
 
             if (ReAction.Config.EnableInstantGroundTarget && !succeeded && queuedGroundTargetObjectID == 0)
-                TryInstantGroundTarget(actionType, useType);
+                SetInstantGroundTarget(actionType, useType);
 
-            return ret;
+            return ret.Value;
         }
         catch (Exception e)
         {
@@ -174,9 +158,9 @@ public static unsafe class ActionStackManager
         var useCooldown = stack.CheckCooldown;
         foreach (var item in stack.Items)
         {
-            var newID = item.ID != 0 ? Game.actionManager->GetAdjustedActionId(item.ID) : id;
+            var newID = item.ID != 0 ? Common.ActionManager->CS.GetAdjustedActionId(item.ID) : id;
             var newTarget = GetTarget(item.Target);
-            if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget) || useCooldown && !Game.CanActionQueue(1, newID)) continue;
+            if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget) || useCooldown && !Common.ActionManager->CanActionQueue(1, newID)) continue;
 
             action = newID;
             target = Game.GetObjectID(newTarget);
@@ -199,36 +183,36 @@ public static unsafe class ActionStackManager
                 o = DalamudApi.TargetManager.SoftTarget;
                 break;
             case TargetType.FocusTarget:
-                return Game.GetGameObjectFromPronounID(1004);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.FocusTarget);
             case TargetType.UITarget:
-                return Game.UITarget;
+                return Common.UITarget;
             case TargetType.FieldTarget:
                 o = DalamudApi.TargetManager.MouseOverTarget;
                 break;
             case TargetType.TargetsTarget:
-                return Game.GetGameObjectFromPronounID(1002);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.TargetsTarget);
             case TargetType.Self:
-                return Game.GetGameObjectFromPronounID(1014);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.Me);
             case TargetType.LastTarget:
-                return Game.GetGameObjectFromPronounID(1006);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.LastTarget);
             case TargetType.LastEnemy:
-                return Game.GetGameObjectFromPronounID(1084);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.LastEnemy);
             case TargetType.LastAttacker:
-                return Game.GetGameObjectFromPronounID(1008);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.LastAttacker);
             case TargetType.P2:
-                return Game.GetGameObjectFromPronounID(44);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P2);
             case TargetType.P3:
-                return Game.GetGameObjectFromPronounID(45);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P3);
             case TargetType.P4:
-                return Game.GetGameObjectFromPronounID(46);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P4);
             case TargetType.P5:
-                return Game.GetGameObjectFromPronounID(47);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P5);
             case TargetType.P6:
-                return Game.GetGameObjectFromPronounID(48);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P6);
             case TargetType.P7:
-                return Game.GetGameObjectFromPronounID(49);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P7);
             case TargetType.P8:
-                return Game.GetGameObjectFromPronounID(50);
+                return Common.GetGameObjectFromPronounID(Common.PronounID.P8);
             case TargetType.LowestHPPartyMember:
                 return GetTargetWithLowestHP();
         }
@@ -256,164 +240,14 @@ public static unsafe class ActionStackManager
     }
 
     private static bool CanUseAction(uint id, GameObject* target)
-        => Game.CanUseActionOnGameObject(id, target) && Game.actionManager->GetActionStatus(ActionType.Spell, id, target->ObjectID, 0, 0) == 0;
+        => ActionManager.CanUseActionOnGameObject(id, target) && Common.ActionManager->CS.GetActionStatus(ActionType.Spell, id, target->ObjectID, false, false) == 0;
 
-    private static bool TryDismount(uint actionType, uint actionID, long targetObjectID, uint useType, int pvp, out byte ret)
-    {
-        ret = 0;
-
-        if (!DalamudApi.Condition[ConditionFlag.Mounted]
-            || actionType == 1 && ReAction.mountActionsSheet.ContainsKey(actionID)
-            || (actionType != 5 || actionID is not (3 or 4)) && (actionType != 1 || actionID is 5 or 6) // +Limit Break / +Sprint / -Teleport / -Return
-            || Game.actionManager->GetActionStatus((ActionType)actionType, actionID, targetObjectID, 0, 0) == 0)
-            return false;
-
-        ret = Game.UseActionHook.Original(Game.actionManager, 5, 23, 0, 0, 0, 0, null);
-        if (ret == 0) return true;
-
-        PluginLog.Debug($"Dismounting {actionType}, {actionID}, {targetObjectID:X}, {useType}, {pvp}");
-
-        isMountActionQueued = true;
-        queuedMountAction = (actionType, actionID, targetObjectID, useType, pvp);
-        mountActionTimer.Restart();
-        return true;
-    }
-
-    private static bool TryTabTarget(uint actionID, long objectID, out long newObjectID)
-    {
-        newObjectID = 0;
-        var targetObject = DalamudApi.TargetManager.Target is { } t ? (GameObject*)t.Address : null;
-        if (!ReAction.Config.EnableAutoChangeTarget && targetObject != null
-            || objectID != 0xE0000000 && Game.GetGameObjectFromObjectID(objectID) != targetObject
-            || Game.CanUseActionOnGameObject(actionID, targetObject)
-            || !ReAction.actionSheet.TryGetValue(actionID, out var a)
-            || !a.CanTargetHostile)
-            return false;
-
-        PluginLog.Debug($"Attempting to swap target {actionID}, {objectID:X}");
-
-        Game.TargetEnemy();
-        if (DalamudApi.TargetManager.Target is not { } target) return false;
-
-        newObjectID = Game.GetObjectID((GameObject*)target.Address);
-
-        PluginLog.Debug($"Target swapped {objectID:X} -> {newObjectID:X}");
-
-        return true;
-    }
-
-    private static void TryDashFromCamera(uint actionType, uint actionID)
-    {
-        if (!ReAction.actionSheet.TryGetValue(actionID, out var a)
-            || !a.AffectsPosition
-            || !a.CanTargetSelf
-            || a.BehaviourType <= 1
-            || ReAction.Config.EnableNormalBackwardDashes && a.BehaviourType is 3 or 4
-            || Game.actionManager->GetActionStatus((ActionType)actionType, actionID) != 0
-            || Game.AnimationLock != 0)
-            return;
-
-        PluginLog.Debug($"Rotating camera {actionType}, {actionID}");
-
-        Game.SetCharacterRotationToCamera();
-    }
-
-    private static void TryEnablingQueuing(uint actionType, uint actionID)
-    {
-        if ((actionType != 5 || actionID != 4) && actionType != 2) return;
-
-        PluginLog.Debug($"Enabling queuing {actionType}, {actionID}");
-
-        Game.allowQueuingReplacer.Enable();
-        queuedItem = actionType == 2;
-    }
-
-    private static void TryInstantGroundTarget(uint actionType, uint useType)
+    private static void SetInstantGroundTarget(uint actionType, uint useType)
     {
         if (useType == 2 && actionType == 1 || actionType == 15) return;
 
         PluginLog.Debug($"Making ground target instant {actionType}, {useType}");
 
-        *(byte*)((IntPtr)Game.actionManager + 0xB8) = 1;
-    }
-
-    private static void TryQueuedMountAction()
-    {
-        if (DalamudApi.Condition[ConditionFlag.Mounted]) return;
-
-        if (mountActionTimer.ElapsedMilliseconds <= 2000)
-        {
-            PluginLog.Debug("Using queued mount action");
-
-            OnUseAction(Game.actionManager, queuedMountAction.actionType, queuedMountAction.actionID,
-                queuedMountAction.targetObjectID, 0, queuedMountAction.useType, queuedMountAction.pvp, null);
-        }
-
-        isMountActionQueued = false;
-        mountActionTimer.Stop();
-    }
-
-    private static void TryCancelingCast()
-    {
-        if (canceledCast
-            || Game.CastActionType != 1
-            || !ReAction.actionSheet.TryGetValue(Game.CastActionID, out var a)
-            || a.TargetArea)
-            return;
-
-        var o = Game.GetGameObjectFromObjectID(Game.CastTargetID);
-        if (o == null || Game.CanUseActionOnGameObject(Game.CastActionID, o)) return;
-
-        PluginLog.Debug($"Cancelling cast {Game.CastActionType}, {Game.CastActionID}, {Game.CastTargetID:X}");
-
-        Game.CancelCast();
-        canceledCast = true;
-    }
-
-    public static void Update()
-    {
-        if (isMountActionQueued)
-            TryQueuedMountAction();
-
-        if (ReAction.Config.EnableAutoCastCancel)
-        {
-            if (canceledCast && Game.CastActionType == 0)
-                canceledCast = false;
-            else
-                TryCancelingCast();
-        }
-
-        if (ReAction.Config.EnableAutoRefocusTarget && DalamudApi.Condition[ConditionFlag.BoundByDuty])
-            Game.RefocusTarget();
-
-        if (!ReAction.Config.EnableFPSAlignment) return;
-
-        if (timer.IsRunning && Game.IsQueued)
-        {
-            var elapsedTime = timer.ElapsedTicks / (double)Stopwatch.Frequency;
-            var remainingAnimationLock = Game.AnimationLock - elapsedTime;
-            var remainingGCD = Game.GCDRecastTime - Game.ElapsedGCDRecastTime - elapsedTime;
-            var blockDuration = 0d;
-
-            if (remainingAnimationLock > 0 && remainingAnimationLock <= elapsedTime * 1.1)
-                blockDuration = Math.Round(remainingAnimationLock * Stopwatch.Frequency);
-
-            if (remainingGCD > 0 && remainingGCD <= elapsedTime * 1.1)
-            {
-                var newBlockDuration = Math.Round(remainingGCD * Stopwatch.Frequency);
-                if (newBlockDuration > blockDuration)
-                    blockDuration = newBlockDuration;
-            }
-
-            if (blockDuration > 0)
-            {
-                PluginLog.Debug($"Blocking main thread for {blockDuration / Stopwatch.Frequency * 1000} ms");
-
-                timer.Restart();
-                while (timer.ElapsedTicks < blockDuration) ;
-            }
-        }
-
-        timer.Restart();
+        Common.ActionManager->activateGroundTarget = 1;
     }
 }

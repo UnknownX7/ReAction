@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Text;
 using Dalamud.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace ReAction;
 
-public class Configuration : IPluginConfiguration
+public class Configuration : PluginConfiguration<Configuration>, IPluginConfiguration
 {
     public class Action
     {
@@ -71,7 +68,7 @@ public class Configuration : IPluginConfiguration
         }
     }
 
-    public int Version { get; set; }
+    public override int Version { get; set; }
 
     public List<ActionStack> ActionStacks = new();
     public bool EnableEnhancedAutoFaceTarget = false;
@@ -82,11 +79,15 @@ public class Configuration : IPluginConfiguration
     public bool EnableAutoTarget = false;
     public bool EnableAutoChangeTarget = false;
     public bool EnableSpellAutoAttacks = false;
+    public bool EnableSpellAutoAttacksOutOfCombat = false;
     public bool EnableCameraRelativeDashes = false;
     public bool EnableNormalBackwardDashes = false;
     public bool EnableQueuingMore = false;
-    public bool EnableFPSAlignment = false;
+    [Obsolete] public bool EnableFPSAlignment { internal get; set; } // TODO: Remove in 6.4
+    public bool EnableFrameAlignment = false;
     public bool EnableAutoRefocusTarget = false;
+    public bool EnableMacroQueue = false;
+    public bool EnableFractionality = false;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;
@@ -94,56 +95,29 @@ public class Configuration : IPluginConfiguration
     public bool EnableDecomboEarthlyStar = false;
     public bool EnableDecomboLiturgy = false;
 
-    public void Initialize() { }
-
-    public void Save() => DalamudApi.PluginInterface.SavePluginConfig(this);
+    public override void Initialize()
+    {
+        if (EnableFPSAlignment)
+            EnableFrameAlignment = true;
+    }
 
     private static readonly StackSerializer serializer = new ();
 
+    private const string exportPrefix = "RE_";
+
     public static string ExportActionStack(ActionStack stack)
-        => CompressString(JsonConvert.SerializeObject(stack, new JsonSerializerSettings
+        => Util.CompressString(JsonConvert.SerializeObject(stack, new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.Objects,
             NullValueHandling = NullValueHandling.Ignore,
             DefaultValueHandling = DefaultValueHandling.Ignore,
             SerializationBinder = serializer
-        }));
+        }), exportPrefix);
 
     public static ActionStack ImportActionStack(string import)
-        => JsonConvert.DeserializeObject<ActionStack>(DecompressString(import), new JsonSerializerSettings
+        => JsonConvert.DeserializeObject<ActionStack>(Util.DecompressString(import, exportPrefix), new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.Objects,
             SerializationBinder = serializer
         });
-
-    private const string exportPrefix = "RE_";
-
-    public static string CompressString(string s)
-    {
-        var bytes = Encoding.UTF8.GetBytes(s);
-        using var mso = new MemoryStream();
-        using (var gs = new GZipStream(mso, CompressionMode.Compress))
-        {
-            gs.Write(bytes, 0, bytes.Length);
-        }
-        return exportPrefix + Convert.ToBase64String(mso.ToArray());
-    }
-
-    public static string DecompressString(string s)
-    {
-        if (!s.StartsWith(exportPrefix))
-            throw new ApplicationException("This is not a ReAction export.");
-        var data = Convert.FromBase64String(s[exportPrefix.Length..]);
-        var lengthBuffer = new byte[4];
-        Array.Copy(data, data.Length - 4, lengthBuffer, 0, 4);
-        var uncompressedSize = BitConverter.ToInt32(lengthBuffer, 0);
-
-        var buffer = new byte[uncompressedSize];
-        using (var ms = new MemoryStream(data))
-        {
-            using var gzip = new GZipStream(ms, CompressionMode.Decompress);
-            gzip.Read(buffer, 0, uncompressedSize);
-        }
-        return Encoding.UTF8.GetString(buffer);
-    }
 }
