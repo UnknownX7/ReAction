@@ -45,11 +45,10 @@ public static unsafe class ActionStackManager
                 return ret.Value;
 
             var succeeded = false;
-            if (tryStack && actionType == 1 && ReAction.actionSheet.ContainsKey(adjustedActionID))
+            if (tryStack && actionType == 1 && ReAction.actionSheet.TryGetValue(adjustedActionID, out var a))
             {
                 PluginLog.Debug("Checking stacks");
 
-                var a = ReAction.actionSheet[adjustedActionID];
                 var modifierKeys = GetModifierKeys();
                 foreach (var stack in ReAction.Config.ActionStacks)
                 {

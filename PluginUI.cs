@@ -4,6 +4,8 @@ using System.Numerics;
 using Dalamud.Interface;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
+using Action = Lumina.Excel.GeneratedSheets.Action;
 
 namespace ReAction;
 
@@ -14,7 +16,7 @@ public static class PluginUI
     private static int hotbar = 0;
     private static int hotbarSlot = 0;
     private static int commandType = 1;
-    private static int commandID = 0;
+    private static uint commandID = 0;
 
     public static bool IsVisible
     {
@@ -214,7 +216,7 @@ public static class PluginUI
         DrawItemEditor(stack);
     }
 
-    private static string FormatActionRow(Lumina.Excel.GeneratedSheets.Action a) => a.RowId switch
+    private static string FormatActionRow(Action a) => a.RowId switch
     {
         0 => "All Actions",
         1 => "All Harmful Actions",
@@ -222,7 +224,7 @@ public static class PluginUI
         _ => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}"
     };
 
-    private static readonly ImGuiEx.ExcelSheetComboOptions<Lumina.Excel.GeneratedSheets.Action> actionComboOptions = new()
+    private static readonly ImGuiEx.ExcelSheetComboOptions<Action> actionComboOptions = new()
     {
         FormatRow = FormatActionRow,
         SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
@@ -285,13 +287,13 @@ public static class PluginUI
         ImGui.EndChild();
     }
 
-    private static string FormatOverrideActionRow(Lumina.Excel.GeneratedSheets.Action a) => a.RowId switch
+    private static string FormatOverrideActionRow(Action a) => a.RowId switch
     {
         0 => "Same Action",
         _ => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}"
     };
 
-    private static readonly ImGuiEx.ExcelSheetComboOptions<Lumina.Excel.GeneratedSheets.Action> actionOverrideComboOptions = new()
+    private static readonly ImGuiEx.ExcelSheetComboOptions<Action> actionOverrideComboOptions = new()
     {
         FormatRow = FormatOverrideActionRow,
         SearchPredicate = (row, s) => (row.RowId == 0 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
@@ -356,7 +358,7 @@ public static class PluginUI
         ImGui.EndChild();
     }
 
-    private static readonly ImGuiEx.ExcelSheetPopupOptions<Lumina.Excel.GeneratedSheets.Action> actionPopupOptions = new()
+    private static readonly ImGuiEx.ExcelSheetPopupOptions<Action> actionPopupOptions = new()
         {
             FormatRow = FormatActionRow,
             SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
@@ -440,7 +442,7 @@ public static class PluginUI
             save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
             ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
 
-            using (new ImGuiEx.DisabledBlock(!ReAction.Config.EnableCameraRelativeDashes))
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableCameraRelativeDashes))
             {
                 ImGuiEx.Prefix();
                 save |= ImGui.Checkbox("Enable Normal Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
@@ -481,7 +483,7 @@ public static class PluginUI
             save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
             ImGuiEx.SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
 
-            using (new ImGuiEx.DisabledBlock(!ReAction.Config.EnableAutoTarget))
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableAutoTarget))
             {
                 ImGuiEx.Prefix();
                 save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
@@ -494,7 +496,7 @@ public static class PluginUI
             save |= ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks);
             ImGuiEx.SetItemTooltip("Causes spells (and some other actions) to start using auto attacks just like weaponskills.");
 
-            using (new ImGuiEx.DisabledBlock(!ReAction.Config.EnableSpellAutoAttacks))
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableSpellAutoAttacks))
             {
                 ImGuiEx.Prefix();
                 if (ImGui.Checkbox("Enable Out of Combat", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
@@ -588,12 +590,11 @@ public static class PluginUI
                 "This will allow you to place various things on the hotbar that you can't normally." +
                 "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
                 "\nSome examples of things you can do:" +
-                "\n\tPlace a certain action on the hotbar to be used with one of the \"Decombo\" features. The IDs are in each setting's tooltip." +
-                "\n\tPlace a certain doze and sit emote on the hotbar (88 and 95)." +
+                "\n\tPlace a certain action on the hotbar to be used with one of the \"Sundering\" features. The IDs are in each setting's tooltip." +
+                "\n\tPlace a certain doze and sit emote on the hotbar (Emote, 88 and 95)." +
                 "\n\tPlace a currency (Item, 1-99) on the hotbar to see how much you have without opening the currency menu." +
                 "\n\tRevive flying mount roulette (GeneralAction, 24).")
-        }
-            ))
+        }))
         {
             ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010\0XHB 1\0XHB 2\0XHB 3\0XHB 4\0XHB 5\0XHB 6\0XHB 7\0XHB 8");
             ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012\013\014\015\016");
@@ -607,10 +608,12 @@ public static class PluginUI
                 }
                 ImGui.EndCombo();
             }
-            ImGui.InputInt("ID", ref commandID);
+
+            DrawHotbarIDInput((HotbarSlotType)commandType);
+
             if (ImGui.Button("Execute"))
             {
-                Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, (uint)commandID);
+                Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, commandID);
                 ReAction.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
             }
             ImGuiEx.SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
@@ -619,5 +622,99 @@ public static class PluginUI
 
         if (save)
             ReAction.Config.Save();
+    }
+
+    public static void DrawHotbarIDInput(HotbarSlotType slotType)
+    {
+        switch ((HotbarSlotType)commandType)
+        {
+            case HotbarSlotType.Action:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Action> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.Item:
+                const int hqID = 1_000_000;
+                var _ = commandID >= hqID ? commandID - hqID : commandID;
+                if (ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref _, new ImGuiEx.ExcelSheetComboOptions<Item> { FormatRow = r => $"[#{r.RowId}] {r.Name}" }))
+                    commandID = commandID >= hqID ? _ + hqID : _;
+                var hq = commandID >= hqID;
+                if (ImGui.Checkbox("HQ", ref hq))
+                    commandID = hq ? commandID + hqID : commandID - hqID;
+                break;
+            case HotbarSlotType.EventItem:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<EventItem> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.Emote:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Emote> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.Marker:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Marker> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.CraftAction:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<CraftAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.GeneralAction:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<GeneralAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.CompanionOrder:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<BuddyAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.MainCommand:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<MainCommand> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.Minion:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Companion> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });
+                break;
+            case HotbarSlotType.PetOrder:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<PetAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.Mount:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Mount> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });
+                break;
+            case HotbarSlotType.FieldMarker:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<FieldMarker> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.Recipe:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Recipe> { FormatRow = r => $"[#{r.RowId}] {r.ItemResult.Value?.Name}" });
+                break;
+            case HotbarSlotType.ChocoboRaceAbility:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ChocoboRaceAbility> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.ChocoboRaceItem:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ChocoboRaceItem> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.ExtraCommand:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ExtraCommand> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.PvPQuickChat:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<QuickChat> { FormatRow = r => $"[#{r.RowId}] {r.NameAction}" });
+                break;
+            case HotbarSlotType.PvPCombo:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ActionComboRoute> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+                break;
+            case HotbarSlotType.SquadronOrder:
+                // Sheet is BgcArmyAction, but it doesn't appear to be in Lumina
+                var __ = (int)commandID;
+                if (ImGui.Combo("ID", ref __, "[#0]\0[#1] Engage\0[#2] Disengage\0[#3] Re-engage\0[#4] Execute Limit Break\0[#5] Display Order Hotbar"))
+                    commandID = (uint)__;
+                break;
+            case HotbarSlotType.PerformanceInstrument:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Perform> { FormatRow = r => $"[#{r.RowId}] {r.Instrument}" });
+                break;
+            case HotbarSlotType.Collection:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<McGuffin> { FormatRow = r => $"[#{r.RowId}] {r.UIData.Value?.Name}" });
+                break;
+            case HotbarSlotType.FashionAccessory:
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Ornament> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });
+                break;
+            // Doesn't appear to have a sheet
+            //case HotbarSlotType.LostFindsItem:
+            //    ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
+            //    break;
+            default:
+                var ___ = (int)commandID;
+                if (ImGui.InputInt("ID", ref ___))
+                    commandID = (uint)___;
+                break;
+        }
     }
 }
