@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
@@ -213,12 +214,24 @@ public static unsafe class Game
     private delegate GameObject* ResolvePlaceholderDelegate(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames);
     [Signature("E8 ?? ?? ?? ?? 48 8B 5C 24 30 EB 0C")]
     private static Hook<ResolvePlaceholderDelegate> ResolvePlaceholderHook;
-    private static GameObject* ResolvePlaceholderDetour(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames)
+    private static GameObject* ResolvePlaceholderDetour(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames) =>
+        ResolvePlaceholderHook.Original(pronounModule, text, defaultToTarget, allowPlayerNames || ReAction.Config.EnablePlayerNamesInCommands);
+
+    private delegate GameObject* GetGameObjectFromPronounIDDelegate(PronounModule* pronounModule, uint pronounID);
+    private static Hook<GetGameObjectFromPronounIDDelegate> GetGameObjectFromPronounIDHook;
+    private static GameObject* GetGameObjectFromPronounIDDetour(PronounModule* pronounModule, uint pronounID)
     {
-        var ret = ResolvePlaceholderHook.Original(pronounModule, text, defaultToTarget, allowPlayerNames || ReAction.Config.EnablePlayerNamesInCommands);
-        if (ret == null)
-            ret = PronounManager.ResolveCustomPlaceholder(text);
-        return ret;
+        var ret = GetGameObjectFromPronounIDHook.Original(pronounModule, pronounID);
+        return (ret != null || !PronounManager.CustomPronouns.TryGetValue(pronounID, out var pronoun)) ? ret : pronoun.GetGameObject();
+    }
+
+    private delegate uint GetTextCommandParamIDDelegate(PronounModule* pronounModule, nint* text, int len); // Probably not an issue, but this function doesn't get called if the length is > 31
+    [Signature("48 89 5C 24 10 48 89 6C 24 18 56 48 83 EC 20 48 83 79 18 00")] // E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? E8 ?? ?? ?? ?? CC CC (lol)
+    private static Hook<GetTextCommandParamIDDelegate> GetTextCommandParamIDHook;
+    private static uint GetTextCommandParamIDDetour(PronounModule* pronounModule, nint* bytePtrPtr, int len)
+    {
+        var ret = GetTextCommandParamIDHook.Original(pronounModule, bytePtrPtr, len);
+        return (ret != 0 || !PronounManager.CustomPlaceholders.TryGetValue(Marshal.PtrToStringAnsi(*bytePtrPtr, len), out var pronoun)) ? ret : pronoun.ID;
     }
 
     public static void RefocusTarget()
@@ -247,6 +260,9 @@ public static unsafe class Game
     {
         Common.InitializeStructure<ActionManager>(false);
         Common.GetGameObjectFromPronounID(PronounID.None); // Test that this is working
+        GetGameObjectFromPronounIDHook = Hook<GetGameObjectFromPronounIDDelegate>.FromAddress((nint)Common.fpGetGameObjectFromPronounID, GetGameObjectFromPronounIDDetour);
+        DalamudApi.SigScanner.AddHook(GetGameObjectFromPronounIDHook);
+        DalamudApi.SigScanner.AddMember(typeof(Game), null, nameof(GetGameObjectFromPronounIDHook));
         if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanActionQueue == null)
             throw new ApplicationException("Failed to find core signatures!");
     }

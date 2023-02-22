@@ -83,6 +83,8 @@ public class KardionPronoun : IGamePronoun
 
 public static class PronounManager
 {
+    public const int MinimumCustomPronounID = 10_000;
+
     public static Dictionary<uint, IGamePronoun> CustomPronouns { get; set; } = new();
     public static Dictionary<string, IGamePronoun> CustomPlaceholders { get; set; } = new();
     public static List<uint> OrderedIDs { get; set; } = new()
@@ -125,7 +127,7 @@ public static class PronounManager
             var pronoun = (IGamePronoun)Activator.CreateInstance(t);
             if (pronoun == null) continue;
 
-            if (pronoun.ID < 10_000)
+            if (pronoun.ID < MinimumCustomPronounID)
                 throw new ApplicationException("Custom pronoun IDs must be above 10000");
 
             CustomPronouns.Add(pronoun.ID, pronoun);
@@ -135,10 +137,9 @@ public static class PronounManager
         }
     }
 
-    public static string GetPronounName(uint id) => id >= 10_000 && CustomPronouns.TryGetValue(id, out var pronoun)
+    public static string GetPronounName(uint id) => id >= MinimumCustomPronounID && CustomPronouns.TryGetValue(id, out var pronoun)
         ? pronoun.Name
         : formalPronounIDName.TryGetValue((PronounID)id, out var name) ? name : ((PronounID)id).ToString();
 
-    public static unsafe GameObject* GetGameObjectFromID(uint id) => id >= 10_000 && CustomPronouns.TryGetValue(id, out var pronoun) ? pronoun.GetGameObject() : Common.GetGameObjectFromPronounID((PronounID)id);
-    public static unsafe GameObject* ResolveCustomPlaceholder(string placeholder) => CustomPlaceholders.TryGetValue(placeholder, out var pronoun) ? pronoun.GetGameObject() : null;
+    public static unsafe GameObject* GetGameObjectFromID(uint id) => id >= MinimumCustomPronounID && CustomPronouns.TryGetValue(id, out var pronoun) ? pronoun.GetGameObject() : Common.GetGameObjectFromPronounID((PronounID)id);
 }
