@@ -492,7 +492,7 @@ public static class PluginUI
             {
                 ImGuiEx.Prefix("├");
                 save |= ImGui.SliderFloat("Queue Threshold", ref ReAction.Config.QueueThreshold, 0.1f, 2.5f, "%.1f");
-                ImGuiEx.SetItemTooltip("Time remaining on an action's cooldown to allow the game\nto queue up the next one when pressed early. Default: 0.5");
+                ImGuiEx.SetItemTooltip("Time remaining on an action's cooldown to allow the game\nto queue up the next one when pressed early. Default: 0.5.");
 
                 ImGui.BeginGroup();
                 ImGuiEx.Prefix("├");
@@ -500,13 +500,10 @@ public static class PluginUI
                 using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableRequeuing))
                 {
                     ImGui.SameLine();
-                    save |= ImGui.SliderFloat("Requeue Threshold", ref ReAction.Config.RequeueThreshold, 0.1f, 2.5f, "%.1f");
+                    save |= ImGui.SliderFloat("Queue Lock Threshold", ref ReAction.Config.QueueLockThreshold, 0.1f, 2.5f, "%.1f");
                 }
                 ImGui.EndGroup();
-                ImGuiEx.SetItemTooltip("When enabled, replaces \"Queue Threshold\" except actions may be requeued" +
-                    "\nuntil the queued action's cooldown is below \"Queue Threshold\"," +
-                    "\ni.e. actions may be queued when the cooldown is <= \"Requeue Threshold\"" +
-                    "\nand may be requeued while the cooldown is > \"Queue Threshold\".");
+                ImGuiEx.SetItemTooltip("When enabled, allows requeuing until the queued action's cooldown is below this value.");
 
                 ImGuiEx.Prefix();
                 save |= ImGui.Checkbox("Enable Slidecast Queuing", ref ReAction.Config.EnableSlidecastQueuing);

@@ -37,7 +37,7 @@ public unsafe class QueueAdjustments : PluginModule
             || GetRemainingActionRecast(actionManager, (uint)actionManager->CS.QueuedActionType, actionManager->CS.QueuedActionType == ActionType.Spell
                     ? actionManager->CS.GetAdjustedActionId(actionManager->CS.QueuedActionId)
                     : actionManager->CS.QueuedActionId)
-                is { } remaining && remaining <= ReAction.Config.QueueThreshold)
+                is { } remaining && remaining <= ReAction.Config.QueueLockThreshold)
             return;
         actionManager->isQueued = false;
         isRequeuing = true;
@@ -79,7 +79,7 @@ public unsafe class QueueAdjustments : PluginModule
         }
         else
         {
-            threshold = ReAction.Config.EnableRequeuing ? ReAction.Config.RequeueThreshold : ReAction.Config.QueueThreshold;
+            threshold = ReAction.Config.QueueThreshold;
         }
 
         return GetRemainingActionRecast(actionManager, actionType, actionID) is { } remaining && remaining <= threshold;

@@ -124,7 +124,7 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableRequeuing = false;
     public bool EnableSlidecastQueuing = false;
     public float QueueThreshold = 0.5f;
-    public float RequeueThreshold = 0.5f;
+    public float QueueLockThreshold = 0.5f;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;
