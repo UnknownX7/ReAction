@@ -201,6 +201,14 @@ public static unsafe class Game
     private static byte UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
         => ActionStackManager.OnUseAction(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
 
+    [Signature("E8 ?? ?? ?? ?? 8B 4F 44 33 D2")]
+    public static delegate* unmanaged<ActionManager*, uint, uint, int> fpGetAdditionalRecastGroup;
+    [Signature("E8 ?? ?? ?? ?? 84 C0 74 12 48 83 FF 0F")]
+    public static delegate* unmanaged<ActionManager*, uint, Bool> fpCanUseActionAsCurrentClass;
+    public delegate Bool CanQueueActionDelegate(ActionManager* actionManager, uint actionType, uint actionID);
+    public static Hook<CanQueueActionDelegate> CanQueueActionHook;
+    public static Bool CanQueueActionDetour(ActionManager* actionManager, uint actionType, uint actionID) => Modules.QueueAdjustments.OnCanQueueAction(actionManager, actionType, actionID);
+
     private static (string Name, uint DataID) focusTargetInfo = (null, 0);
     public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, long objectID);
     [Signature("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D")]
@@ -244,10 +252,10 @@ public static unsafe class Game
         DalamudApi.TargetManager.FocusTarget = foundTarget;
     }
 
-    public delegate void ExecuteMacroDelegate(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro);
+    private delegate void ExecuteMacroDelegate(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro);
     [ClientStructs(typeof(RaptureShellModule.MemberFunctionPointers))]
-    public static Hook<ExecuteMacroDelegate> ExecuteMacroHook;
-    public static void ExecuteMacroDetour(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro)
+    private static Hook<ExecuteMacroDelegate> ExecuteMacroHook;
+    private static void ExecuteMacroDetour(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro)
     {
         if (ReAction.Config.EnableMacroQueue)
             queueACCommandPatch.Enable();
@@ -260,11 +268,16 @@ public static unsafe class Game
     {
         Common.InitializeStructure<ActionManager>(false);
         Common.GetGameObjectFromPronounID(PronounID.None); // Test that this is working
+        if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanQueueAction == null)
+            throw new ApplicationException("Failed to find core signatures!");
+
         GetGameObjectFromPronounIDHook = Hook<GetGameObjectFromPronounIDDelegate>.FromAddress((nint)Common.fpGetGameObjectFromPronounID, GetGameObjectFromPronounIDDetour);
         DalamudApi.SigScanner.AddHook(GetGameObjectFromPronounIDHook);
         DalamudApi.SigScanner.AddMember(typeof(Game), null, nameof(GetGameObjectFromPronounIDHook));
-        if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanActionQueue == null)
-            throw new ApplicationException("Failed to find core signatures!");
+
+        CanQueueActionHook = Hook<CanQueueActionDelegate>.FromAddress((nint)ActionManager.fpCanQueueAction, CanQueueActionDetour);
+        DalamudApi.SigScanner.AddHook(CanQueueActionHook, false);
+        DalamudApi.SigScanner.AddMember(typeof(Game), null, nameof(CanQueueActionHook));
     }
 
     public static void Dispose()

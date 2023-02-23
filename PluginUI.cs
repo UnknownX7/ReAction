@@ -426,52 +426,6 @@ public static class PluginUI
     {
         var save = false;
 
-        if (ImGuiEx.BeginGroupBox("Actions", 0.5f))
-        {
-            save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
-            ImGuiEx.SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
-
-            if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
-            {
-                Game.enhancedAutoFaceTargetPatch.Disable(); // This is managed by the plugin module
-                Game.removeAutoFaceGroundTargetPatch.Toggle();
-                save = true;
-            }
-            ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
-
-            save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
-            ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
-
-            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableCameraRelativeDashes))
-            {
-                ImGuiEx.Prefix();
-                save |= ImGui.Checkbox("Enable Normal Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
-                ImGuiEx.SetItemTooltip("Ignores \"Enable Camera Relative Dashes\" for any backward dash, such as Elusive Jump.");
-            }
-
-            ImGuiEx.EndGroupBox();
-        }
-
-        ImGui.SameLine();
-
-        if (ImGuiEx.BeginGroupBox("Queuing", 0.5f))
-        {
-            if (ImGui.Checkbox("Enable Ground Target Queuing", ref ReAction.Config.EnableGroundTargetQueuing))
-            {
-                Game.queueGroundTargetsPatch.Toggle();
-                save = true;
-            }
-            ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
-
-            save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
-            ImGuiEx.SetItemTooltip("Allows sprint, items and LBs to be queued.");
-
-            save |= ImGui.Checkbox("Always Queue Macros", ref ReAction.Config.EnableMacroQueue);
-            ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");
-
-            ImGuiEx.EndGroupBox();
-        }
-
         if (ImGuiEx.BeginGroupBox("Auto", 0.5f))
         {
             save |= ImGui.Checkbox("Enable Auto Dismount", ref ReAction.Config.EnableAutoDismount);
@@ -508,6 +462,81 @@ public static class PluginUI
                     save = true;
                 }
                 ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nNote: This can cause early pulls on certain bosses!");
+            }
+
+            ImGuiEx.EndGroupBox();
+        }
+
+        ImGui.SameLine();
+
+        if (ImGuiEx.BeginGroupBox("Queuing", 0.5f))
+        {
+            if (ImGui.Checkbox("Enable Ground Target Queuing", ref ReAction.Config.EnableGroundTargetQueuing))
+            {
+                Game.queueGroundTargetsPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
+
+            save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
+            ImGuiEx.SetItemTooltip("Allows sprint, items and LBs to be queued.");
+
+            save |= ImGui.Checkbox("Always Queue Macros", ref ReAction.Config.EnableMacroQueue);
+            ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");
+
+            save |= ImGui.Checkbox("Enable Queue Adjustments (BETA)", ref ReAction.Config.EnableQueueAdjustments);
+            ImGuiEx.SetItemTooltip("Changes how the game handles queuing actions.");
+
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableQueueAdjustments))
+            using (ImGuiEx.ItemWidthBlock.Begin(ImGui.GetContentRegionAvail().X / 3))
+            {
+                ImGuiEx.Prefix("├");
+                save |= ImGui.SliderFloat("Queue Threshold", ref ReAction.Config.QueueThreshold, 0.1f, 2.5f, "%.1f");
+                ImGuiEx.SetItemTooltip("Time remaining on an action's cooldown to allow the game\nto queue up the next one when pressed early. Default: 0.5");
+
+                ImGui.BeginGroup();
+                ImGuiEx.Prefix("├");
+                save |= ImGui.Checkbox("##Enable Requeuing", ref ReAction.Config.EnableRequeuing);
+                using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableRequeuing))
+                {
+                    ImGui.SameLine();
+                    save |= ImGui.SliderFloat("Requeue Threshold", ref ReAction.Config.RequeueThreshold, 0.1f, 2.5f, "%.1f");
+                }
+                ImGui.EndGroup();
+                ImGuiEx.SetItemTooltip("When enabled, replaces \"Queue Threshold\" except actions may be requeued" +
+                    "\nuntil the queued action's cooldown is below \"Queue Threshold\"," +
+                    "\ni.e. actions may be queued when the cooldown is <= \"Requeue Threshold\"" +
+                    "\nand may be requeued while the cooldown is > \"Queue Threshold\".");
+
+                ImGuiEx.Prefix();
+                save |= ImGui.Checkbox("Enable Slidecast Queuing", ref ReAction.Config.EnableSlidecastQueuing);
+                ImGuiEx.SetItemTooltip("Allows actions to be queued during the last 0.5s of a cast.");
+            }
+
+            ImGuiEx.EndGroupBox();
+        }
+
+        if (ImGuiEx.BeginGroupBox("Actions", 0.5f))
+        {
+            save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
+            ImGuiEx.SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
+
+            if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
+            {
+                Game.enhancedAutoFaceTargetPatch.Disable(); // This is managed by the plugin module
+                Game.removeAutoFaceGroundTargetPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
+
+            save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
+            ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
+
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableCameraRelativeDashes))
+            {
+                ImGuiEx.Prefix();
+                save |= ImGui.Checkbox("Enable Normal Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
+                ImGuiEx.SetItemTooltip("Ignores \"Enable Camera Relative Dashes\" for any backward dash, such as Elusive Jump.");
             }
 
             ImGuiEx.EndGroupBox();

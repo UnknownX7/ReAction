@@ -137,7 +137,7 @@ public static unsafe class ActionStackManager
         {
             var newID = item.ID != 0 ? Common.ActionManager->CS.GetAdjustedActionId(item.ID) : id;
             var newTarget = PronounManager.GetGameObjectFromID(item.TargetID);
-            if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget) || useCooldown && !Common.ActionManager->CanActionQueue(1, newID)) continue;
+            if (newTarget == null || !CanUseAction(newID, newTarget) || useRange && Game.IsActionOutOfRange(newID, newTarget) || useCooldown && !Common.ActionManager->CanQueueAction(1, newID)) continue;
 
             action = newID;
             target = Game.GetObjectID(newTarget);

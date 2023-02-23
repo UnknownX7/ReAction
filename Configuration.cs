@@ -120,6 +120,11 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableMacroQueue = false;
     public bool EnableFractionality = false;
     public bool EnablePlayerNamesInCommands = false;
+    public bool EnableQueueAdjustments = false;
+    public bool EnableRequeuing = false;
+    public bool EnableSlidecastQueuing = false;
+    public float QueueThreshold = 0.5f;
+    public float RequeueThreshold = 0.5f;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;
