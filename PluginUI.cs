@@ -31,7 +31,7 @@ public static class PluginUI
         if (!isVisible) return;
 
         ImGui.SetNextWindowSizeConstraints(new Vector2(700, 660) * ImGuiHelpers.GlobalScale, new Vector2(9999));
-        ImGui.Begin("ReAction Configuration", ref isVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+        ImGui.Begin("ReAction Configuration", ref isVisible);
         ImGuiEx.AddDonationHeader(2);
 
         if (ImGui.BeginTabBar("ReActionTabs"))
@@ -485,7 +485,7 @@ public static class PluginUI
             ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");
 
             save |= ImGui.Checkbox("Enable Queue Adjustments (BETA)", ref ReAction.Config.EnableQueueAdjustments);
-            ImGuiEx.SetItemTooltip("Changes how the game handles queuing actions.");
+            ImGuiEx.SetItemTooltip("Changes how the game handles queuing actions.\nThis is a beta feature, please let me know if anything is not working as expected.");
 
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableQueueAdjustments))
             using (ImGuiEx.ItemWidthBlock.Begin(ImGui.GetContentRegionAvail().X / 3))

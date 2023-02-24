@@ -205,8 +205,6 @@ public static unsafe class Game
     public static delegate* unmanaged<ActionManager*, uint, uint, int> fpGetAdditionalRecastGroup;
     [Signature("E8 ?? ?? ?? ?? 84 C0 74 12 48 83 FF 0F")]
     public static delegate* unmanaged<ActionManager*, uint, Bool> fpCanUseActionAsCurrentClass;
-    public delegate Bool CanQueueActionDelegate(ActionManager* actionManager, uint actionType, uint actionID);
-    public static Hook<CanQueueActionDelegate> CanQueueActionHook;
     public static Bool CanQueueActionDetour(ActionManager* actionManager, uint actionType, uint actionID) => Modules.QueueAdjustments.OnCanQueueAction(actionManager, actionType, actionID);
 
     private static (string Name, uint DataID) focusTargetInfo = (null, 0);
@@ -225,12 +223,10 @@ public static unsafe class Game
     private static GameObject* ResolvePlaceholderDetour(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames) =>
         ResolvePlaceholderHook.Original(pronounModule, text, defaultToTarget, allowPlayerNames || ReAction.Config.EnablePlayerNamesInCommands);
 
-    private delegate GameObject* GetGameObjectFromPronounIDDelegate(PronounModule* pronounModule, uint pronounID);
-    private static Hook<GetGameObjectFromPronounIDDelegate> GetGameObjectFromPronounIDHook;
-    private static GameObject* GetGameObjectFromPronounIDDetour(PronounModule* pronounModule, uint pronounID)
+    private static GameObject* GetGameObjectFromPronounIDDetour(PronounModule* pronounModule, PronounID pronounID)
     {
-        var ret = GetGameObjectFromPronounIDHook.Original(pronounModule, pronounID);
-        return (ret != null || !PronounManager.CustomPronouns.TryGetValue(pronounID, out var pronoun)) ? ret : pronoun.GetGameObject();
+        var ret = Common.getGameObjectFromPronounID.Original(pronounModule, pronounID);
+        return (ret != null || !PronounManager.CustomPronouns.TryGetValue((uint)pronounID, out var pronoun)) ? ret : pronoun.GetGameObject();
     }
 
     private delegate uint GetTextCommandParamIDDelegate(PronounModule* pronounModule, nint* text, int len); // Probably not an issue, but this function doesn't get called if the length is > 31
@@ -266,18 +262,11 @@ public static unsafe class Game
 
     public static void Initialize()
     {
-        Common.InitializeStructure<ActionManager>(false);
-        Common.GetGameObjectFromPronounID(PronounID.None); // Test that this is working
-        if (Common.ActionManager == null || ActionManager.fpCanUseActionOnGameObject == null || ActionManager.fpCanQueueAction == null)
+        if (Common.ActionManager == null || !Common.getGameObjectFromPronounID.IsValid || !ActionManager.canUseActionOnGameObject.IsValid || !ActionManager.canQueueAction.IsValid)
             throw new ApplicationException("Failed to find core signatures!");
 
-        GetGameObjectFromPronounIDHook = Hook<GetGameObjectFromPronounIDDelegate>.FromAddress((nint)Common.fpGetGameObjectFromPronounID, GetGameObjectFromPronounIDDetour);
-        DalamudApi.SigScanner.AddHook(GetGameObjectFromPronounIDHook);
-        DalamudApi.SigScanner.AddMember(typeof(Game), null, nameof(GetGameObjectFromPronounIDHook));
-
-        CanQueueActionHook = Hook<CanQueueActionDelegate>.FromAddress((nint)ActionManager.fpCanQueueAction, CanQueueActionDetour);
-        DalamudApi.SigScanner.AddHook(CanQueueActionHook, false);
-        DalamudApi.SigScanner.AddMember(typeof(Game), null, nameof(CanQueueActionHook));
+        Common.getGameObjectFromPronounID.CreateHook(GetGameObjectFromPronounIDDetour);
+        ActionManager.canQueueAction.CreateHook(CanQueueActionDetour);
     }
 
     public static void Dispose()

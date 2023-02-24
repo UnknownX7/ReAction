@@ -15,14 +15,14 @@ public unsafe class QueueAdjustments : PluginModule
 
     protected override void Enable()
     {
-        Game.CanQueueActionHook.Enable();
+        ActionManager.canQueueAction.Hook.Enable();
         ActionStackManager.PostActionStack += PostActionStack;
         ActionStackManager.PostUseAction += PostUseAction;
     }
 
     protected override void Disable()
     {
-        Game.CanQueueActionHook.Disable();
+        ActionManager.canQueueAction.Hook.Disable();
         ActionStackManager.PostActionStack -= PostActionStack;
         ActionStackManager.PostUseAction -= PostUseAction;
     }
