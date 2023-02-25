@@ -515,6 +515,15 @@ public static class PluginUI
 
         if (ImGuiEx.BeginGroupBox("Actions", 0.5f))
         {
+            save |= ImGui.Checkbox("Enable Turbo Hotbar Keybinds", ref ReAction.Config.EnableTurboHotbars);
+            ImGuiEx.SetItemTooltip("Allows you to hold hotbar keybinds (no controller support).\nWARNING: Text macros may be spammed.");
+
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableTurboHotbars))
+            {
+                ImGuiEx.Prefix();
+                save |= ImGui.DragInt("Interval (ms)", ref ReAction.Config.TurboHotbarInterval, 0.5f, 0, 1000);
+            }
+
             save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
             ImGuiEx.SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
 

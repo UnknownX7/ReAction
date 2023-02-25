@@ -260,6 +260,36 @@ public static unsafe class Game
         ExecuteMacroHook.Original(raptureShellModule, macro);
     }
 
+    private static bool hotbarPressed = false;
+    public delegate void CheckHotbarBindingsDelegate(nint a1, byte a2);
+    [Signature("48 89 4C 24 08 53 41 55 41 57"), SignatureEx(EnableHook = false)]
+    public static Hook<CheckHotbarBindingsDelegate> CheckHotbarBindingsHook;
+    private static void CheckHotbarBindingsDetour(nint a1, byte a2)
+    {
+        InputData.isInputIDPressed.Hook.Enable();
+        CheckHotbarBindingsHook.Original(a1, a2);
+        InputData.isInputIDPressed.Hook.Disable();
+
+        if (!hotbarPressed) return;
+        hotbarPressed = false;
+
+        if (ReAction.Config.TurboHotbarInterval <= 0) return;
+        CheckHotbarBindingsHook.Disable();
+        DalamudApi.Framework.RunOnTick(() =>
+        {
+            if (!ReAction.Config.EnableTurboHotbars || CheckHotbarBindingsHook.IsDisposed) return;
+            CheckHotbarBindingsHook.Enable();
+        }, new TimeSpan(0, 0, 0, 0, ReAction.Config.TurboHotbarInterval));
+    }
+
+    private static Bool IsInputIDPressedDetour(InputData* inputData, uint id)
+    {
+        var ret = inputData->IsInputIDHeld(id);
+        if (ret)
+            hotbarPressed = true;
+        return ret;
+    }
+
     public static void Initialize()
     {
         if (Common.ActionManager == null || !Common.getGameObjectFromPronounID.IsValid || !ActionManager.canUseActionOnGameObject.IsValid || !ActionManager.canQueueAction.IsValid)
@@ -267,6 +297,7 @@ public static unsafe class Game
 
         Common.getGameObjectFromPronounID.CreateHook(GetGameObjectFromPronounIDDetour);
         ActionManager.canQueueAction.CreateHook(CanQueueActionDetour);
+        InputData.isInputIDPressed.CreateHook(IsInputIDPressedDetour, false);
     }
 
     public static void Dispose()
