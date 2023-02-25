@@ -30,7 +30,7 @@ public static class PluginUI
     {
         if (!isVisible) return;
 
-        ImGui.SetNextWindowSizeConstraints(new Vector2(700, 660) * ImGuiHelpers.GlobalScale, new Vector2(9999));
+        ImGui.SetNextWindowSizeConstraints(new Vector2(700, 700) * ImGuiHelpers.GlobalScale, new Vector2(9999));
         ImGui.Begin("ReAction Configuration", ref isVisible);
         ImGuiEx.AddDonationHeader(2);
 
@@ -359,11 +359,11 @@ public static class PluginUI
     }
 
     private static readonly ImGuiEx.ExcelSheetPopupOptions<Action> actionPopupOptions = new()
-        {
-            FormatRow = FormatActionRow,
-            SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
-                && FormatActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
-        };
+    {
+        FormatRow = FormatActionRow,
+        SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
+            && FormatActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
+    };
 
     private static void AddActionList(ICollection<Configuration.Action> actions, float buttonWidth)
     {
@@ -534,6 +534,9 @@ public static class PluginUI
                 save = true;
             }
             ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
+
+            save |= ImGui.Checkbox("Enable Camera Relative Directional Actions", ref ReAction.Config.EnableCameraRelativeDirectionals);
+            ImGuiEx.SetItemTooltip("Changes channeled and directional actions, such as Passage of Arms or Surpanakha, to be relative\nto the direction your camera is facing, rather than your character.");
 
             save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
             ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");

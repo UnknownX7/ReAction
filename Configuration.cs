@@ -127,6 +127,7 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public float QueueLockThreshold = 0.5f;
     public bool EnableTurboHotbars = false;
     public int TurboHotbarInterval = 400;
+    public bool EnableCameraRelativeDirectionals = false;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;
