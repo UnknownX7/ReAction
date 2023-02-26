@@ -43,10 +43,11 @@ public unsafe class QueueAdjustments : PluginModule
         isRequeuing = true;
     }
 
-    private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp)
+    private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp, bool ret)
     {
         if (!isRequeuing) return;
-        actionManager->isQueued = true;
+        if (!ret)
+            actionManager->isQueued = true;
         isRequeuing = false;
     }
 

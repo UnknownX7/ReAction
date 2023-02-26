@@ -27,7 +27,7 @@ public unsafe class AutoDismount : PluginModule
         DalamudApi.Framework.Update -= Update;
     }
 
-    private static void PreActionStack(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref uint adjustedActionID, ref long targetObjectID, ref uint param, uint useType, ref int pvp, out byte? ret)
+    private static void PreActionStack(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref uint adjustedActionID, ref long targetObjectID, ref uint param, uint useType, ref int pvp, out bool? ret)
     {
         ret = null;
 
@@ -36,7 +36,7 @@ public unsafe class AutoDismount : PluginModule
             return;
 
         ret = Game.UseActionHook.Original(actionManager, 5, 23, 0, 0, 0, 0, null);
-        if (ret == 0) return;
+        if (!ret.Value) return;
 
         PluginLog.Debug($"Dismounting {actionType}, {actionID}, {targetObjectID:X}, {useType}, {pvp}");
 
