@@ -128,6 +128,7 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableTurboHotbars = false;
     public int TurboHotbarInterval = 400;
     public bool EnableCameraRelativeDirectionals = false;
+    public bool EnableUnassignableActions = false;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;
