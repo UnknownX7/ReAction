@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
 namespace ReAction;
@@ -44,6 +45,26 @@ public class FieldTargetPronoun : IGamePronoun
     public string Placeholder => "<field>";
     public uint ID => 10_003;
     public unsafe GameObject* GetGameObject() => (GameObject*)DalamudApi.TargetManager.MouseOverTarget?.Address;
+}
+
+public class FieldTargetPartyMemberPronoun : IGamePronoun
+{
+    public string Name => "Field Target Party Member";
+    public string Placeholder => "<fieldp>";
+    public uint ID => 10_004;
+
+    private GameObjectArray partyMemberArray = new();
+
+    public unsafe GameObject* GetGameObject()
+    {
+        var i = 0;
+        foreach (var partyMember in Common.GetPartyMembers().Skip(1))
+            partyMemberArray.Objects[i++] = partyMember;
+        partyMemberArray.Length = i;
+
+        fixed (GameObjectArray* ptr = &partyMemberArray)
+            return Game.GetMouseOverObject(ptr);
+    }
 }
 
 public class LowestHPPronoun : IGamePronoun
@@ -96,6 +117,7 @@ public static class PronounManager
         (uint)PronounID.FocusTarget,
         10_002, // UITarget
         10_003, // FieldTarget
+        10_004,
         (uint)PronounID.TargetsTarget,
         (uint)PronounID.LastTarget,
         (uint)PronounID.LastEnemy,

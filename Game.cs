@@ -10,6 +10,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Hypostasis.Game.Structures;
+using Camera = FFXIVClientStructs.FFXIV.Client.Game.Camera;
 using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
 using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
@@ -187,6 +188,12 @@ public static unsafe class Game
     // The game is dumb and I cannot check LoS easily because not facing the target will override it
     public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
         && FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionInRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566; // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
+
+    public static GameObject* GetMouseOverObject(GameObjectArray* array)
+    {
+        var camera = (Camera*)Common.CameraManager->WorldCamera;
+        return camera != null ? TargetSystem.Instance()->GetMouseOverObject(Common.InputData->GetAxisInput(0), Common.InputData->GetAxisInput(1), array, camera) : null;
+    }
 
     [Signature("E8 ?? ?? ?? ?? 4C 39 6F 08")]
     public static delegate* unmanaged<HotBarSlot*, UIModule*, byte, uint, void> fpSetHotbarSlot;
