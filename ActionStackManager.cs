@@ -152,7 +152,7 @@ public static unsafe class ActionStackManager
 
     private static void SetInstantGroundTarget(uint actionType, uint useType)
     {
-        if (useType == 2 && actionType == 1 || actionType == 15) return;
+        if ((ReAction.Config.EnableBlockMiscInstantGroundTargets && actionType == 11) || useType == 2 && actionType == 1 || actionType == 15) return;
 
         PluginLog.Debug($"Making ground target instant {actionType}, {useType}");
 

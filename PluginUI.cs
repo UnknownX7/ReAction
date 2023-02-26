@@ -31,7 +31,7 @@ public static class PluginUI
     {
         if (!isVisible) return;
 
-        ImGui.SetNextWindowSizeConstraints(new Vector2(700, 700) * ImGuiHelpers.GlobalScale, new Vector2(9999));
+        ImGui.SetNextWindowSizeConstraints(new Vector2(700, 730) * ImGuiHelpers.GlobalScale, new Vector2(9999));
         ImGui.Begin("ReAction Configuration", ref isVisible);
         ImGuiEx.AddDonationHeader(2);
 
@@ -384,42 +384,46 @@ public static class PluginUI
     {
         var save = false;
 
-        if (ImGuiEx.BeginGroupBox("Auto", 0.5f))
+        if (ImGuiEx.BeginGroupBox("Actions", 0.5f))
         {
-            save |= ImGui.Checkbox("Enable Auto Dismount", ref ReAction.Config.EnableAutoDismount);
-            ImGuiEx.SetItemTooltip("Automatically dismounts when an action is used, prior to using the action.");
+            save |= ImGui.Checkbox("Enable Turbo Hotbar Keybinds", ref ReAction.Config.EnableTurboHotbars);
+            ImGuiEx.SetItemTooltip("Allows you to hold hotbar keybinds (no controller support).\nWARNING: Text macros may be spammed.");
 
-            save |= ImGui.Checkbox("Enable Auto Cast Cancel", ref ReAction.Config.EnableAutoCastCancel);
-            ImGuiEx.SetItemTooltip("Automatically cancels casting when the target dies.");
-
-            save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
-            ImGuiEx.SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
-
-            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableAutoTarget))
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableTurboHotbars))
             {
                 ImGuiEx.Prefix();
-                save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
-                ImGuiEx.SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
+                save |= ImGui.DragInt("Interval (ms)", ref ReAction.Config.TurboHotbarInterval, 0.5f, 0, 1000);
             }
 
-            save |= ImGui.Checkbox("Enable Auto Refocus Target", ref ReAction.Config.EnableAutoRefocusTarget);
-            ImGuiEx.SetItemTooltip("While in duties, attempts to focus target whatever was previously focus targeted if the focus target is lost.");
+            save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
+            ImGuiEx.SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
 
-            save |= ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks);
-            ImGuiEx.SetItemTooltip("Causes spells (and some other actions) to start using auto attacks just like weaponskills.");
-
-            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableSpellAutoAttacks))
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableInstantGroundTarget))
             {
                 ImGuiEx.Prefix();
-                if (ImGui.Checkbox("Enable Out of Combat", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
-                {
-                    if (ReAction.Config.EnableSpellAutoAttacksOutOfCombat)
-                        Game.spellAutoAttackPatch.Enable();
-                    else
-                        Game.spellAutoAttackPatch.Disable();
-                    save = true;
-                }
-                ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nNote: This can cause early pulls on certain bosses!");
+                save |= ImGui.Checkbox("Block Miscellaneous Ground Targets", ref ReAction.Config.EnableBlockMiscInstantGroundTargets);
+                ImGuiEx.SetItemTooltip("Disables the previous option from activating on actions such as placing pets.");
+            }
+
+            if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
+            {
+                Game.enhancedAutoFaceTargetPatch.Disable(); // This is managed by the plugin module
+                Game.removeAutoFaceGroundTargetPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
+
+            save |= ImGui.Checkbox("Enable Camera Relative Directional Actions", ref ReAction.Config.EnableCameraRelativeDirectionals);
+            ImGuiEx.SetItemTooltip("Changes channeled and directional actions, such as Passage of Arms or Surpanakha,\nto be relative to the direction your camera is facing, rather than your character.");
+
+            save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
+            ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
+
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableCameraRelativeDashes))
+            {
+                ImGuiEx.Prefix();
+                save |= ImGui.Checkbox("Block Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
+                ImGuiEx.SetItemTooltip("Disables the previous option for any backward dash, such as Elusive Jump.");
             }
 
             ImGuiEx.EndGroupBox();
@@ -471,39 +475,42 @@ public static class PluginUI
             ImGuiEx.EndGroupBox();
         }
 
-        if (ImGuiEx.BeginGroupBox("Actions", 0.5f))
+        if (ImGuiEx.BeginGroupBox("Auto", 0.5f))
         {
-            save |= ImGui.Checkbox("Enable Turbo Hotbar Keybinds", ref ReAction.Config.EnableTurboHotbars);
-            ImGuiEx.SetItemTooltip("Allows you to hold hotbar keybinds (no controller support).\nWARNING: Text macros may be spammed.");
+            save |= ImGui.Checkbox("Enable Auto Dismount", ref ReAction.Config.EnableAutoDismount);
+            ImGuiEx.SetItemTooltip("Automatically dismounts when an action is used, prior to using the action.");
 
-            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableTurboHotbars))
+            save |= ImGui.Checkbox("Enable Auto Cast Cancel", ref ReAction.Config.EnableAutoCastCancel);
+            ImGuiEx.SetItemTooltip("Automatically cancels casting when the target dies.");
+
+            save |= ImGui.Checkbox("Enable Auto Target", ref ReAction.Config.EnableAutoTarget);
+            ImGuiEx.SetItemTooltip("Automatically targets the closest enemy when no target is specified for a targeted attack.");
+
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableAutoTarget))
             {
                 ImGuiEx.Prefix();
-                save |= ImGui.DragInt("Interval (ms)", ref ReAction.Config.TurboHotbarInterval, 0.5f, 0, 1000);
+                save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
+                ImGuiEx.SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
             }
 
-            save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
-            ImGuiEx.SetItemTooltip("Ground targets will immediately place themselves at your current cursor position when a stack does not override the target.");
+            save |= ImGui.Checkbox("Enable Auto Refocus Target", ref ReAction.Config.EnableAutoRefocusTarget);
+            ImGuiEx.SetItemTooltip("While in duties, attempts to focus target whatever was previously focus targeted if the focus target is lost.");
 
-            if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
-            {
-                Game.enhancedAutoFaceTargetPatch.Disable(); // This is managed by the plugin module
-                Game.removeAutoFaceGroundTargetPatch.Toggle();
-                save = true;
-            }
-            ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
+            save |= ImGui.Checkbox("Enable Auto Attacks on Spells", ref ReAction.Config.EnableSpellAutoAttacks);
+            ImGuiEx.SetItemTooltip("Causes spells (and some other actions) to start using auto attacks just like weaponskills.");
 
-            save |= ImGui.Checkbox("Enable Camera Relative Directional Actions", ref ReAction.Config.EnableCameraRelativeDirectionals);
-            ImGuiEx.SetItemTooltip("Changes channeled and directional actions, such as Passage of Arms or Surpanakha, to be relative\nto the direction your camera is facing, rather than your character.");
-
-            save |= ImGui.Checkbox("Enable Camera Relative Dashes", ref ReAction.Config.EnableCameraRelativeDashes);
-            ImGuiEx.SetItemTooltip("Changes dashes, such as En Avant and Elusive Jump, to be relative\nto the direction your camera is facing, rather than your character.");
-
-            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableCameraRelativeDashes))
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableSpellAutoAttacks))
             {
                 ImGuiEx.Prefix();
-                save |= ImGui.Checkbox("Enable Normal Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
-                ImGuiEx.SetItemTooltip("Ignores \"Enable Camera Relative Dashes\" for any backward dash, such as Elusive Jump.");
+                if (ImGui.Checkbox("Enable Out of Combat", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
+                {
+                    if (ReAction.Config.EnableSpellAutoAttacksOutOfCombat)
+                        Game.spellAutoAttackPatch.Enable();
+                    else
+                        Game.spellAutoAttackPatch.Disable();
+                    save = true;
+                }
+                ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nNote: This can cause early pulls on certain bosses!");
             }
 
             ImGuiEx.EndGroupBox();

@@ -106,6 +106,7 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableAutoDismount = false;
     public bool EnableGroundTargetQueuing = false;
     public bool EnableInstantGroundTarget = false;
+    public bool EnableBlockMiscInstantGroundTargets = false;
     public bool EnableAutoCastCancel = false;
     public bool EnableAutoTarget = false;
     public bool EnableAutoChangeTarget = false;
