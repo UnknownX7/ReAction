@@ -195,20 +195,18 @@ public static unsafe class Game
         var camera = (Camera*)Common.CameraManager->WorldCamera;
         if (targetSystem == null || camera == null || targetSystem->MouseOverTarget == null) return null;
 
-        var mouseover = targetSystem->GetMouseOverObject(Common.InputData->GetAxisInput(0), Common.InputData->GetAxisInput(1), array, camera);
-        if (mouseover != null) return mouseover;
-
         // Nameplates fucking suck
         var nameplateTarget = targetSystem->MouseOverNameplateTarget;
-        if (nameplateTarget == null) return null;
-
-        for (int i = 0; i < array->Length; i++)
+        if (nameplateTarget != null)
         {
-            if (array->Objects[i] == (nint)nameplateTarget)
-                return nameplateTarget;
+            for (int i = 0; i < array->Length; i++)
+            {
+                if (array->Objects[i] == (nint)nameplateTarget)
+                    return nameplateTarget;
+            }
         }
 
-        return null;
+        return targetSystem->GetMouseOverObject(Common.InputData->GetAxisInput(0), Common.InputData->GetAxisInput(1), array, camera);
     }
 
     [Signature("E8 ?? ?? ?? ?? 4C 39 6F 08")]

@@ -13,5 +13,5 @@
   ],
   "InternalName": "ReAction",
   "AssemblyVersion": "9.9.9.9",
-  "Changelog": "Plugin rework, early pull protection for spell autos, LB queuing, universal macro queue option, Fractionality feature, several bug fixes"
+  "Changelog": "Many new target types for stacks (macros and chat too!), a new plugin tab for viewing custom target types, a redesigned \"Other Settings\" tab, 5 brand new features and an infinite amount of potential new bugs!"
 }
