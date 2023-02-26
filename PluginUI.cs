@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Dalamud.Interface;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
@@ -45,6 +46,12 @@ public static class PluginUI
             if (ImGui.BeginTabItem("Other Settings"))
             {
                 DrawOtherSettings();
+                ImGui.EndTabItem();
+            }
+
+            if (ImGui.BeginTabItem("Custom Placeholders"))
+            {
+                DrawCustomPlaceholders();
                 ImGui.EndTabItem();
             }
 
@@ -371,55 +378,6 @@ public static class PluginUI
         if (!ImGuiEx.ExcelSheetPopup("ReActionAddSkillsPopup", out var row, actionPopupOptions)) return;
         actions.Add(new() { ID = row });
         ReAction.Config.Save();
-    }
-
-    private static void DrawStackHelp()
-    {
-        ImGui.Text("Creating a Stack");
-        ImGui.Indent();
-        ImGui.TextWrapped("To start, click the + button in the top left corner, this will create a new stack that you can begin adding actions and functionality to.");
-        ImGui.Unindent();
-
-        ImGui.Separator();
-
-        ImGui.Text("Editing a Stack");
-        ImGui.Indent();
-        ImGui.TextWrapped("Click on a stack from the top left list to display the editing panes for that it. The bottom left pane is where the " +
-            "main settings reside, these will change the base functionality for the stack itself.");
-        ImGui.Unindent();
-
-        ImGui.Separator();
-
-        ImGui.Text("Editing a Stack's Actions");
-        ImGui.Indent();
-        ImGui.TextWrapped("The top right pane is where you can add actions, click the + to bring up a box that you can search for them through. " +
-            "After adding every action that you would like to change the functionality of, you can additionally select which ones you would like to " +
-            "\"adjust\". This means that the selected action will match any other one that replaces it on the hotbar. This can be due to a trait " +
-            "(Holy <-> Holy III), a buff (Play -> The Balance) or another plugin (XIVCombo). An example case where you might want it off is when the " +
-            "adjusted action has a separate use case, such as XIVCombo turning Play into Draw. You can change the functionality of the individual " +
-            "cards while not affecting Draw by adding each of them to the list. Additionally, if the action is currently adjusted by the game, the " +
-            "option will be highlighted in green as an indicator.");
-        ImGui.Unindent();
-
-        ImGui.Separator();
-
-        ImGui.Text("Editing a Stack's Functionality");
-        ImGui.Indent();
-        ImGui.TextWrapped("The bottom right pane is where you can change the functionality of the selected actions, by setting a list of targets to " +
-            "extend or replace the game's. When the action is used, the plugin will attempt to determine, from top to bottom, which target is a valid choice. " +
-            "This will execute before the game's own target priority system and only allow it to continue if not blocked by the stack. If any of the targets " +
-            "are valid choices, the plugin will change the action's target to the new one and, additionally, replace the action with the override if set.");
-        ImGui.Unindent();
-
-        ImGui.Separator();
-
-        ImGui.Text("Stack Priority");
-        ImGui.Indent();
-        ImGui.TextWrapped("The executed stack will depend on which one, from top to bottom, first contains the action being used and has its modifier " +
-            "keys held. If you would like to use \"All Actions\" in a stack, you can utilize this to add overrides above it in the list. Note that a stack " +
-            "does not need to contain any functionality in the event that you would like for a set of actions to never be changed by \"All Actions\" and " +
-            "instead use the original.");
-        ImGui.Unindent();
     }
 
     private static void DrawOtherSettings()
@@ -761,5 +719,81 @@ public static class PluginUI
                     commandID = (uint)___;
                 break;
         }
+    }
+
+    private static unsafe void DrawCustomPlaceholders()
+    {
+        if (!ImGui.BeginTable("CustomPronounInfoTable", 3, ImGuiTableFlags.Borders)) return;
+
+        ImGui.TableSetupColumn("Name");
+        ImGui.TableSetupColumn("Placeholder");
+        ImGui.TableSetupColumn("Current Target");
+        ImGui.TableHeadersRow();
+
+        foreach (var (placeholder, pronoun) in PronounManager.CustomPlaceholders)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+
+            ImGui.TextUnformatted(pronoun.Name);
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(placeholder);
+
+            var p = pronoun.GetGameObject();
+            if (p == null) continue;
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(Marshal.PtrToStringAnsi((nint)p->Name));
+        }
+
+        ImGui.EndTable();
+    }
+
+    private static void DrawStackHelp()
+    {
+        ImGui.Text("Creating a Stack");
+        ImGui.Indent();
+        ImGui.TextWrapped("To start, click the + button in the top left corner, this will create a new stack that you can begin adding actions and functionality to.");
+        ImGui.Unindent();
+
+        ImGui.Separator();
+
+        ImGui.Text("Editing a Stack");
+        ImGui.Indent();
+        ImGui.TextWrapped("Click on a stack from the top left list to display the editing panes for that it. The bottom left pane is where the " +
+            "main settings reside, these will change the base functionality for the stack itself.");
+        ImGui.Unindent();
+
+        ImGui.Separator();
+
+        ImGui.Text("Editing a Stack's Actions");
+        ImGui.Indent();
+        ImGui.TextWrapped("The top right pane is where you can add actions, click the + to bring up a box that you can search for them through. " +
+            "After adding every action that you would like to change the functionality of, you can additionally select which ones you would like to " +
+            "\"adjust\". This means that the selected action will match any other one that replaces it on the hotbar. This can be due to a trait " +
+            "(Holy <-> Holy III), a buff (Play -> The Balance) or another plugin (XIVCombo). An example case where you might want it off is when the " +
+            "adjusted action has a separate use case, such as XIVCombo turning Play into Draw. You can change the functionality of the individual " +
+            "cards while not affecting Draw by adding each of them to the list. Additionally, if the action is currently adjusted by the game, the " +
+            "option will be highlighted in green as an indicator.");
+        ImGui.Unindent();
+
+        ImGui.Separator();
+
+        ImGui.Text("Editing a Stack's Functionality");
+        ImGui.Indent();
+        ImGui.TextWrapped("The bottom right pane is where you can change the functionality of the selected actions, by setting a list of targets to " +
+            "extend or replace the game's. When the action is used, the plugin will attempt to determine, from top to bottom, which target is a valid choice. " +
+            "This will execute before the game's own target priority system and only allow it to continue if not blocked by the stack. If any of the targets " +
+            "are valid choices, the plugin will change the action's target to the new one and, additionally, replace the action with the override if set.");
+        ImGui.Unindent();
+
+        ImGui.Separator();
+
+        ImGui.Text("Stack Priority");
+        ImGui.Indent();
+        ImGui.TextWrapped("The executed stack will depend on which one, from top to bottom, first contains the action being used and has its modifier " +
+            "keys held. If you would like to use \"All Actions\" in a stack, you can utilize this to add overrides above it in the list. Note that a stack " +
+            "does not need to contain any functionality in the event that you would like for a set of actions to never be changed by \"All Actions\" and " +
+            "instead use the original.");
+        ImGui.Unindent();
     }
 }

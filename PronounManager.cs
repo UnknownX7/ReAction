@@ -78,7 +78,9 @@ public class KardionPronoun : IGamePronoun
     public string Name => "Kardion Target";
     public string Placeholder => "<kt>";
     public uint ID => 10_100;
-    public unsafe GameObject* GetGameObject() => (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => ((Character*)address)->GetStatusManager()->HasStatus(2605, DalamudApi.ClientState.LocalPlayer!.ObjectId));
+    public unsafe GameObject* GetGameObject() => DalamudApi.ClientState.LocalPlayer is { } p
+        ? (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => ((Character*)address)->GetStatusManager()->HasStatus(2605, p.ObjectId))
+        : null;
 }
 
 public static class PronounManager
