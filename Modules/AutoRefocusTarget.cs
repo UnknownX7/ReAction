@@ -13,7 +13,7 @@ public class AutoRefocusTarget : PluginModule
 
     private static void Update(Framework framework)
     {
-        if (!DalamudApi.Condition[ConditionFlag.BoundByDuty]) return;
+        if (!DalamudApi.Condition[ConditionFlag.BoundByDuty] || DalamudApi.TargetManager.FocusTarget != null) return;
         Game.RefocusTarget();
     }
 }

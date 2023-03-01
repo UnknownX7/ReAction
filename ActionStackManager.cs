@@ -129,7 +129,7 @@ public static unsafe class ActionStackManager
     private static bool CheckActionStack(uint id, Configuration.ActionStack stack, out uint action, out long target)
     {
         action = 0;
-        target = 0xE0000000;
+        target = Game.InvalidObjectID;
 
         var useRange = stack.CheckRange;
         var useCooldown = stack.CheckCooldown;

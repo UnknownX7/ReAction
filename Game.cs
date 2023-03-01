@@ -19,6 +19,8 @@ namespace ReAction;
 [InjectSignatures]
 public static unsafe class Game
 {
+    public const uint InvalidObjectID = 0xE0000000;
+
     public static readonly AsmPatch allowQueuingPatch = new("76 2F 80 F9 04", new byte[] { 0xEB });
     public static readonly AsmPatch queueGroundTargetsPatch = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
 
@@ -125,6 +127,8 @@ public static unsafe class Game
 
     public static long GetObjectID(GameObject* o)
     {
+        if (o == null) return InvalidObjectID;
+
         var id = o->GetObjectID();
         return (id.Type * 0x1_0000_0000) | id.ObjectID;
     }
@@ -195,7 +199,7 @@ public static unsafe class Game
         var camera = (Camera*)Common.CameraManager->WorldCamera;
         if (targetSystem == null || camera == null || targetSystem->MouseOverTarget == null) return null;
 
-        // Nameplates fucking suck
+        // Nameplates fucking suck (I am aware nameplates aren't restricted to the objects in the array)
         var nameplateTarget = targetSystem->MouseOverNameplateTarget;
         if (nameplateTarget != null)
         {
@@ -230,14 +234,15 @@ public static unsafe class Game
     public static delegate* unmanaged<ActionManager*, uint, Bool> fpCanUseActionAsCurrentClass;
     public static Bool CanQueueActionDetour(ActionManager* actionManager, uint actionType, uint actionID) => Modules.QueueAdjustments.OnCanQueueAction(actionManager, actionType, actionID);
 
-    private static (string Name, uint DataID) focusTargetInfo = (null, 0);
+    public static (string Name, uint DataID) FocusTargetInfo { get; private set; } = (null, 0);
     public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, long objectID);
     [Signature("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D")]
     public static Hook<SetFocusTargetByObjectIDDelegate> SetFocusTargetByObjectIDHook;
     private static void SetFocusTargetByObjectIDDetour(TargetSystem* targetSystem, long objectID)
     {
-        SetFocusTargetByObjectIDHook.Original(targetSystem, objectID);
-        focusTargetInfo = DalamudApi.TargetManager.FocusTarget is { } o ? (o.Name.ToString(), o.DataId) : (null, 0);
+        if (ReAction.Config.AutoFocusTargetID == 0 || DalamudApi.TargetManager.FocusTarget == DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name))
+            SetFocusTargetByObjectIDHook.Original(targetSystem, objectID);
+        FocusTargetInfo = DalamudApi.TargetManager.FocusTarget is { } o ? (o.Name.ToString(), o.DataId) : (null, 0);
     }
 
     private delegate GameObject* ResolvePlaceholderDelegate(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames);
@@ -263,12 +268,8 @@ public static unsafe class Game
 
     public static void RefocusTarget()
     {
-        if (focusTargetInfo.Name == null || DalamudApi.TargetManager.FocusTarget != null) return;
-
-        var foundTarget = DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == focusTargetInfo.DataID && o.Name.ToString() == focusTargetInfo.Name);
-        if (foundTarget == null) return;
-
-        DalamudApi.TargetManager.FocusTarget = foundTarget;
+        if (FocusTargetInfo.Name == null) return;
+        DalamudApi.TargetManager.FocusTarget = DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name);
     }
 
     private delegate void ExecuteMacroDelegate(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro);

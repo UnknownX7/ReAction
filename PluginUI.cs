@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Interface;
@@ -319,16 +320,8 @@ public static class PluginUI
             var item = stack.Items[i];
 
             ImGui.SetNextItemWidth(buttonWidth);
-            if (ImGui.BeginCombo("##TargetType", PronounManager.GetPronounName(item.TargetID)))
-            {
-                foreach (var id in PronounManager.OrderedIDs)
-                {
-                    if (!ImGui.Selectable(PronounManager.GetPronounName(id), id == item.TargetID)) continue;
-                    item.TargetID = id;
-                    ReAction.Config.Save();
-                }
-                ImGui.EndCombo();
-            }
+            if (DrawTargetTypeCombo("##TargetType", ref item.TargetID))
+                ReAction.Config.Save();
 
             ImGui.SameLine();
 
@@ -378,6 +371,23 @@ public static class PluginUI
         if (!ImGuiEx.ExcelSheetPopup("ReActionAddSkillsPopup", out var row, actionPopupOptions)) return;
         actions.Add(new() { ID = row });
         ReAction.Config.Save();
+    }
+
+    private static bool DrawTargetTypeCombo(string label, ref uint currentSelection)
+    {
+        if (!ImGui.BeginCombo(label, PronounManager.GetPronounName(currentSelection))) return false;
+
+        var ret = false;
+        foreach (var id in PronounManager.OrderedIDs)
+        {
+            if (!ImGui.Selectable(PronounManager.GetPronounName(id), id == currentSelection)) continue;
+            currentSelection = id;
+            ret = true;
+            break;
+        }
+
+        ImGui.EndCombo();
+        return ret;
     }
 
     private static void DrawOtherSettings()
@@ -491,6 +501,20 @@ public static class PluginUI
                 ImGuiEx.Prefix();
                 save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
                 ImGuiEx.SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
+            }
+
+            var _ = ReAction.Config.AutoFocusTargetID != 0;
+            if (ImGui.Checkbox("Enable Auto Focus Target", ref _))
+            {
+                ReAction.Config.AutoFocusTargetID = _ ? PronounManager.OrderedIDs.First() : 0;
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Automatically sets the focus target to the selected target type when possible.");
+
+            using (ImGuiEx.DisabledBlock.Begin(!_))
+            {
+                ImGuiEx.Prefix();
+                save |= DrawTargetTypeCombo("##AutoFocusTargetID", ref ReAction.Config.AutoFocusTargetID);
             }
 
             save |= ImGui.Checkbox("Enable Auto Refocus Target", ref ReAction.Config.EnableAutoRefocusTarget);

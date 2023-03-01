@@ -18,7 +18,7 @@ public unsafe class AutoTarget : PluginModule
 
         var targetObject = DalamudApi.TargetManager.Target is { } t ? (GameObject*)t.Address : null;
         if (!ReAction.Config.EnableAutoChangeTarget && targetObject != null
-            || targetObjectID != 0xE0000000 && Game.GetGameObjectFromObjectID(targetObjectID) != targetObject
+            || targetObjectID != Game.InvalidObjectID && Game.GetGameObjectFromObjectID(targetObjectID) != targetObject
             || ActionManager.CanUseActionOnGameObject(adjustedActionID, targetObject)
             || !ReAction.actionSheet.TryGetValue(adjustedActionID, out var a)
             || !a.CanTargetHostile)
