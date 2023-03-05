@@ -14,8 +14,7 @@ public unsafe class CameraRelativeActions : PluginModule
 
     private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp)
     {
-        if (!ReAction.actionSheet.TryGetValue(adjustedActionID, out var a)
-            || !CheckAction(actionType, actionID, adjustedActionID)
+        if (!CheckAction(actionType, actionID, adjustedActionID)
             || actionManager->CS.GetActionStatus((ActionType)actionType, adjustedActionID) != 0
             || actionManager->animationLock != 0)
             return;

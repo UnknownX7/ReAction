@@ -34,7 +34,7 @@ public static class PluginUI
 
         ImGui.SetNextWindowSizeConstraints(new Vector2(700, 730) * ImGuiHelpers.GlobalScale, new Vector2(9999));
         ImGui.Begin("ReAction Configuration", ref isVisible);
-        ImGuiEx.AddDonationHeader(2);
+        ImGuiEx.AddDonationHeader();
 
         if (ImGui.BeginTabBar("ReActionTabs"))
         {
@@ -245,11 +245,20 @@ public static class PluginUI
         ImGui.BeginChild("ReActionActionEditor", new Vector2(contentRegion.X, contentRegion.Y / 2), true);
 
         var buttonWidth = ImGui.GetContentRegionAvail().X / 2;
+        var buttonIndent = 0f;
         for (int i = 0; i < stack.Actions.Count; i++)
         {
-            ImGui.PushID(i);
-
+            using var _ = ImGuiEx.IDBlock.Begin(i);
             var action = stack.Actions[i];
+
+            ImGui.Button("≡");
+            if (ImGuiEx.IsItemDraggedDelta(action, ImGuiMouseButton.Left, ImGui.GetFrameHeightWithSpacing(), false, out var dt) && dt.Y != 0)
+                stack.Actions.Shift(i, dt.Y);
+
+            if (i == 0)
+                buttonIndent = ImGui.GetItemRectSize().X + ImGui.GetStyle().ItemSpacing.X;
+
+            ImGui.SameLine();
 
             ImGui.SetNextItemWidth(buttonWidth);
             if (ImGuiEx.ExcelSheetCombo("##Action", ref action.ID, actionComboOptions))
@@ -272,25 +281,20 @@ public static class PluginUI
 
             ImGui.SameLine();
 
-            ImGui.PushFont(UiBuilder.IconFont);
-
+            using var __ = ImGuiEx.FontBlock.Begin(UiBuilder.IconFont);
             ImGui.Button(FontAwesomeIcon.TimesCircle.ToIconString());
-            if (ImGui.BeginPopupContextItem(null, ImGuiPopupFlags.MouseButtonLeft))
+            if (!ImGui.BeginPopupContextItem(null, ImGuiPopupFlags.MouseButtonLeft)) continue;
+
+            if (ImGui.Selectable(FontAwesomeIcon.TrashAlt.ToIconString()))
             {
-                if (ImGui.Selectable(FontAwesomeIcon.TrashAlt.ToIconString()))
-                {
-                    stack.Actions.RemoveAt(i);
-                    ReAction.Config.Save();
-                }
-                ImGui.EndPopup();
+                stack.Actions.RemoveAt(i);
+                ReAction.Config.Save();
             }
-
-            ImGui.PopFont();
-
-            ImGui.PopID();
+            ImGui.EndPopup();
         }
 
-        AddActionList(stack.Actions, buttonWidth);
+        using (ImGuiEx.IndentBlock.Begin(buttonIndent))
+            AddActionList(stack.Actions, buttonWidth);
 
         ImGui.EndChild();
     }
@@ -313,11 +317,20 @@ public static class PluginUI
         ImGui.BeginChild("ReActionItemEditor", ImGui.GetContentRegionAvail(), true);
 
         var buttonWidth = ImGui.GetContentRegionAvail().X / 3;
+        var buttonIndent = 0f;
         for (int i = 0; i < stack.Items.Count; i++)
         {
-            ImGui.PushID(i);
-
+            using var _ = ImGuiEx.IDBlock.Begin(i);
             var item = stack.Items[i];
+
+            ImGui.Button("≡");
+            if (ImGuiEx.IsItemDraggedDelta(item, ImGuiMouseButton.Left, ImGui.GetFrameHeightWithSpacing(), false, out var dt) && dt.Y != 0)
+                stack.Items.Shift(i, dt.Y);
+
+            if (i == 0)
+                buttonIndent = ImGui.GetItemRectSize().X + ImGui.GetStyle().ItemSpacing.X;
+
+            ImGui.SameLine();
 
             ImGui.SetNextItemWidth(buttonWidth);
             if (DrawTargetTypeCombo("##TargetType", ref item.TargetID))
@@ -331,28 +344,25 @@ public static class PluginUI
 
             ImGui.SameLine();
 
-            ImGui.PushFont(UiBuilder.IconFont);
-
+            using var __ = ImGuiEx.FontBlock.Begin(UiBuilder.IconFont);
             ImGui.Button(FontAwesomeIcon.TimesCircle.ToIconString());
-            if (ImGui.BeginPopupContextItem(null, ImGuiPopupFlags.MouseButtonLeft))
+            if (!ImGui.BeginPopupContextItem(null, ImGuiPopupFlags.MouseButtonLeft)) continue;
+
+            if (ImGui.Selectable(FontAwesomeIcon.TrashAlt.ToIconString()))
             {
-                if (ImGui.Selectable(FontAwesomeIcon.TrashAlt.ToIconString()))
-                {
-                    stack.Items.RemoveAt(i);
-                    ReAction.Config.Save();
-                }
-                ImGui.EndPopup();
+                stack.Items.RemoveAt(i);
+                ReAction.Config.Save();
             }
-
-            ImGui.PopFont();
-
-            ImGui.PopID();
+            ImGui.EndPopup();
         }
 
-        if (ImGuiEx.FontButton(FontAwesomeIcon.PlusCircle.ToIconString(), UiBuilder.IconFont, new Vector2(buttonWidth, 0)))
+        using (ImGuiEx.IndentBlock.Begin(buttonIndent))
         {
-            stack.Items.Add(new());
-            ReAction.Config.Save();
+            if (ImGuiEx.FontButton(FontAwesomeIcon.PlusCircle.ToIconString(), UiBuilder.IconFont, new Vector2(buttonWidth, 0)))
+            {
+                stack.Items.Add(new());
+                ReAction.Config.Save();
+            }
         }
 
         ImGui.EndChild();
@@ -402,7 +412,7 @@ public static class PluginUI
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableTurboHotbars))
             {
                 ImGuiEx.Prefix();
-                save |= ImGui.DragInt("Interval (ms)", ref ReAction.Config.TurboHotbarInterval, 0.5f, 0, 1000);
+                save |= ImGui.DragInt("Interval", ref ReAction.Config.TurboHotbarInterval, 0.5f, 0, 1000, "%d ms");
             }
 
             save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
