@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -136,23 +135,18 @@ public static class PluginUI
             ReAction.Config.Save();
         }
 
+        ImGui.PopFont();
+
         ImGui.SameLine();
 
-        ImGui.Button(FontAwesomeIcon.Times.ToIconString(), buttonSize);
-        if (hasSelectedStack && ImGui.BeginPopupContextItem(null, ImGuiPopupFlags.MouseButtonLeft))
+        if (ImGuiEx.DeleteConfirmationButton(buttonSize) && hasSelectedStack)
         {
-            if (ImGui.Selectable(FontAwesomeIcon.TrashAlt.ToIconString()))
-            {
-                ReAction.Config.ActionStacks.RemoveAt(selectedStack);
-                selectedStack = Math.Min(selectedStack, ReAction.Config.ActionStacks.Count - 1);
-                currentStack = CurrentStack;
-                hasSelectedStack = currentStack != null;
-                ReAction.Config.Save();
-            }
-            ImGui.EndPopup();
+            ReAction.Config.ActionStacks.RemoveAt(selectedStack);
+            selectedStack = Math.Min(selectedStack, ReAction.Config.ActionStacks.Count - 1);
+            currentStack = CurrentStack;
+            hasSelectedStack = currentStack != null;
+            ReAction.Config.Save();
         }
-
-        ImGui.PopFont();
 
         var firstColumnWidth = 250 * ImGuiHelpers.GlobalScale;
         ImGui.PushStyleColor(ImGuiCol.Border, ImGui.GetColorU32(ImGuiCol.TabActive));
@@ -281,20 +275,20 @@ public static class PluginUI
 
             ImGui.SameLine();
 
-            using var __ = ImGuiEx.FontBlock.Begin(UiBuilder.IconFont);
-            ImGui.Button(FontAwesomeIcon.TimesCircle.ToIconString());
-            if (!ImGui.BeginPopupContextItem(null, ImGuiPopupFlags.MouseButtonLeft)) continue;
-
-            if (ImGui.Selectable(FontAwesomeIcon.TrashAlt.ToIconString()))
-            {
-                stack.Actions.RemoveAt(i);
-                ReAction.Config.Save();
-            }
-            ImGui.EndPopup();
+            if (!ImGuiEx.DeleteConfirmationButton()) continue;
+            stack.Actions.RemoveAt(i);
+            ReAction.Config.Save();
         }
 
         using (ImGuiEx.IndentBlock.Begin(buttonIndent))
-            AddActionList(stack.Actions, buttonWidth);
+        {
+            ImGuiEx.FontButton(FontAwesomeIcon.Plus.ToIconString(), UiBuilder.IconFont, new Vector2(buttonWidth, 0));
+            if (ImGuiEx.ExcelSheetPopup("ReActionAddSkillsPopup", out var row, actionPopupOptions))
+            {
+                stack.Actions.Add(new() { ID = row });
+                ReAction.Config.Save();
+            }
+        }
 
         ImGui.EndChild();
     }
@@ -344,21 +338,14 @@ public static class PluginUI
 
             ImGui.SameLine();
 
-            using var __ = ImGuiEx.FontBlock.Begin(UiBuilder.IconFont);
-            ImGui.Button(FontAwesomeIcon.TimesCircle.ToIconString());
-            if (!ImGui.BeginPopupContextItem(null, ImGuiPopupFlags.MouseButtonLeft)) continue;
-
-            if (ImGui.Selectable(FontAwesomeIcon.TrashAlt.ToIconString()))
-            {
-                stack.Items.RemoveAt(i);
-                ReAction.Config.Save();
-            }
-            ImGui.EndPopup();
+            if (!ImGuiEx.DeleteConfirmationButton()) continue;
+            stack.Items.RemoveAt(i);
+            ReAction.Config.Save();
         }
 
         using (ImGuiEx.IndentBlock.Begin(buttonIndent))
         {
-            if (ImGuiEx.FontButton(FontAwesomeIcon.PlusCircle.ToIconString(), UiBuilder.IconFont, new Vector2(buttonWidth, 0)))
+            if (ImGuiEx.FontButton(FontAwesomeIcon.Plus.ToIconString(), UiBuilder.IconFont, new Vector2(buttonWidth, 0)))
             {
                 stack.Items.Add(new());
                 ReAction.Config.Save();
@@ -374,14 +361,6 @@ public static class PluginUI
         SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
             && FormatActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
     };
-
-    private static void AddActionList(ICollection<Configuration.Action> actions, float buttonWidth)
-    {
-        ImGuiEx.FontButton(FontAwesomeIcon.PlusCircle.ToIconString(), UiBuilder.IconFont, new Vector2(buttonWidth, 0));
-        if (!ImGuiEx.ExcelSheetPopup("ReActionAddSkillsPopup", out var row, actionPopupOptions)) return;
-        actions.Add(new() { ID = row });
-        ReAction.Config.Save();
-    }
 
     private static bool DrawTargetTypeCombo(string label, ref uint currentSelection)
     {
