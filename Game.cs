@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -12,7 +11,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Hypostasis.Game.Structures;
 using Camera = FFXIVClientStructs.FFXIV.Client.Game.Camera;
 using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
-using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace ReAction;
 
@@ -21,12 +19,7 @@ public static unsafe class Game
 {
     public const uint InvalidObjectID = 0xE0000000;
 
-    public static readonly AsmPatch allowQueuingPatch = new("76 2F 80 F9 04", new byte[] { 0xEB });
     public static readonly AsmPatch queueGroundTargetsPatch = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
-
-    // cmp byte ptr [r15+33h], 6 -> test byte ptr [r15+3Ah], 10
-    public static readonly AsmPatch enhancedAutoFaceTargetPatch = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte[] { 0x41, 0xF6, 0x47, 0x3A, 0x10 });
-    public static readonly AsmPatch removeAutoFaceGroundTargetPatch = new("41 80 7F 33 06 74 22 49 8D 8E", new byte[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0xEB }, ReAction.Config.EnableEnhancedAutoFaceTarget);
 
     // test byte ptr [r15+39], 04
     // jnz A7h
@@ -137,58 +130,6 @@ public static unsafe class Game
     public static delegate* unmanaged<long, GameObject*> fpGetGameObjectFromObjectID;
     public static GameObject* GetGameObjectFromObjectID(long id) => fpGetGameObjectFromObjectID(id);
 
-    [Signature("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9")]
-    public static delegate* unmanaged<void> fpCancelCast;
-    public static void CancelCast() => fpCancelCast();
-
-    public static void TargetEnemy()
-    {
-        if (DalamudApi.ClientState.LocalPlayer is not { } p) return;
-
-        var worldCamera = Common.CameraManager->WorldCamera;
-        if (worldCamera == null) return;
-
-        var hRotation = worldCamera->currentHRotation + Math.PI * 1.5;
-        if (worldCamera->IsHRotationOffset)
-            hRotation -= Math.PI;
-
-        const double doublePI = Math.PI * 2;
-        const double halfCone = Math.PI * 0.35;
-        var minRotation = (hRotation + doublePI - halfCone) % doublePI;
-        var maxRotation = (hRotation + halfCone) % doublePI;
-
-        static bool IsBetween(double val, double a, double b)
-        {
-            if (a > b)
-                return val >= a || val <= b;
-            return val >= a && val <= b;
-        }
-
-        Dalamud.Game.ClientState.Objects.Types.GameObject closest = null;
-        foreach (var o in DalamudApi.ObjectTable.Where(o => o.YalmDistanceX < 30
-            && o.ObjectKind is ObjectKind.Player or ObjectKind.BattleNpc
-            && ((BattleChara)o).CurrentHp > 0
-            && ActionManager.CanUseActionOnGameObject(7, (GameObject*)o.Address)))
-        {
-            var posDiff = o.Position - p.Position;
-            var angle = Math.Atan2(-posDiff.Z, posDiff.X) + Math.PI;
-            if (IsBetween(angle, minRotation, maxRotation) && (closest == null || closest.YalmDistanceX > o.YalmDistanceX))
-                closest = o;
-        }
-
-        if (closest != null)
-            DalamudApi.TargetManager.Target = closest;
-    }
-
-    [Signature("E8 ?? ?? ?? ?? 83 FE 4F")]
-    public static delegate* unmanaged<GameObject*, float, void> fpSetGameObjectRotation;
-    public static void SetCharacterRotationToCamera()
-    {
-        var worldCamera = Common.CameraManager->WorldCamera;
-        if (worldCamera == null) return;
-        fpSetGameObjectRotation((GameObject*)DalamudApi.ClientState.LocalPlayer!.Address, worldCamera->GameObjectHRotation);
-    }
-
     // The game is dumb and I cannot check LoS easily because not facing the target will override it
     public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
         && FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionInRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566; // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
@@ -214,10 +155,10 @@ public static unsafe class Game
     }
 
     [Signature("E8 ?? ?? ?? ?? 4C 39 6F 08")]
-    public static delegate* unmanaged<HotBarSlot*, UIModule*, byte, uint, void> fpSetHotbarSlot;
+    private static delegate* unmanaged<HotBarSlot*, UIModule*, byte, uint, void> fpSetHotbarSlot;
     public static void SetHotbarSlot(int hotbar, int slot, byte type, uint id)
     {
-        if (hotbar is < 0 or > 17 || (hotbar < 10 ? slot is < 0 or > 11 : slot is < 0 or > 15)) return;
+        if (fpSetHotbarSlot == null || hotbar is < 0 or > 17 || (hotbar < 10 ? slot is < 0 or > 11 : slot is < 0 or > 15)) return;
         var raptureHotbarModule = Framework.Instance()->GetUiModule()->GetRaptureHotbarModule();
         fpSetHotbarSlot(raptureHotbarModule->HotBar[hotbar]->Slot[slot], raptureHotbarModule->UiModule, type, id);
     }
@@ -228,14 +169,6 @@ public static unsafe class Game
     private static Bool UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget) =>
         ActionStackManager.OnUseAction(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
 
-    [Signature("E8 ?? ?? ?? ?? 8B 4F 44 33 D2")]
-    public static delegate* unmanaged<ActionManager*, uint, uint, int> fpGetAdditionalRecastGroup;
-    public static int GetAdditionalRecastGroup(uint actionType, uint actionID) => fpGetAdditionalRecastGroup(Common.ActionManager, actionType, actionID);
-
-    [Signature("E8 ?? ?? ?? ?? 84 C0 74 12 48 83 FF 0F")]
-    public static delegate* unmanaged<ActionManager*, uint, Bool> fpCanUseActionAsCurrentClass;
-    public static bool CanUseActionAsCurrentClass(uint actionID) => fpCanUseActionAsCurrentClass(Common.ActionManager, actionID);
-
     public static (string Name, uint DataID) FocusTargetInfo { get; private set; } = (null, 0);
     public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, long objectID);
     [Signature("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D")]
@@ -245,6 +178,12 @@ public static unsafe class Game
         if (ReAction.Config.AutoFocusTargetID == 0 || DalamudApi.TargetManager.FocusTarget == DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name))
             SetFocusTargetByObjectIDHook.Original(targetSystem, objectID);
         FocusTargetInfo = DalamudApi.TargetManager.FocusTarget is { } o ? (o.Name.ToString(), o.DataId) : (null, 0);
+    }
+
+    public static void RefocusTarget()
+    {
+        if (FocusTargetInfo.Name == null) return;
+        DalamudApi.TargetManager.FocusTarget = DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name);
     }
 
     private delegate GameObject* ResolvePlaceholderDelegate(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames);
@@ -268,12 +207,6 @@ public static unsafe class Game
         return (ret != 0 || !PronounManager.CustomPlaceholders.TryGetValue(Marshal.PtrToStringAnsi(*bytePtrPtr, len), out var pronoun)) ? ret : pronoun.ID;
     }
 
-    public static void RefocusTarget()
-    {
-        if (FocusTargetInfo.Name == null) return;
-        DalamudApi.TargetManager.FocusTarget = DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name);
-    }
-
     private delegate void ExecuteMacroDelegate(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro);
     [ClientStructs(typeof(RaptureShellModule.MemberFunctionPointers))]
     private static Hook<ExecuteMacroDelegate> ExecuteMacroHook;
@@ -286,47 +219,12 @@ public static unsafe class Game
         ExecuteMacroHook.Original(raptureShellModule, macro);
     }
 
-    private static bool hotbarPressed = false;
-    public delegate void CheckHotbarBindingsDelegate(nint a1, byte a2);
-    [Signature("48 89 4C 24 08 53 41 55 41 57"), SignatureEx(EnableHook = false)]
-    public static Hook<CheckHotbarBindingsDelegate> CheckHotbarBindingsHook;
-    private static void CheckHotbarBindingsDetour(nint a1, byte a2)
-    {
-        InputData.isInputIDPressed.Hook.Enable();
-        CheckHotbarBindingsHook.Original(a1, a2);
-        InputData.isInputIDPressed.Hook.Disable();
-
-        if (!hotbarPressed) return;
-        hotbarPressed = false;
-
-        if (ReAction.Config.TurboHotbarInterval <= 0) return;
-        CheckHotbarBindingsHook.Disable();
-        DalamudApi.Framework.RunOnTick(() =>
-        {
-            if (!ReAction.Config.EnableTurboHotbars || CheckHotbarBindingsHook.IsDisposed) return;
-            CheckHotbarBindingsHook.Enable();
-        }, new TimeSpan(0, 0, 0, 0, ReAction.Config.TurboHotbarInterval));
-    }
-
-    private static Bool IsInputIDPressedDetour(InputData* inputData, uint id)
-    {
-        var ret = inputData->IsInputIDHeld(id);
-        if (ret)
-            hotbarPressed = true;
-        return ret;
-    }
-
     public static void Initialize()
     {
         if (Common.ActionManager == null || !Common.getGameObjectFromPronounID.IsValid || !ActionManager.canUseActionOnGameObject.IsValid || !ActionManager.canQueueAction.IsValid)
             throw new ApplicationException("Failed to find core signatures!");
-
         Common.getGameObjectFromPronounID.CreateHook(GetGameObjectFromPronounIDDetour);
-        InputData.isInputIDPressed.CreateHook(IsInputIDPressedDetour, false);
     }
 
-    public static void Dispose()
-    {
-
-    }
+    public static void Dispose() { }
 }

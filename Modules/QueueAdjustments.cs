@@ -1,4 +1,5 @@
 using System;
+using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Hypostasis.Game.Structures;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
@@ -11,8 +12,6 @@ public unsafe class QueueAdjustments : PluginModule
     private static float tempQueue = 0f;
 
     public override bool ShouldEnable => ReAction.Config.EnableQueueAdjustments;
-
-    protected override bool Validate() => Game.fpGetAdditionalRecastGroup != null && Game.fpCanUseActionAsCurrentClass != null;
 
     protected override void Enable()
     {
@@ -54,17 +53,23 @@ public unsafe class QueueAdjustments : PluginModule
         isRequeuing = false;
     }
 
+    [Signature("E8 ?? ?? ?? ?? 8B 4F 44 33 D2", Fallibility = Fallibility.Infallible)]
+    private static delegate* unmanaged<ActionManager*, uint, uint, int> getAdditionalRecastGroup;
+
+    [Signature("E8 ?? ?? ?? ?? 84 C0 74 12 48 83 FF 0F", Fallibility = Fallibility.Infallible)]
+    private static delegate* unmanaged<ActionManager*, uint, Bool> canUseActionAsCurrentClass;
+
     private static float? GetRemainingActionRecast(ActionManager* actionManager, uint actionType, uint actionID)
     {
         var recastGroupDetail = actionManager->CS.GetRecastGroupDetail(actionManager->CS.GetRecastGroup((int)actionType, actionID));
         if (recastGroupDetail == null) return null;
 
-        var additionalRecastGroupDetail = actionManager->CS.GetRecastGroupDetail(Game.GetAdditionalRecastGroup(actionType, actionID));
+        var additionalRecastGroupDetail = actionManager->CS.GetRecastGroupDetail(getAdditionalRecastGroup(actionManager, actionType, actionID));
         var additionalRecastRemaining = additionalRecastGroupDetail != null && additionalRecastGroupDetail->IsActive != 0 ? additionalRecastGroupDetail->Total - additionalRecastGroupDetail->Elapsed : 0;
 
         if (recastGroupDetail->IsActive == 0) return additionalRecastRemaining;
 
-        var charges = Game.CanUseActionAsCurrentClass(recastGroupDetail->ActionID) ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(ActionManager.GetSpellIDForAction(actionType, actionID), 90) : 1;
+        var charges = canUseActionAsCurrentClass(actionManager, recastGroupDetail->ActionID) ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(ActionManager.GetSpellIDForAction(actionType, actionID), 90) : 1;
         var recastRemaining = recastGroupDetail->Total / charges - recastGroupDetail->Elapsed;
         return recastRemaining > additionalRecastRemaining ? recastRemaining : additionalRecastRemaining;
     }

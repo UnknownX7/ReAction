@@ -404,12 +404,7 @@ public static class PluginUI
                 ImGuiEx.SetItemTooltip("Disables the previous option from activating on actions such as placing pets.");
             }
 
-            if (ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget))
-            {
-                Game.enhancedAutoFaceTargetPatch.Disable(); // This is managed by the plugin module
-                Game.removeAutoFaceGroundTargetPatch.Toggle();
-                save = true;
-            }
+            save |= ImGui.Checkbox("Enable Enhanced Auto Face Target", ref ReAction.Config.EnableEnhancedAutoFaceTarget);
             ImGuiEx.SetItemTooltip("Actions that don't require facing a target will no longer automatically face the target, such as healing.");
 
             save |= ImGui.Checkbox("Enable Camera Relative Directional Actions", ref ReAction.Config.EnableCameraRelativeDirectionals);

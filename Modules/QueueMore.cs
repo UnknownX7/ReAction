@@ -6,11 +6,12 @@ namespace ReAction.Modules;
 
 public unsafe class QueueMore : PluginModule
 {
+    private static readonly AsmPatch allowQueuingPatch = new("76 2F 80 F9 04", new byte[] { 0xEB });
     private static bool queuedItem = false;
 
     public override bool ShouldEnable => ReAction.Config.EnableQueuingMore;
 
-    protected override bool Validate() => Game.allowQueuingPatch.IsValid;
+    protected override bool Validate() => allowQueuingPatch.IsValid;
 
     protected override void Enable()
     {
@@ -49,13 +50,13 @@ public unsafe class QueueMore : PluginModule
 
         PluginLog.Debug($"Enabling queuing {actionType}, {adjustedActionID}");
 
-        Game.allowQueuingPatch.Enable();
+        allowQueuingPatch.Enable();
         queuedItem = actionType == 2;
     }
 
     private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp, bool ret)
     {
-        Game.allowQueuingPatch.Disable();
+        allowQueuingPatch.Disable();
 
         if (queuedItem && !actionManager->isQueued)
             queuedItem = false;

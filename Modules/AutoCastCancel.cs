@@ -1,5 +1,6 @@
 using Dalamud.Game;
 using Dalamud.Logging;
+using Dalamud.Utility.Signatures;
 using Hypostasis.Game.Structures;
 
 namespace ReAction.Modules;
@@ -10,9 +11,12 @@ public unsafe class AutoCastCancel : PluginModule
 
     public override bool ShouldEnable => ReAction.Config.EnableAutoCastCancel;
 
-    protected override bool Validate() => Game.fpGetGameObjectFromObjectID != null && Game.fpCancelCast != null;
+    protected override bool Validate() => Game.fpGetGameObjectFromObjectID != null;
     protected override void Enable() => DalamudApi.Framework.Update += Update;
     protected override void Disable() => DalamudApi.Framework.Update -= Update;
+
+    [Signature("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9", Fallibility = Fallibility.Infallible)]
+    private static delegate* unmanaged<void> cancelCast;
 
     private static void Update(Framework framework)
     {
@@ -29,7 +33,7 @@ public unsafe class AutoCastCancel : PluginModule
 
             PluginLog.Debug($"Cancelling cast {Common.ActionManager->castActionType}, {Common.ActionManager->castActionID}, {Common.ActionManager->castTargetObjectID:X}");
 
-            Game.CancelCast();
+            cancelCast();
             canceledCast = true;
         }
     }

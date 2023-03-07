@@ -1,5 +1,7 @@
 using Dalamud.Logging;
+using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
 
 namespace ReAction.Modules;
@@ -8,9 +10,18 @@ public unsafe class CameraRelativeActions : PluginModule
 {
     public override bool ShouldEnable => ReAction.Config.EnableCameraRelativeDirectionals || ReAction.Config.EnableCameraRelativeDashes;
 
-    protected override bool Validate() => Game.fpSetGameObjectRotation != null && Common.CameraManager != null;
+    protected override bool Validate() => Common.CameraManager != null;
     protected override void Enable() => ActionStackManager.PostActionStack += PostActionStack;
     protected override void Disable() => ActionStackManager.PostActionStack -= PostActionStack;
+
+    [Signature("E8 ?? ?? ?? ?? 83 FE 4F", Fallibility = Fallibility.Infallible)]
+    private static delegate* unmanaged<GameObject*, float, void> fpSetGameObjectRotation;
+    private static void SetCharacterRotationToCamera()
+    {
+        var worldCamera = Common.CameraManager->WorldCamera;
+        if (worldCamera == null) return;
+        fpSetGameObjectRotation((GameObject*)DalamudApi.ClientState.LocalPlayer!.Address, worldCamera->GameObjectHRotation);
+    }
 
     private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp)
     {
@@ -21,7 +32,7 @@ public unsafe class CameraRelativeActions : PluginModule
 
         PluginLog.Debug($"Rotating camera {actionType}, {adjustedActionID}");
 
-        Game.SetCharacterRotationToCamera();
+        SetCharacterRotationToCamera();
     }
 
     private static bool CheckAction(uint actionType, uint actionID, uint adjustedActionID)
