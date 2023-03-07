@@ -230,9 +230,11 @@ public static unsafe class Game
 
     [Signature("E8 ?? ?? ?? ?? 8B 4F 44 33 D2")]
     public static delegate* unmanaged<ActionManager*, uint, uint, int> fpGetAdditionalRecastGroup;
+    public static int GetAdditionalRecastGroup(uint actionType, uint actionID) => fpGetAdditionalRecastGroup(Common.ActionManager, actionType, actionID);
+
     [Signature("E8 ?? ?? ?? ?? 84 C0 74 12 48 83 FF 0F")]
     public static delegate* unmanaged<ActionManager*, uint, Bool> fpCanUseActionAsCurrentClass;
-    public static Bool CanQueueActionDetour(ActionManager* actionManager, uint actionType, uint actionID) => Modules.QueueAdjustments.OnCanQueueAction(actionManager, actionType, actionID);
+    public static bool CanUseActionAsCurrentClass(uint actionID) => fpCanUseActionAsCurrentClass(Common.ActionManager, actionID);
 
     public static (string Name, uint DataID) FocusTargetInfo { get; private set; } = (null, 0);
     public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, long objectID);
@@ -320,7 +322,6 @@ public static unsafe class Game
             throw new ApplicationException("Failed to find core signatures!");
 
         Common.getGameObjectFromPronounID.CreateHook(GetGameObjectFromPronounIDDetour);
-        ActionManager.canQueueAction.CreateHook(CanQueueActionDetour);
         InputData.isInputIDPressed.CreateHook(IsInputIDPressedDetour, false);
     }
 

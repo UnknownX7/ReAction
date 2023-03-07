@@ -1,5 +1,6 @@
 using System;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Hypostasis.Game.Structures;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
 
 namespace ReAction.Modules;
@@ -15,6 +16,8 @@ public unsafe class QueueAdjustments : PluginModule
 
     protected override void Enable()
     {
+        if (!ActionManager.canQueueAction.IsHooked)
+            ActionManager.canQueueAction.CreateHook(CanQueueActionDetour);
         ActionManager.canQueueAction.Hook.Enable();
         ActionStackManager.PostActionStack += PostActionStack;
         ActionStackManager.PostUseAction += PostUseAction;
@@ -56,17 +59,17 @@ public unsafe class QueueAdjustments : PluginModule
         var recastGroupDetail = actionManager->CS.GetRecastGroupDetail(actionManager->CS.GetRecastGroup((int)actionType, actionID));
         if (recastGroupDetail == null) return null;
 
-        var additionalRecastGroupDetail = actionManager->CS.GetRecastGroupDetail(Game.fpGetAdditionalRecastGroup(actionManager, actionType, actionID));
+        var additionalRecastGroupDetail = actionManager->CS.GetRecastGroupDetail(Game.GetAdditionalRecastGroup(actionType, actionID));
         var additionalRecastRemaining = additionalRecastGroupDetail != null && additionalRecastGroupDetail->IsActive != 0 ? additionalRecastGroupDetail->Total - additionalRecastGroupDetail->Elapsed : 0;
 
         if (recastGroupDetail->IsActive == 0) return additionalRecastRemaining;
 
-        var charges = Game.fpCanUseActionAsCurrentClass(actionManager, recastGroupDetail->ActionID) ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(ActionManager.GetSpellIDForAction(actionType, actionID), 90) : 1;
+        var charges = Game.CanUseActionAsCurrentClass(recastGroupDetail->ActionID) ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(ActionManager.GetSpellIDForAction(actionType, actionID), 90) : 1;
         var recastRemaining = recastGroupDetail->Total / charges - recastGroupDetail->Elapsed;
         return recastRemaining > additionalRecastRemaining ? recastRemaining : additionalRecastRemaining;
     }
 
-    public static bool OnCanQueueAction(ActionManager* actionManager, uint actionType, uint actionID)
+    public static Bool CanQueueActionDetour(ActionManager* actionManager, uint actionType, uint actionID)
     {
         float threshold;
         if (tempQueue > 0)
@@ -92,7 +95,7 @@ public unsafe class QueueAdjustments : PluginModule
         var recastGroupDetail = actionManager->CS.GetRecastGroupDetail(actionManager->CS.GetRecastGroup((int)actionType, actionID));
         if (recastGroupDetail == null) return false;
 
-        var queueThreshold = 2.5f;
+        var queueThreshold = 0.5f;
         var additionalRecastGroupDetail = actionManager->CS.GetRecastGroupDetail(Game.fpGetAdditionalRecastGroup(actionManager, actionType, actionID));
         if (additionalRecastGroupDetail != null && additionalRecastGroupDetail->IsActive != 0 && additionalRecastGroupDetail->Total - additionalRecastGroupDetail->Elapsed > queueThreshold) return false;
 
