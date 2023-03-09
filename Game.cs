@@ -61,61 +61,6 @@ public static unsafe class Game
         },
         ReAction.Config.EnableFractionality);
 
-    // 6.2 inlined this function, but the original still exists so the sig matches both
-    // cmp rbx, 0DDAh
-    // jz 41h
-    // jmp 18h
-    public static readonly AsmPatch decomboMeditationPatch = new("48 8B 05 ?? ?? ?? ?? 48 85 C0 74 3E 48 8B 0D",
-        new byte[] {
-            0x48, 0x81, 0xFB, 0xDA, 0x0D, 0x00, 0x00,
-            0x74, 0x41,
-            0xEB, 0x18,
-            0x90
-        },
-        ReAction.Config.EnableDecomboMeditation);
-
-    // Inlined, same as above
-    // mov eax, ebx
-    // jmp 1Eh
-    public static readonly AsmPatch decomboBunshinPatch = new("BA A3 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
-        new byte[] {
-            0x8B, 0xC3,
-            0xEB, 0x1E
-        },
-        ReAction.Config.EnableDecomboBunshin);
-
-    // mov eax, ebx
-    // ret
-    public static readonly AsmPatch decomboWanderersMinuetPatch = new("48 8B 0D ?? ?? ?? ?? 48 85 C9 74 27 48 8B 05",
-        new byte[] {
-            0x8B, 0xC3,
-            0xC3,
-            0x90, 0x90, 0x90, 0x90
-        },
-        ReAction.Config.EnableDecomboWanderersMinuet);
-
-    // Also inlined
-    // mov eax, ebx
-    // jmp 1Eh
-    public static readonly AsmPatch decomboLiturgyPatch = new("BA 95 0A 00 00 48 8D 0D ?? ?? ?? ?? E8",
-        new byte[] {
-            0x8B, 0xC3,
-            0xEB, 0x1E
-        },
-        ReAction.Config.EnableDecomboLiturgy);
-
-    // Again... inlined...
-    // mov eax, ebx
-    // nop (until an already existing jmp to a ret)
-    public static readonly AsmPatch decomboEarthlyStarPatch = new("48 83 3D ?? ?? ?? ?? ?? 75 0A B8 0F 1D 00 00",
-        new byte[] {
-            0x8B, 0xC3,
-            0x90, 0x90, 0x90, 0x90, 0x90, 0x90,
-            0x90, 0x90,
-            0x90, 0x90, 0x90, 0x90, 0x90
-        },
-        ReAction.Config.EnableDecomboEarthlyStar);
-
     public static readonly AsmPatch queueACCommandPatch = new("02 00 00 00 41 8B D7 89", new byte[] { 0x64 }, ReAction.Config.EnableMacroQueue);
 
     public static long GetObjectID(GameObject* o)

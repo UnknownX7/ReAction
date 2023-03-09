@@ -135,8 +135,9 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;
     public bool EnableDecomboWanderersMinuet = false;
-    public bool EnableDecomboEarthlyStar = false;
     public bool EnableDecomboLiturgy = false;
+    public bool EnableDecomboEarthlyStar = false;
+    public bool EnableDecomboMinorArcana = false;
 
     public override void Initialize()
     {
