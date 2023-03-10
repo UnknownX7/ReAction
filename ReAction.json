@@ -13,5 +13,5 @@
   ],
   "InternalName": "ReAction",
   "AssemblyVersion": "9.9.9.9",
-  "Changelog": "Many new target types for stacks (macros and chat too!), a new plugin tab for viewing custom target types, a redesigned \"Other Settings\" tab, 5 brand new features and an infinite amount of potential new bugs!"
+  "Changelog": "Added Auto Focus Target and Sunder Minor Arcana, added a toggle for out of combat Turbo Hotbars, stack items and targets can now be reordered and fixed some issues."
 }
