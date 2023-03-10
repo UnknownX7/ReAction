@@ -31,7 +31,7 @@ public static class PluginUI
     {
         if (!isVisible) return;
 
-        ImGui.SetNextWindowSizeConstraints(new Vector2(700, 730) * ImGuiHelpers.GlobalScale, new Vector2(9999));
+        ImGui.SetNextWindowSizeConstraints(new Vector2(700, 750) * ImGuiHelpers.GlobalScale, new Vector2(9999));
         ImGui.Begin("ReAction Configuration", ref isVisible);
         ImGuiEx.AddDonationHeader();
 
@@ -45,7 +45,9 @@ public static class PluginUI
 
             if (ImGui.BeginTabItem("Other Settings"))
             {
+                ImGui.BeginChild("OtherSettings");
                 DrawOtherSettings();
+                ImGui.EndChild();
                 ImGui.EndTabItem();
             }
 
@@ -390,8 +392,12 @@ public static class PluginUI
 
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableTurboHotbars))
             {
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix("├");
                 save |= ImGui.DragInt("Interval", ref ReAction.Config.TurboHotbarInterval, 0.5f, 0, 1000, "%d ms");
+
+                ImGuiEx.Prefix();
+                save |= ImGui.Checkbox("Enable Out of Combat##Turbo", ref ReAction.Config.EnableTurboHotbarsOutOfCombat);
+                ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.");
             }
 
             save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
@@ -424,50 +430,6 @@ public static class PluginUI
         }
 
         ImGui.SameLine();
-
-        if (ImGuiEx.BeginGroupBox("Queuing", 0.5f))
-        {
-            if (ImGui.Checkbox("Enable Ground Target Queuing", ref ReAction.Config.EnableGroundTargetQueuing))
-            {
-                Game.queueGroundTargetsPatch.Toggle();
-                save = true;
-            }
-            ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
-
-            save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
-            ImGuiEx.SetItemTooltip("Allows sprint, items and LBs to be queued.");
-
-            save |= ImGui.Checkbox("Always Queue Macros", ref ReAction.Config.EnableMacroQueue);
-            ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");
-
-            save |= ImGui.Checkbox("Enable Queue Adjustments (BETA)", ref ReAction.Config.EnableQueueAdjustments);
-            ImGuiEx.SetItemTooltip("Changes how the game handles queuing actions.\nThis is a beta feature, please let me know if anything is not working as expected.");
-
-            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableQueueAdjustments))
-            using (ImGuiEx.ItemWidthBlock.Begin(ImGui.GetContentRegionAvail().X / 3))
-            {
-                ImGuiEx.Prefix("├");
-                save |= ImGui.SliderFloat("Queue Threshold", ref ReAction.Config.QueueThreshold, 0.1f, 2.5f, "%.1f");
-                ImGuiEx.SetItemTooltip("Time remaining on an action's cooldown to allow the game\nto queue up the next one when pressed early. Default: 0.5.");
-
-                ImGui.BeginGroup();
-                ImGuiEx.Prefix("├");
-                save |= ImGui.Checkbox("##Enable Requeuing", ref ReAction.Config.EnableRequeuing);
-                using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableRequeuing))
-                {
-                    ImGui.SameLine();
-                    save |= ImGui.SliderFloat("Queue Lock Threshold", ref ReAction.Config.QueueLockThreshold, 0.1f, 2.5f, "%.1f");
-                }
-                ImGui.EndGroup();
-                ImGuiEx.SetItemTooltip("When enabled, allows requeuing until the queued action's cooldown is below this value.");
-
-                ImGuiEx.Prefix();
-                save |= ImGui.Checkbox("Enable Slidecast Queuing", ref ReAction.Config.EnableSlidecastQueuing);
-                ImGuiEx.SetItemTooltip("Allows actions to be queued during the last 0.5s of a cast.");
-            }
-
-            ImGuiEx.EndGroupBox();
-        }
 
         if (ImGuiEx.BeginGroupBox("Auto", 0.5f))
         {
@@ -510,7 +472,7 @@ public static class PluginUI
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableSpellAutoAttacks))
             {
                 ImGuiEx.Prefix();
-                if (ImGui.Checkbox("Enable Out of Combat", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
+                if (ImGui.Checkbox("Enable Out of Combat##SpellAutos", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
                 {
                     if (ReAction.Config.EnableSpellAutoAttacksOutOfCombat)
                         Game.spellAutoAttackPatch.Enable();
@@ -519,6 +481,50 @@ public static class PluginUI
                     save = true;
                 }
                 ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nNote: This can cause early pulls on certain bosses!");
+            }
+
+            ImGuiEx.EndGroupBox();
+        }
+
+        if (ImGuiEx.BeginGroupBox("Queuing", 0.5f))
+        {
+            if (ImGui.Checkbox("Enable Ground Target Queuing", ref ReAction.Config.EnableGroundTargetQueuing))
+            {
+                Game.queueGroundTargetsPatch.Toggle();
+                save = true;
+            }
+            ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
+
+            save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
+            ImGuiEx.SetItemTooltip("Allows sprint, items and LBs to be queued.");
+
+            save |= ImGui.Checkbox("Always Queue Macros", ref ReAction.Config.EnableMacroQueue);
+            ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");
+
+            save |= ImGui.Checkbox("Enable Queue Adjustments (BETA)", ref ReAction.Config.EnableQueueAdjustments);
+            ImGuiEx.SetItemTooltip("Changes how the game handles queuing actions.\nThis is a beta feature, please let me know if anything is not working as expected.");
+
+            using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableQueueAdjustments))
+            using (ImGuiEx.ItemWidthBlock.Begin(ImGui.CalcItemWidth() / 2))
+            {
+                ImGuiEx.Prefix("├");
+                save |= ImGui.SliderFloat("Queue Threshold", ref ReAction.Config.QueueThreshold, 0.1f, 2.5f, "%.1f");
+                ImGuiEx.SetItemTooltip("Time remaining on an action's cooldown to allow the game\nto queue up the next one when pressed early. Default: 0.5.");
+
+                ImGui.BeginGroup();
+                ImGuiEx.Prefix("├");
+                save |= ImGui.Checkbox("##Enable Requeuing", ref ReAction.Config.EnableRequeuing);
+                using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableRequeuing))
+                {
+                    ImGui.SameLine();
+                    save |= ImGui.SliderFloat("Queue Lock Threshold", ref ReAction.Config.QueueLockThreshold, 0.1f, 2.5f, "%.1f");
+                }
+                ImGui.EndGroup();
+                ImGuiEx.SetItemTooltip("When enabled, allows requeuing until the queued action's cooldown is below this value.");
+
+                ImGuiEx.Prefix();
+                save |= ImGui.Checkbox("Enable Slidecast Queuing", ref ReAction.Config.EnableSlidecastQueuing);
+                ImGuiEx.SetItemTooltip("Allows actions to be queued during the last 0.5s of a cast.");
             }
 
             ImGuiEx.EndGroupBox();

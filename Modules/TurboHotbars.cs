@@ -1,4 +1,5 @@
 using System;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using Hypostasis.Game.Structures;
@@ -28,7 +29,7 @@ public unsafe class TurboHotbars : PluginModule
 
     private static Bool IsInputIDPressedDetour(InputData* inputData, uint id)
     {
-        var ret = inputData->IsInputIDHeld(id);
+        var ret = ReAction.Config.EnableTurboHotbarsOutOfCombat || DalamudApi.Condition[ConditionFlag.InCombat] ? inputData->IsInputIDHeld(id) : (bool)InputData.isInputIDPressed.Original(inputData, id);
         if (ret)
             hotbarPressed = true;
         return ret;
