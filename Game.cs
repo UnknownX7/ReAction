@@ -81,6 +81,8 @@ public static unsafe class Game
 
     public static GameObject* GetMouseOverObject(GameObjectArray* array)
     {
+        if (array->Length == 0) return null;
+
         var targetSystem = TargetSystem.Instance();
         var camera = (Camera*)Common.CameraManager->WorldCamera;
         if (targetSystem == null || camera == null || targetSystem->MouseOverTarget == null) return null;

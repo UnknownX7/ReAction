@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -53,6 +54,8 @@ public class FieldTargetPartyMemberPronoun : IGamePronoun
     public string Placeholder => "<fieldp>";
     public uint ID => 10_004;
 
+    private nint prevObject = nint.Zero;
+    private readonly Stopwatch prevObjectTimer = new();
     private GameObjectArray partyMemberArray = new();
 
     public unsafe GameObject* GetGameObject()
@@ -63,7 +66,25 @@ public class FieldTargetPartyMemberPronoun : IGamePronoun
         partyMemberArray.Length = i;
 
         fixed (GameObjectArray* ptr = &partyMemberArray)
-            return Game.GetMouseOverObject(ptr);
+        {
+            var ret = Game.GetMouseOverObject(ptr);
+            if (ret == null)
+            {
+                if (prevObjectTimer.ElapsedMilliseconds <= 100)
+                {
+                    for (int j = 0; j < partyMemberArray.Length; j++)
+                    {
+                        if (partyMemberArray.Objects[j] == prevObject)
+                            return (GameObject*)prevObject;
+                    }
+                }
+                return null;
+            }
+
+            prevObject = (nint)ret;
+            prevObjectTimer.Restart();
+            return ret;
+        }
     }
 }
 
