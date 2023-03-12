@@ -1,7 +1,7 @@
+using System;
+using System.Diagnostics;
 using Dalamud.Game;
 using Dalamud.Logging;
-using System.Diagnostics;
-using System;
 
 namespace ReAction.Modules;
 

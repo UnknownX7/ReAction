@@ -20,7 +20,7 @@ public unsafe class AutoTarget : PluginModule
     {
         if (DalamudApi.ClientState.LocalPlayer is not { } p) return;
 
-        var worldCamera = Common.CameraManager->WorldCamera;
+        var worldCamera = Common.CameraManager->worldCamera;
         if (worldCamera == null) return;
 
         var hRotation = worldCamera->currentHRotation + Math.PI * 1.5;

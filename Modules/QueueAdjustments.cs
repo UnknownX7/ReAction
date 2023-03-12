@@ -1,5 +1,4 @@
 using System;
-using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Hypostasis.Game.Structures;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
@@ -53,10 +52,10 @@ public unsafe class QueueAdjustments : PluginModule
         isRequeuing = false;
     }
 
-    [Signature("E8 ?? ?? ?? ?? 8B 4F 44 33 D2", Fallibility = Fallibility.Infallible)]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 8B 4F 44 33 D2", Required = true)]
     private static delegate* unmanaged<ActionManager*, uint, uint, int> getAdditionalRecastGroup;
 
-    [Signature("E8 ?? ?? ?? ?? 84 C0 74 12 48 83 FF 0F", Fallibility = Fallibility.Infallible)]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 84 C0 74 12 48 83 FF 0F", Required = true)]
     private static delegate* unmanaged<ActionManager*, uint, Bool> canUseActionAsCurrentClass;
 
     private static float? GetRemainingActionRecast(ActionManager* actionManager, uint actionType, uint actionID)

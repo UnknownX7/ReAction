@@ -32,12 +32,11 @@ public unsafe class Decombos : PluginModule
         || ReAction.Config.EnableDecomboEarthlyStar
         || ReAction.Config.EnableDecomboMinorArcana;
 
-    protected override bool Validate() => GetAdjustedActionIdHook is { Address: not 0 };
     protected override void Enable() => GetAdjustedActionIdHook.Enable();
     protected override void Disable() => GetAdjustedActionIdHook.Disable();
 
     private delegate ActionID GetAdjustedActionIdDelegate(ActionManager* actionManager, ActionID actionID);
-    [ClientStructs(typeof(ActionManager.MemberFunctionPointers))]
+    [HypostasisClientStructsInjection(typeof(ActionManager.MemberFunctionPointers), Required = true)]
     private static Hook<GetAdjustedActionIdDelegate> GetAdjustedActionIdHook;
     private static ActionID GetAdjustedActionIdDetour(ActionManager* actionManager, ActionID actionID)
     {

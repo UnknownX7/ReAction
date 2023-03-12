@@ -1,5 +1,4 @@
 using Dalamud.Logging;
-using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
@@ -14,11 +13,11 @@ public unsafe class CameraRelativeActions : PluginModule
     protected override void Enable() => ActionStackManager.PostActionStack += PostActionStack;
     protected override void Disable() => ActionStackManager.PostActionStack -= PostActionStack;
 
-    [Signature("E8 ?? ?? ?? ?? 83 FE 4F", Fallibility = Fallibility.Infallible)]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 83 FE 4F", Required = true)]
     private static delegate* unmanaged<GameObject*, float, void> fpSetGameObjectRotation;
     private static void SetCharacterRotationToCamera()
     {
-        var worldCamera = Common.CameraManager->WorldCamera;
+        var worldCamera = Common.CameraManager->worldCamera;
         if (worldCamera == null) return;
         fpSetGameObjectRotation((GameObject*)DalamudApi.ClientState.LocalPlayer!.Address, worldCamera->GameObjectHRotation);
     }

@@ -523,8 +523,8 @@ public static class PluginUI
                 ImGuiEx.SetItemTooltip("When enabled, allows requeuing until the queued action's cooldown is below this value.");
 
                 ImGuiEx.Prefix();
-                save |= ImGui.Checkbox("Enable Slidecast Queuing", ref ReAction.Config.EnableSlidecastQueuing);
-                ImGuiEx.SetItemTooltip("Allows actions to be queued during the last 0.5s of a cast.");
+                save |= ImGui.Checkbox("Enable GCD Slidecast Queuing", ref ReAction.Config.EnableSlidecastQueuing);
+                ImGuiEx.SetItemTooltip("Allows the next GCD to be queued during the last 0.5s of a GCD cast.");
             }
 
             ImGuiEx.EndGroupBox();

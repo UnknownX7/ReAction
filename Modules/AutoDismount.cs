@@ -1,8 +1,8 @@
+using System.Diagnostics;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.Game;
-using System.Diagnostics;
 using Dalamud.Game;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
 
 namespace ReAction.Modules;

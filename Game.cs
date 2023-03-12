@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
-using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -14,7 +13,7 @@ using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
 
 namespace ReAction;
 
-[InjectSignatures]
+[HypostasisInjection]
 public static unsafe class Game
 {
     public const uint InvalidObjectID = 0xE0000000;
@@ -71,7 +70,7 @@ public static unsafe class Game
         return (id.Type * 0x1_0000_0000) | id.ObjectID;
     }
 
-    [Signature("E8 ?? ?? ?? ?? 44 0F B6 C3 48 8B D0")]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 44 0F B6 C3 48 8B D0")]
     public static delegate* unmanaged<long, GameObject*> fpGetGameObjectFromObjectID;
     public static GameObject* GetGameObjectFromObjectID(long id) => fpGetGameObjectFromObjectID(id);
 
@@ -84,7 +83,7 @@ public static unsafe class Game
         if (array->Length == 0) return null;
 
         var targetSystem = TargetSystem.Instance();
-        var camera = (Camera*)Common.CameraManager->WorldCamera;
+        var camera = (Camera*)Common.CameraManager->worldCamera;
         if (targetSystem == null || camera == null || targetSystem->MouseOverTarget == null) return null;
 
         // Nameplates fucking suck (I am aware nameplates aren't restricted to the objects in the array)
@@ -101,7 +100,7 @@ public static unsafe class Game
         return targetSystem->GetMouseOverObject(Common.InputData->GetAxisInput(0), Common.InputData->GetAxisInput(1), array, camera);
     }
 
-    [Signature("E8 ?? ?? ?? ?? 4C 39 6F 08")]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 4C 39 6F 08")]
     private static delegate* unmanaged<HotBarSlot*, UIModule*, byte, uint, void> fpSetHotbarSlot;
     public static void SetHotbarSlot(int hotbar, int slot, byte type, uint id)
     {
@@ -111,14 +110,14 @@ public static unsafe class Game
     }
 
     public delegate Bool UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);
-    [ClientStructs(typeof(FFXIVClientStructs.FFXIV.Client.Game.ActionManager.MemberFunctionPointers))]
+    [HypostasisClientStructsInjection(typeof(FFXIVClientStructs.FFXIV.Client.Game.ActionManager.MemberFunctionPointers))]
     public static Hook<UseActionDelegate> UseActionHook;
     private static Bool UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget) =>
         ActionStackManager.OnUseAction(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
 
     public static (string Name, uint DataID) FocusTargetInfo { get; private set; } = (null, 0);
     public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, long objectID);
-    [Signature("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D")]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D")]
     public static Hook<SetFocusTargetByObjectIDDelegate> SetFocusTargetByObjectIDHook;
     private static void SetFocusTargetByObjectIDDetour(TargetSystem* targetSystem, long objectID)
     {
@@ -134,7 +133,7 @@ public static unsafe class Game
     }
 
     private delegate GameObject* ResolvePlaceholderDelegate(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames);
-    [Signature("E8 ?? ?? ?? ?? 48 8B 5C 24 30 EB 0C")]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 48 8B 5C 24 30 EB 0C")]
     private static Hook<ResolvePlaceholderDelegate> ResolvePlaceholderHook;
     private static GameObject* ResolvePlaceholderDetour(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames) =>
         ResolvePlaceholderHook.Original(pronounModule, text, defaultToTarget, allowPlayerNames || ReAction.Config.EnablePlayerNamesInCommands);
@@ -146,7 +145,7 @@ public static unsafe class Game
     }
 
     private delegate uint GetTextCommandParamIDDelegate(PronounModule* pronounModule, nint* text, int len); // Probably not an issue, but this function doesn't get called if the length is > 31
-    [Signature("48 89 5C 24 10 48 89 6C 24 18 56 48 83 EC 20 48 83 79 18 00")] // E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? E8 ?? ?? ?? ?? CC CC (lol)
+    [HypostasisSignatureInjection("48 89 5C 24 10 48 89 6C 24 18 56 48 83 EC 20 48 83 79 18 00")] // E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? E8 ?? ?? ?? ?? CC CC (lol)
     private static Hook<GetTextCommandParamIDDelegate> GetTextCommandParamIDHook;
     private static uint GetTextCommandParamIDDetour(PronounModule* pronounModule, nint* bytePtrPtr, int len)
     {
@@ -155,7 +154,7 @@ public static unsafe class Game
     }
 
     private delegate void ExecuteMacroDelegate(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro);
-    [ClientStructs(typeof(RaptureShellModule.MemberFunctionPointers))]
+    [HypostasisClientStructsInjection(typeof(RaptureShellModule.MemberFunctionPointers))]
     private static Hook<ExecuteMacroDelegate> ExecuteMacroHook;
     private static void ExecuteMacroDetour(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro)
     {

@@ -1,7 +1,6 @@
 using System;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
-using Dalamud.Utility.Signatures;
 using Hypostasis.Game.Structures;
 
 namespace ReAction.Modules;
@@ -36,7 +35,7 @@ public unsafe class TurboHotbars : PluginModule
     }
 
     private delegate void CheckHotbarBindingsDelegate(nint a1, byte a2);
-    [Signature("48 89 4C 24 08 53 41 55 41 57", Fallibility = Fallibility.Infallible), SignatureEx(EnableHook = false)]
+    [HypostasisSignatureInjection("48 89 4C 24 08 53 41 55 41 57", Required = true, EnableHook = false)]
     private static Hook<CheckHotbarBindingsDelegate> CheckHotbarBindingsHook;
     private static void CheckHotbarBindingsDetour(nint a1, byte a2)
     {
