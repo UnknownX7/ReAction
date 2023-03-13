@@ -22,7 +22,9 @@ public unsafe class Decombos : PluginModule
 
         Minor_Arcana = 7443,
         Lord_of_Crowns = 7444,
-        Lady_of_Crowns = 7445
+        Lady_of_Crowns = 7445,
+
+        Geirskogul = 3555
     }
 
     public override bool ShouldEnable => ReAction.Config.EnableDecomboMeditation
@@ -30,7 +32,8 @@ public unsafe class Decombos : PluginModule
         || ReAction.Config.EnableDecomboWanderersMinuet
         || ReAction.Config.EnableDecomboLiturgy
         || ReAction.Config.EnableDecomboEarthlyStar
-        || ReAction.Config.EnableDecomboMinorArcana;
+        || ReAction.Config.EnableDecomboMinorArcana
+        || ReAction.Config.EnableDecomboGeirskogul;
 
     protected override void Enable() => GetAdjustedActionIdHook.Enable();
     protected override void Disable() => GetAdjustedActionIdHook.Disable();
@@ -69,6 +72,9 @@ public unsafe class Decombos : PluginModule
             case ActionID.Lady_of_Crowns when ReAction.Config.EnableDecomboMinorArcana:
                 var minorArcanaAdjustment = GetAdjustedActionIdHook.Original(actionManager, ActionID.Minor_Arcana);
                 return minorArcanaAdjustment != ActionID.Minor_Arcana ? minorArcanaAdjustment : actionID;
+
+            case ActionID.Geirskogul when ReAction.Config.EnableDecomboGeirskogul:
+                return actionID;
 
             default:
                 return ret;
