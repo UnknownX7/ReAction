@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Dalamud.Interface;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
@@ -749,7 +748,7 @@ public static class PluginUI
             var p = pronoun.GetGameObject();
             if (p == null) continue;
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted(Marshal.PtrToStringAnsi((nint)p->Name));
+            ImGui.TextUnformatted(((nint)p->Name).ReadCString());
         }
 
         ImGui.EndTable();

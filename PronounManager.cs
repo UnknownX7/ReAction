@@ -70,7 +70,7 @@ public class FieldTargetPartyMemberPronoun : IGamePronoun
             var ret = Game.GetMouseOverObject(ptr);
             if (ret == null)
             {
-                if (prevObjectTimer.ElapsedMilliseconds <= 100)
+                if (prevObjectTimer.ElapsedMilliseconds <= 350)
                 {
                     for (int j = 0; j < partyMemberArray.Length; j++)
                     {

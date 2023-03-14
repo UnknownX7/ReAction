@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
@@ -150,7 +149,7 @@ public static unsafe class Game
     private static uint GetTextCommandParamIDDetour(PronounModule* pronounModule, nint* bytePtrPtr, int len)
     {
         var ret = GetTextCommandParamIDHook.Original(pronounModule, bytePtrPtr, len);
-        return (ret != 0 || !PronounManager.CustomPlaceholders.TryGetValue(Marshal.PtrToStringAnsi(*bytePtrPtr, len), out var pronoun)) ? ret : pronoun.ID;
+        return (ret != 0 || !PronounManager.CustomPlaceholders.TryGetValue((*bytePtrPtr).ReadCString(len), out var pronoun)) ? ret : pronoun.ID;
     }
 
     private delegate void ExecuteMacroDelegate(RaptureShellModule* raptureShellModule, RaptureMacroModule.Macro* macro);
