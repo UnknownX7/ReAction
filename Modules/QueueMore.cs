@@ -7,7 +7,7 @@ namespace ReAction.Modules;
 public unsafe class QueueMore : PluginModule
 {
     private static readonly AsmPatch allowQueuingPatch = new("76 2F 80 F9 04", new byte[] { 0xEB });
-    private static bool queuedItem = false;
+    private static ushort lastLBSequence = 0;
 
     public override bool ShouldEnable => ReAction.Config.EnableQueuingMore;
 
@@ -29,18 +29,19 @@ public unsafe class QueueMore : PluginModule
 
     private static void PreUseAction(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref long targetObjectID, ref uint param, ref uint useType, ref int pvp)
     {
-        if (queuedItem && useType == 1)
-        {
-            PluginLog.Debug("Applying queued item param");
+        if (useType != 1) return;
 
-            param = 65535;
-            queuedItem = false;
-        }
-        else if (actionType == 5 && actionID == 4 && useType == 1)
+        switch (actionType)
         {
-            actionType = 1;
-            actionID = 3;
-            targetObjectID = DalamudApi.ClientState.LocalPlayer!.ObjectId;
+            case 2:
+                PluginLog.Debug("Applying queued item param");
+                param = 65535;
+                break;
+            case 5 when actionID == 4:
+                actionType = 1;
+                actionID = 3;
+                targetObjectID = DalamudApi.ClientState.LocalPlayer!.ObjectId;
+                break;
         }
     }
 
@@ -48,24 +49,22 @@ public unsafe class QueueMore : PluginModule
     {
         if (useType != 0 || !CheckAction(actionType, actionID, adjustedActionID)) return;
 
-        PluginLog.Debug($"Enabling queuing {actionType}, {adjustedActionID}");
-
         allowQueuingPatch.Enable();
-        queuedItem = actionType == 2;
+        PluginLog.Debug($"Enabling queuing {actionType}, {adjustedActionID}");
     }
 
     private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp, bool ret)
     {
         allowQueuingPatch.Disable();
 
-        if (queuedItem && !actionManager->isQueued)
-            queuedItem = false;
+        if (ret && DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { ActionCategory.Row: 9 or 15 })
+            lastLBSequence = actionManager->currentSequence;
     }
 
     private static bool CheckAction(uint actionType, uint actionID, uint adjustedActionID) =>
         actionType switch
         {
-            1 when DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { ActionCategory.Row: 9 or 15 } => true, // Allow LB
+            1 when DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { ActionCategory.Row: 9 or 15 } => lastLBSequence != Common.ActionManager->currentSequence, // Allow LB
             2 => true, // Allow items
             5 when actionID == 4 => true, // Allow Sprint
             _ => false
