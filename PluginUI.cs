@@ -30,7 +30,7 @@ public static class PluginUI
     {
         if (!isVisible) return;
 
-        ImGui.SetNextWindowSizeConstraints(new Vector2(700, 750) * ImGuiHelpers.GlobalScale, new Vector2(9999));
+        ImGui.SetNextWindowSizeConstraints(new Vector2(700, 780) * ImGuiHelpers.GlobalScale, new Vector2(9999));
         ImGui.Begin("ReAction Configuration", ref isVisible);
         ImGuiEx.AddDonationHeader();
 
@@ -45,6 +45,16 @@ public static class PluginUI
             if (ImGui.BeginTabItem("Other Settings"))
             {
                 ImGui.BeginChild("OtherSettings");
+
+                if (Util.IsAprilFools)
+                {
+                    var indent = ImGui.GetContentRegionMax().X * ((float)(DateTime.Now - DateTime.Today).TotalSeconds / 86400);
+                    ImGui.Indent(indent);
+                    if (ImGui.Button("Shut Down PC"))
+                        Util.StartProcess(@"https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+                    ImGui.Unindent(indent);
+                }
+
                 DrawOtherSettings();
                 ImGui.EndChild();
                 ImGui.EndTabItem();

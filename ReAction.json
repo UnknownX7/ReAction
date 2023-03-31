@@ -13,5 +13,5 @@
   ],
   "InternalName": "ReAction",
   "AssemblyVersion": "9.9.9.9",
-  "Changelog": "Added Sunder Geirskogul (By Glarator) and added very slight caching to Field Target Party Member to improve accuracy in certain scenarios."
+  "Changelog": "Further improvements to overall plugin stability and other minor adjustments have been made to enhance the user experience."
 }
