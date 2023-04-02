@@ -1,4 +1,6 @@
-using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Hypostasis.Game.Structures;
@@ -7,7 +9,18 @@ namespace ReAction.Modules;
 
 public unsafe class TurboHotbars : PluginModule
 {
-    private static bool hotbarPressed = false;
+    private class TurboInfo
+    {
+        public Stopwatch LastPress { get; } = new();
+        public bool LastFramePressed { get; set; } = false;
+        public bool LastFrameHeld { get; set; } = false;
+        public int RepeatDelay { get; set; } = 0;
+
+        public bool IsReady => LastPress.IsRunning && LastPress.ElapsedMilliseconds >= RepeatDelay;
+    }
+
+    private static readonly Dictionary<uint, TurboInfo> inputIDInfos = new();
+    private static bool isAnyTurboRunning;
 
     public override bool ShouldEnable => ReAction.Config.EnableTurboHotbars;
 
@@ -28,9 +41,26 @@ public unsafe class TurboHotbars : PluginModule
 
     private static Bool IsInputIDPressedDetour(InputData* inputData, uint id)
     {
-        var ret = ReAction.Config.EnableTurboHotbarsOutOfCombat || DalamudApi.Condition[ConditionFlag.InCombat] ? inputData->IsInputIDHeld(id) : (bool)InputData.isInputIDPressed.Original(inputData, id);
+        if (!inputIDInfos.TryGetValue(id, out var info))
+            inputIDInfos[id] = info = new TurboInfo();
+
+        var isPressed = InputData.isInputIDPressed.Original(inputData, id);
+        var isHeld = inputData->IsInputIDHeld(id);
+        var useHeld = info.IsReady && (ReAction.Config.EnableTurboHotbarsOutOfCombat || DalamudApi.Condition[ConditionFlag.InCombat]);
+        var ret = useHeld ? isHeld : (!info.LastFrameHeld && isHeld && isAnyTurboRunning) || isPressed;
+
         if (ret)
-            hotbarPressed = true;
+        {
+            info.RepeatDelay = isPressed && ReAction.Config.InitialTurboHotbarInterval > 0 ? ReAction.Config.InitialTurboHotbarInterval : ReAction.Config.TurboHotbarInterval;
+            info.LastPress.Restart();
+        }
+        else if (!isHeld && info.LastFrameHeld)
+        {
+            info.LastPress.Reset();
+        }
+
+        info.LastFrameHeld = isHeld;
+        info.LastFramePressed = isPressed;
         return ret;
     }
 
@@ -39,19 +69,9 @@ public unsafe class TurboHotbars : PluginModule
     private static Hook<CheckHotbarBindingsDelegate> CheckHotbarBindingsHook;
     private static void CheckHotbarBindingsDetour(nint a1, byte a2)
     {
+        isAnyTurboRunning = inputIDInfos.Any(t => t.Value.LastPress.IsRunning);
         InputData.isInputIDPressed.Hook.Enable();
         CheckHotbarBindingsHook.Original(a1, a2);
         InputData.isInputIDPressed.Hook.Disable();
-
-        if (!hotbarPressed) return;
-        hotbarPressed = false;
-
-        if (ReAction.Config.TurboHotbarInterval <= 0) return;
-        CheckHotbarBindingsHook.Disable();
-        DalamudApi.Framework.RunOnTick(() =>
-        {
-            if (!ReAction.Config.EnableTurboHotbars || CheckHotbarBindingsHook.IsDisposed) return;
-            CheckHotbarBindingsHook.Enable();
-        }, new TimeSpan(0, 0, 0, 0, ReAction.Config.TurboHotbarInterval));
     }
 }
