@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Interface;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using Hypostasis.Game.Structures;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Action = Lumina.Excel.GeneratedSheets.Action;
@@ -482,7 +483,7 @@ public static class PluginUI
                         Game.spellAutoAttackPatch.Disable();
                     save = true;
                 }
-                ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nNote: This can cause early pulls on certain bosses!");
+                ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nWARNING: This can cause early pulls on certain bosses!");
             }
 
             ImGuiEx.EndGroupBox();
@@ -510,8 +511,13 @@ public static class PluginUI
             using (ImGuiEx.ItemWidthBlock.Begin(ImGui.CalcItemWidth() / 2))
             {
                 ImGuiEx.Prefix("├");
+                save |= ImGui.Checkbox("##Enable GCD Adjusted Threshold", ref ReAction.Config.EnableGCDAdjustedQueueThreshold);
+                ImGuiEx.SetItemTooltip("Modifies the threshold based on the current GCD.");
+
+                ImGui.SameLine();
                 save |= ImGui.SliderFloat("Queue Threshold", ref ReAction.Config.QueueThreshold, 0.1f, 2.5f, "%.1f");
-                ImGuiEx.SetItemTooltip("Time remaining on an action's cooldown to allow the game\nto queue up the next one when pressed early. Default: 0.5.");
+                ImGuiEx.SetItemTooltip("Time remaining on an action's cooldown to allow the game\nto queue up the next one when pressed early. Default: 0.5." +
+                    (ReAction.Config.EnableGCDAdjustedQueueThreshold ? $"\nGCD Adjusted Threshold: {ReAction.Config.QueueThreshold * ActionManager.GCDRecast / 2500f}" : string.Empty));
 
                 ImGui.BeginGroup();
                 ImGuiEx.Prefix("├");
@@ -523,6 +529,10 @@ public static class PluginUI
                 }
                 ImGui.EndGroup();
                 ImGuiEx.SetItemTooltip("When enabled, allows requeuing until the queued action's cooldown is below this value.");
+
+                ImGuiEx.Prefix("├");
+                save |= ImGui.SliderFloat("Action Lockout", ref ReAction.Config.QueueActionLockout, 0, 2.5f, "%.1f");
+                ImGuiEx.SetItemTooltip("Blocks the same action from being queued again if it has been on cooldown for less than this value.");
 
                 ImGuiEx.Prefix();
                 save |= ImGui.Checkbox("Enable GCD Slidecast Queuing", ref ReAction.Config.EnableSlidecastQueuing);

@@ -31,12 +31,14 @@ public unsafe class TurboHotbars : PluginModule
         if (!InputData.isInputIDPressed.IsHooked)
             InputData.isInputIDPressed.CreateHook(IsInputIDPressedDetour);
         CheckHotbarBindingsHook.Enable();
+        //CheckCrossbarBindingsHook.Enable();
     }
 
     protected override void Disable()
     {
         InputData.isInputIDPressed.Hook.Disable();
         CheckHotbarBindingsHook.Disable();
+        //CheckCrossbarBindingsHook.Disable();
     }
 
     private static Bool IsInputIDPressedDetour(InputData* inputData, uint id)
@@ -74,4 +76,14 @@ public unsafe class TurboHotbars : PluginModule
         CheckHotbarBindingsHook.Original(a1, a2);
         InputData.isInputIDPressed.Hook.Disable();
     }
+
+    /*private delegate void CheckCrossbarBindingsDelegate(nint a1, uint a2);
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? EB 20 E8 ?? ?? ?? ?? 84 C0", Required = true, EnableHook = false)]
+    private static Hook<CheckCrossbarBindingsDelegate> CheckCrossbarBindingsHook;
+    private static void CheckCrossbarBindingsDetour(nint a1, uint a2)
+    {
+        isAnyTurboRunning = inputIDInfos.Any(t => t.Value.LastPress.IsRunning);
+        // Needs different input functions
+        CheckCrossbarBindingsHook.Original(a1, a2);
+    }*/
 }

@@ -124,8 +124,10 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableQueueAdjustments = false;
     public bool EnableRequeuing = false;
     public bool EnableSlidecastQueuing = false;
+    public bool EnableGCDAdjustedQueueThreshold = false;
     public float QueueThreshold = 0.5f;
     public float QueueLockThreshold = 0.5f;
+    public float QueueActionLockout = 0f;
     public bool EnableTurboHotbars = false;
     public int TurboHotbarInterval = 400;
     public int InitialTurboHotbarInterval = 0;
