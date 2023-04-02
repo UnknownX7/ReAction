@@ -13,5 +13,5 @@
   ],
   "InternalName": "ReAction",
   "AssemblyVersion": "9.9.9.9",
-  "Changelog": "Further improvements to overall plugin stability and other minor adjustments have been made to enhance the user experience."
+  "Changelog": "Added additional turbo and queuing options as well as various job related placeholders."
 }
