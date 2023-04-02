@@ -742,8 +742,9 @@ public static class PluginUI
 
     private static unsafe void DrawCustomPlaceholders()
     {
-        if (!ImGui.BeginTable("CustomPronounInfoTable", 3, ImGuiTableFlags.Borders)) return;
+        if (!ImGui.BeginTable("CustomPronounInfoTable", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY)) return;
 
+        ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("Name");
         ImGui.TableSetupColumn("Placeholder");
         ImGui.TableSetupColumn("Current Target");

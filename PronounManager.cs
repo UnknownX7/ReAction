@@ -5,8 +5,28 @@ using System.Linq;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using Lumina.Excel.GeneratedSheets;
 
 namespace ReAction;
+
+public static unsafe class PronounHelpers
+{
+    public static float GetHPPercent(nint address) => (float)((Character*)address)->Health / ((Character*)address)->MaxHealth;
+
+    public static uint GetHP(nint address) => ((Character*)address)->Health;
+
+    public static GameObject* GetPartyMemberByStatus(uint status, uint sourceID) => (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => ((Character*)address)->GetStatusManager()->HasStatus(status, sourceID));
+
+    public static GameObject* GetPartyMemberByClassJobID(byte classJob) => (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => ((Character*)address)->ClassJob == classJob);
+
+    public static GameObject* GetPartyMemberByRoleID(byte role) => DalamudApi.DataManager.GetExcelSheet<ClassJob>() is { } sheet
+        ? (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => sheet.GetRow(((Character*)address)->ClassJob)?.Role == role)
+        : null;
+
+    public static GameObject* GetPartyMemberByLimitBreak1(uint actionID) => DalamudApi.DataManager.GetExcelSheet<ClassJob>() is { } sheet
+        ? (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => sheet.GetRow(((Character*)address)->ClassJob)?.LimitBreak1.Row == actionID)
+        : null;
+}
 
 public interface IGamePronoun
 {
@@ -95,10 +115,8 @@ public class LowestHPPronoun : IGamePronoun
     public uint ID => 10_010;
     public unsafe GameObject* GetGameObject()
     {
-        static float GetHPPercent(nint address) => (float)((Character*)address)->Health / ((Character*)address)->MaxHealth;
-        static uint GetHP(nint address) => ((Character*)address)->Health;
-        var members = Common.GetPartyMembers().Where(address => GetHPPercent(address) is > 0 and < 1);
-        return members.Any() ? (GameObject*)members.MinBy(GetHP) : null;
+        var members = Common.GetPartyMembers().Where(address => PronounHelpers.GetHPPercent(address) is > 0 and < 1);
+        return members.Any() ? (GameObject*)members.MinBy(PronounHelpers.GetHP) : null;
     }
 }
 
@@ -109,9 +127,8 @@ public class LowestHPPPronoun : IGamePronoun
     public uint ID => 10_011;
     public unsafe GameObject* GetGameObject()
     {
-        static float GetHPPercent(nint address) => (float)((Character*)address)->Health / ((Character*)address)->MaxHealth;
-        var members = Common.GetPartyMembers().Where(address => GetHPPercent(address) is > 0 and < 1);
-        return members.Any() ? (GameObject*)members.MinBy(GetHPPercent) : null;
+        var members = Common.GetPartyMembers().Where(address => PronounHelpers.GetHPPercent(address) is > 0 and < 1);
+        return members.Any() ? (GameObject*)members.MinBy(PronounHelpers.GetHPPercent) : null;
     }
 }
 
@@ -120,9 +137,279 @@ public class KardionPronoun : IGamePronoun
     public string Name => "Kardion Target";
     public string Placeholder => "<kt>";
     public uint ID => 10_100;
-    public unsafe GameObject* GetGameObject() => DalamudApi.ClientState.LocalPlayer is { } p
-        ? (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => ((Character*)address)->GetStatusManager()->HasStatus(2605, p.ObjectId))
-        : null;
+    public unsafe GameObject* GetGameObject() => DalamudApi.ClientState.LocalPlayer is { } p ? PronounHelpers.GetPartyMemberByStatus(2605, p.ObjectId) : null;
+}
+
+public class TankPronoun : IGamePronoun
+{
+    public string Name => "Tank";
+    public string Placeholder => "<tank>";
+    public uint ID => 10_200;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByRoleID(1);
+}
+
+public class HealerPronoun : IGamePronoun
+{
+    public string Name => "Healer";
+    public string Placeholder => "<healer>";
+    public uint ID => 10_203;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByRoleID(4);
+}
+
+/*public class PureHealerPronoun : IGamePronoun
+{
+    public string Name => "Pure Healer";
+    public string Placeholder => "<phealer>";
+    public uint ID => 10_204;
+    public unsafe GameObject* GetGameObject() => ;
+}
+
+public class BarrierHealerPronoun : IGamePronoun
+{
+    public string Name => "Barrier Healer";
+    public string Placeholder => "<bhealer>";
+    public uint ID => 10_205;
+    public unsafe GameObject* GetGameObject() => ;
+}
+
+public class DPSPronoun : IGamePronoun
+{
+    public string Name => "DPS";
+    public string Placeholder => "<dps>";
+    public uint ID => 10_206;
+    public unsafe GameObject* GetGameObject() => ;
+}*/
+
+public class MeleeDPSPronoun : IGamePronoun
+{
+    public string Name => "Melee DPS";
+    public string Placeholder => "<melee>";
+    public uint ID => 10_207;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByRoleID(2);
+}
+
+public class RangedDPSPronoun : IGamePronoun
+{
+    public string Name => "Ranged DPS";
+    public string Placeholder => "<ranged>";
+    public uint ID => 10_208;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByRoleID(3);
+}
+
+public class PhysicalRangedDPSPronoun : IGamePronoun
+{
+    public string Name => "Physical Ranged DPS";
+    public string Placeholder => "<pranged>";
+    public uint ID => 10_209;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByLimitBreak1(4238);
+}
+
+public class MagicalRangedDPSPronoun : IGamePronoun
+{
+    public string Name => "Magical Ranged DPS";
+    public string Placeholder => "<mranged>";
+    public uint ID => 10_210;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByLimitBreak1(203);
+}
+
+public class PaladinPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 19;
+
+    public string Name => "Paladin";
+    public string Placeholder => "<pld>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class WarriorPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 21;
+
+    public string Name => "Warrior";
+    public string Placeholder => "<war>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class DarkKnightPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 32;
+
+    public string Name => "Dark Knight";
+    public string Placeholder => "<drk>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class GunbreakerPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 37;
+
+    public string Name => "Gunbreaker";
+    public string Placeholder => "<gnb>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class WhiteMagePronoun : IGamePronoun
+{
+    private const byte ClassJobID = 24;
+
+    public string Name => "White Mage";
+    public string Placeholder => "<whm>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class ScholarPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 28;
+
+    public string Name => "Scholar";
+    public string Placeholder => "<sch>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class AstrologianPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 33;
+
+    public string Name => "Astrologian";
+    public string Placeholder => "<ast>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class SagePronoun : IGamePronoun
+{
+    private const byte ClassJobID = 40;
+
+    public string Name => "Sage";
+    public string Placeholder => "<sge>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class MonkPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 20;
+
+    public string Name => "Monk";
+    public string Placeholder => "<mnk>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class DragoonPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 22;
+
+    public string Name => "Dragoon";
+    public string Placeholder => "<drg>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class NinjaPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 30;
+
+    public string Name => "Ninja";
+    public string Placeholder => "<nin>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class SamuraiPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 34;
+
+    public string Name => "Samurai";
+    public string Placeholder => "<sam>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class ReaperPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 39;
+
+    public string Name => "Reaper";
+    public string Placeholder => "<rpr>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class BardPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 23;
+
+    public string Name => "Bard";
+    public string Placeholder => "<brd>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class MachinistPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 31;
+
+    public string Name => "Machinist";
+    public string Placeholder => "<mch>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class DancerPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 38;
+
+    public string Name => "Dancer";
+    public string Placeholder => "<dnc>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class BlackMagePronoun : IGamePronoun
+{
+    private const byte ClassJobID = 25;
+
+    public string Name => "Black Mage";
+    public string Placeholder => "<blm>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class SummonerPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 27;
+
+    public string Name => "Summoner";
+    public string Placeholder => "<smn>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class RedMagePronoun : IGamePronoun
+{
+    private const byte ClassJobID = 35;
+
+    public string Name => "Red Mage";
+    public string Placeholder => "<rdm>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
+public class BlueMagePronoun : IGamePronoun
+{
+    private const byte ClassJobID = 36;
+
+    public string Name => "Blue Mage";
+    public string Placeholder => "<blu>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
 }
 
 public static class PronounManager
