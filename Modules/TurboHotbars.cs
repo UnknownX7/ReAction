@@ -51,19 +51,22 @@ public unsafe class TurboHotbars : PluginModule
         var useHeld = info.IsReady && (ReAction.Config.EnableTurboHotbarsOutOfCombat || DalamudApi.Condition[ConditionFlag.InCombat]);
         var ret = useHeld ? isHeld : (bool)isPressed;
 
-        if (isHeld && !useHeld && !info.LastFrameHeld && !ret && isAnyTurboRunning)
-        {
-            info.RepeatDelay = 200;
-            info.LastPress.Restart();
-        }
-        else if (ret)
+        if (ret)
         {
             info.RepeatDelay = isPressed && ReAction.Config.InitialTurboHotbarInterval > 0 ? ReAction.Config.InitialTurboHotbarInterval : ReAction.Config.TurboHotbarInterval;
             info.LastPress.Restart();
         }
-        else if (!isHeld && info.LastFrameHeld)
+        else if (isHeld != info.LastFrameHeld)
         {
-            info.LastPress.Reset();
+            if (isHeld && isAnyTurboRunning)
+            {
+                info.RepeatDelay = 200;
+                info.LastPress.Restart();
+            }
+            else
+            {
+                info.LastPress.Reset();
+            }
         }
 
         info.LastFrameHeld = isHeld;
