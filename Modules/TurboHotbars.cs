@@ -29,7 +29,7 @@ public unsafe class TurboHotbars : PluginModule
     protected override void Enable()
     {
         if (!InputData.isInputIDPressed.IsHooked)
-            InputData.isInputIDPressed.CreateHook(IsInputIDPressedDetour);
+            InputData.isInputIDPressed.CreateHook(IsInputIDPressedDetour, false);
         CheckHotbarBindingsHook.Enable();
         //CheckCrossbarBindingsHook.Enable();
     }
@@ -49,9 +49,14 @@ public unsafe class TurboHotbars : PluginModule
         var isPressed = InputData.isInputIDPressed.Original(inputData, id);
         var isHeld = inputData->IsInputIDHeld(id);
         var useHeld = info.IsReady && (ReAction.Config.EnableTurboHotbarsOutOfCombat || DalamudApi.Condition[ConditionFlag.InCombat]);
-        var ret = useHeld ? isHeld : (!info.LastFrameHeld && isHeld && isAnyTurboRunning) || isPressed;
+        var ret = useHeld ? isHeld : (bool)isPressed;
 
-        if (ret)
+        if (isHeld && !useHeld && !info.LastFrameHeld && !ret && isAnyTurboRunning)
+        {
+            info.RepeatDelay = 200;
+            info.LastPress.Restart();
+        }
+        else if (ret)
         {
             info.RepeatDelay = isPressed && ReAction.Config.InitialTurboHotbarInterval > 0 ? ReAction.Config.InitialTurboHotbarInterval : ReAction.Config.TurboHotbarInterval;
             info.LastPress.Restart();
