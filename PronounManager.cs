@@ -473,5 +473,9 @@ public static class PronounManager
         ? pronoun.Name
         : formalPronounIDName.TryGetValue((PronounID)id, out var name) ? name : ((PronounID)id).ToString();
 
-    public static unsafe GameObject* GetGameObjectFromID(uint id) => id >= MinimumCustomPronounID && CustomPronouns.TryGetValue(id, out var pronoun) ? pronoun.GetGameObject() : Common.GetGameObjectFromPronounID((PronounID)id);
+    public static unsafe GameObject* GetGameObjectFromID(uint id) => PluginModuleManager.GetModule<Modules.ActionStacks>().IsValid ?
+            id >= MinimumCustomPronounID && CustomPronouns.TryGetValue(id, out var pronoun)
+                ? pronoun.GetGameObject()
+                : Common.GetGameObjectFromPronounID((PronounID)id)
+            : null;
 }

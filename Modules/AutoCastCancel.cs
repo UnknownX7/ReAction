@@ -10,7 +10,7 @@ public unsafe class AutoCastCancel : PluginModule
 
     public override bool ShouldEnable => ReAction.Config.EnableAutoCastCancel;
 
-    protected override bool Validate() => Game.fpGetGameObjectFromObjectID != null;
+    protected override bool Validate() => Game.fpGetGameObjectFromObjectID != null && ActionManager.canUseActionOnGameObject.IsValid;
     protected override void Enable() => DalamudApi.Framework.Update += Update;
     protected override void Disable() => DalamudApi.Framework.Update -= Update;
 

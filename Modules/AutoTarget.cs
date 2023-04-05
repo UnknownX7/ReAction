@@ -12,7 +12,7 @@ public unsafe class AutoTarget : PluginModule
 {
     public override bool ShouldEnable => ReAction.Config.EnableAutoTarget;
 
-    protected override bool Validate() => Game.fpGetGameObjectFromObjectID != null;
+    protected override bool Validate() => Game.fpGetGameObjectFromObjectID != null && ActionManager.canUseActionOnGameObject.IsValid;
     protected override void Enable() => ActionStackManager.PostActionStack += PostActionStack;
     protected override void Disable() => ActionStackManager.PostActionStack -= PostActionStack;
 

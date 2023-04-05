@@ -166,8 +166,8 @@ public static unsafe class Game
 
     public static void Initialize()
     {
-        if (Common.ActionManager == null || !Common.getGameObjectFromPronounID.IsValid || !ActionManager.canUseActionOnGameObject.IsValid || !ActionManager.canQueueAction.IsValid)
-            throw new ApplicationException("Failed to find core signatures!");
+        if (Common.ActionManager == null)
+            throw new ApplicationException("ActionManager is not initialized!");
         Common.getGameObjectFromPronounID.CreateHook(GetGameObjectFromPronounIDDetour);
     }
 

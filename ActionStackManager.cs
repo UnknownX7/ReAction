@@ -45,7 +45,7 @@ public static unsafe class ActionStackManager
                 return ret.Value;
 
             var succeeded = false;
-            if (tryStack && actionType == 1 && ReAction.actionSheet.TryGetValue(adjustedActionID, out var a))
+            if (PluginModuleManager.GetModule<Modules.ActionStacks>().IsValid && tryStack && actionType == 1 && ReAction.actionSheet.TryGetValue(adjustedActionID, out var a))
             {
                 PluginLog.Debug("Checking stacks");
 

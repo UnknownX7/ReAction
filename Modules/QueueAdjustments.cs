@@ -13,7 +13,7 @@ public unsafe class QueueAdjustments : PluginModule
 
     public override bool ShouldEnable => ReAction.Config.EnableQueueAdjustments;
 
-    protected override bool Validate() => ActionManager.getAdjustedRecastTime.IsValid;
+    protected override bool Validate() => ActionManager.canQueueAction.IsValid && ActionManager.getAdjustedRecastTime.IsValid;
 
     protected override void Enable()
     {
