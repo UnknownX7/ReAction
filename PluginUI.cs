@@ -400,7 +400,6 @@ public static class PluginUI
 
                 ImGuiEx.Prefix();
                 save |= ImGui.Checkbox("Enable Out of Combat##Turbo", ref ReAction.Config.EnableTurboHotbarsOutOfCombat);
-                ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.");
             }
 
             save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
@@ -462,8 +461,11 @@ public static class PluginUI
 
             using (ImGuiEx.DisabledBlock.Begin(!_))
             {
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix("├");
                 save |= DrawTargetTypeCombo("##AutoFocusTargetID", ref ReAction.Config.AutoFocusTargetID);
+
+                ImGuiEx.Prefix();
+                save |= ImGui.Checkbox("Enable Out of Combat##AutoFocusTarget", ref ReAction.Config.EnableAutoFocusTargetOutOfCombat);
             }
 
             save |= ImGui.Checkbox("Enable Auto Refocus Target", ref ReAction.Config.EnableAutoRefocusTarget);
@@ -483,7 +485,7 @@ public static class PluginUI
                         Game.spellAutoAttackPatch.Disable();
                     save = true;
                 }
-                ImGuiEx.SetItemTooltip("Allows the previous option to work while out of combat.\nWARNING: This can cause early pulls on certain bosses!");
+                ImGuiEx.SetItemTooltip("WARNING: This can cause early pulls on certain bosses!");
             }
 
             ImGuiEx.EndGroupBox();

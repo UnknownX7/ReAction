@@ -1,4 +1,5 @@
 using Dalamud.Game;
+using Dalamud.Game.ClientState.Conditions;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 
 namespace ReAction.Modules;
@@ -13,7 +14,7 @@ public class AutoFocusTarget : PluginModule
 
     private static unsafe void Update(Framework framework)
     {
-        var target = PronounManager.GetGameObjectFromID(ReAction.Config.AutoFocusTargetID);
+        var target = ReAction.Config.EnableAutoFocusTargetOutOfCombat || DalamudApi.Condition[ConditionFlag.InCombat] ? PronounManager.GetGameObjectFromID(ReAction.Config.AutoFocusTargetID) : null;
 
         if (target == null && Game.FocusTargetInfo.Name != null)
             Game.RefocusTarget();

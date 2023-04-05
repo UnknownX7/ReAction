@@ -135,6 +135,7 @@ public class Configuration : PluginConfiguration<Configuration>, IPluginConfigur
     public bool EnableCameraRelativeDirectionals = false;
     public bool EnableUnassignableActions = false;
     public uint AutoFocusTargetID = 0;
+    public bool EnableAutoFocusTargetOutOfCombat = false;
 
     public bool EnableDecomboMeditation = false;
     public bool EnableDecomboBunshin = false;
