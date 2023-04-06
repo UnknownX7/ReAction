@@ -231,14 +231,19 @@ public static class PluginUI
     private static readonly ImGuiEx.ExcelSheetComboOptions<Action> actionComboOptions = new()
     {
         FormatRow = FormatActionRow,
-        SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
-            && FormatActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
+        FilteredSheet = DalamudApi.DataManager.GetExcelSheet<Action>()?.Take(3).Concat(ReAction.actionSheet.Select(kv => kv.Value))
+    };
+
+    private static readonly ImGuiEx.ExcelSheetPopupOptions<Action> actionPopupOptions = new()
+    {
+        FormatRow = FormatActionRow,
+        FilteredSheet = actionComboOptions.FilteredSheet
     };
 
     private static void DrawActionEditor(Configuration.ActionStack stack)
     {
         var contentRegion = ImGui.GetContentRegionAvail();
-        ImGui.BeginChild("ReActionActionEditor", new Vector2(contentRegion.X, contentRegion.Y / 2), true);
+        ImGui.BeginChild("ReActionActionEditor", contentRegion with { Y = contentRegion.Y / 2 }, true);
 
         var buttonWidth = ImGui.GetContentRegionAvail().X / 2;
         var buttonIndent = 0f;
@@ -304,8 +309,7 @@ public static class PluginUI
     private static readonly ImGuiEx.ExcelSheetComboOptions<Action> actionOverrideComboOptions = new()
     {
         FormatRow = FormatOverrideActionRow,
-        SearchPredicate = (row, s) => (row.RowId == 0 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
-            && FormatOverrideActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
+        FilteredSheet = DalamudApi.DataManager.GetExcelSheet<Action>()?.Take(1).Concat(ReAction.actionSheet.Select(kv => kv.Value))
     };
 
     private static void DrawItemEditor(Configuration.ActionStack stack)
@@ -335,7 +339,7 @@ public static class PluginUI
             ImGui.SameLine();
 
             ImGui.SetNextItemWidth(buttonWidth);
-            if (ImGuiEx.ExcelSheetCombo("##Action", ref item.ID, actionOverrideComboOptions))
+            if (ImGuiEx.ExcelSheetCombo("##ActionOverride", ref item.ID, actionOverrideComboOptions))
                 ReAction.Config.Save();
 
             ImGui.SameLine();
@@ -356,13 +360,6 @@ public static class PluginUI
 
         ImGui.EndChild();
     }
-
-    private static readonly ImGuiEx.ExcelSheetPopupOptions<Action> actionPopupOptions = new()
-    {
-        FormatRow = FormatActionRow,
-        SearchPredicate = (row, s) => (row.RowId <= 2 || row.ClassJobCategory.Row > 0 && row.ActionCategory.Row <= 4 && row.RowId is not 7)
-            && FormatActionRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)
-    };
 
     private static bool DrawTargetTypeCombo(string label, ref uint currentSelection)
     {
