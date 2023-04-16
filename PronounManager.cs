@@ -17,14 +17,14 @@ public static unsafe class PronounHelpers
 
     public static GameObject* GetPartyMemberByStatus(uint status, uint sourceID) => (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => ((Character*)address)->GetStatusManager()->HasStatus(status, sourceID));
 
-    public static GameObject* GetPartyMemberByClassJobID(byte classJob) => (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => ((Character*)address)->ClassJob == classJob);
+    public static GameObject* GetPartyMemberByClassJobID(byte classJob) => (GameObject*)Common.GetPartyMembers().Skip(1).FirstOrDefault(address => ((Character*)address)->ClassJob == classJob);
 
     public static GameObject* GetPartyMemberByRoleID(byte role) => DalamudApi.DataManager.GetExcelSheet<ClassJob>() is { } sheet
-        ? (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => sheet.GetRow(((Character*)address)->ClassJob)?.Role == role)
+        ? (GameObject*)Common.GetPartyMembers().Skip(1).FirstOrDefault(address => sheet.GetRow(((Character*)address)->ClassJob)?.Role == role)
         : null;
 
     public static GameObject* GetPartyMemberByLimitBreak1(uint actionID) => DalamudApi.DataManager.GetExcelSheet<ClassJob>() is { } sheet
-        ? (GameObject*)Common.GetPartyMembers().FirstOrDefault(address => sheet.GetRow(((Character*)address)->ClassJob)?.LimitBreak1.Row == actionID)
+        ? (GameObject*)Common.GetPartyMembers().Skip(1).FirstOrDefault(address => sheet.GetRow(((Character*)address)->ClassJob)?.LimitBreak1.Row == actionID)
         : null;
 }
 
