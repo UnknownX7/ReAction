@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dalamud.Game;
 using Dalamud.Plugin;
 
 namespace ReAction;
 
-public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
+public class ReAction : DalamudPlugin<Configuration>, IDalamudPlugin
 {
-    public override string Name => "ReAction";
+    public string Name => "ReAction";
 
     public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> actionSheet;
     public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> mountActionsSheet;
@@ -58,7 +57,7 @@ public class ReAction : DalamudPlugin<ReAction, Configuration>, IDalamudPlugin
         }
     }
 
-    protected override void Update(Framework framework)
+    protected override void Update()
     {
         if (Config.EnableMacroQueue)
         {

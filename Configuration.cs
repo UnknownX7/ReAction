@@ -6,7 +6,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace ReAction;
 
-public class Configuration : PluginConfiguration<Configuration>, IPluginConfiguration
+public class Configuration : PluginConfiguration, IPluginConfiguration
 {
     public class Action
     {

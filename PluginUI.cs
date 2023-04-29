@@ -389,13 +389,13 @@ public static class PluginUI
 
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableTurboHotbars))
             {
-                ImGuiEx.Prefix("├");
+                ImGuiEx.Prefix(false);
                 save |= ImGui.DragInt("Interval", ref ReAction.Config.TurboHotbarInterval, 0.5f, 0, 1000, "%d ms");
 
-                ImGuiEx.Prefix("├");
+                ImGuiEx.Prefix(false);
                 save |= ImGui.DragInt("Start Delay", ref ReAction.Config.InitialTurboHotbarInterval, 0.5f, 0, 1000, "%d ms");
 
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix(true);
                 save |= ImGui.Checkbox("Enable Out of Combat##Turbo", ref ReAction.Config.EnableTurboHotbarsOutOfCombat);
             }
 
@@ -404,7 +404,7 @@ public static class PluginUI
 
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableInstantGroundTarget))
             {
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix(true);
                 save |= ImGui.Checkbox("Block Miscellaneous Ground Targets", ref ReAction.Config.EnableBlockMiscInstantGroundTargets);
                 ImGuiEx.SetItemTooltip("Disables the previous option from activating on actions such as placing pets.");
             }
@@ -420,7 +420,7 @@ public static class PluginUI
 
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableCameraRelativeDashes))
             {
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix(true);
                 save |= ImGui.Checkbox("Block Backward Dashes", ref ReAction.Config.EnableNormalBackwardDashes);
                 ImGuiEx.SetItemTooltip("Disables the previous option for any backward dash, such as Elusive Jump.");
             }
@@ -443,7 +443,7 @@ public static class PluginUI
 
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableAutoTarget))
             {
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix(true);
                 save |= ImGui.Checkbox("Enable Auto Change Target", ref ReAction.Config.EnableAutoChangeTarget);
                 ImGuiEx.SetItemTooltip("Additionally targets the closest enemy when your main target is incorrect for a targeted attack.");
             }
@@ -458,10 +458,10 @@ public static class PluginUI
 
             using (ImGuiEx.DisabledBlock.Begin(!_))
             {
-                ImGuiEx.Prefix("├");
+                ImGuiEx.Prefix(false);
                 save |= DrawTargetTypeCombo("##AutoFocusTargetID", ref ReAction.Config.AutoFocusTargetID);
 
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix(true);
                 save |= ImGui.Checkbox("Enable Out of Combat##AutoFocusTarget", ref ReAction.Config.EnableAutoFocusTargetOutOfCombat);
             }
 
@@ -473,7 +473,7 @@ public static class PluginUI
 
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableSpellAutoAttacks))
             {
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix(true);
                 if (ImGui.Checkbox("Enable Out of Combat##SpellAutos", ref ReAction.Config.EnableSpellAutoAttacksOutOfCombat))
                 {
                     if (ReAction.Config.EnableSpellAutoAttacksOutOfCombat)
@@ -509,7 +509,7 @@ public static class PluginUI
             using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableQueueAdjustments))
             using (ImGuiEx.ItemWidthBlock.Begin(ImGui.CalcItemWidth() / 2))
             {
-                ImGuiEx.Prefix("├");
+                ImGuiEx.Prefix(false);
                 save |= ImGui.Checkbox("##Enable GCD Adjusted Threshold", ref ReAction.Config.EnableGCDAdjustedQueueThreshold);
                 ImGuiEx.SetItemTooltip("Modifies the threshold based on the current GCD.");
 
@@ -519,7 +519,7 @@ public static class PluginUI
                     (ReAction.Config.EnableGCDAdjustedQueueThreshold ? $"\nGCD Adjusted Threshold: {ReAction.Config.QueueThreshold * ActionManager.GCDRecast / 2500f}" : string.Empty));
 
                 ImGui.BeginGroup();
-                ImGuiEx.Prefix("├");
+                ImGuiEx.Prefix(false);
                 save |= ImGui.Checkbox("##Enable Requeuing", ref ReAction.Config.EnableRequeuing);
                 using (ImGuiEx.DisabledBlock.Begin(!ReAction.Config.EnableRequeuing))
                 {
@@ -529,11 +529,11 @@ public static class PluginUI
                 ImGui.EndGroup();
                 ImGuiEx.SetItemTooltip("When enabled, allows requeuing until the queued action's cooldown is below this value.");
 
-                ImGuiEx.Prefix("├");
+                ImGuiEx.Prefix(false);
                 save |= ImGui.SliderFloat("Action Lockout", ref ReAction.Config.QueueActionLockout, 0, 2.5f, "%.1f");
                 ImGuiEx.SetItemTooltip("Blocks the same action from being queued again if it has been on cooldown for less than this value.");
 
-                ImGuiEx.Prefix();
+                ImGuiEx.Prefix(true);
                 save |= ImGui.Checkbox("Enable GCD Slidecast Queuing", ref ReAction.Config.EnableSlidecastQueuing);
                 ImGuiEx.SetItemTooltip("Allows the next GCD to be queued during the last 0.5s of a GCD cast.");
             }

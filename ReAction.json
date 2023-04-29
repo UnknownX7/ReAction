@@ -13,5 +13,5 @@
   ],
   "InternalName": "ReAction",
   "AssemblyVersion": "9.9.9.9",
-  "Changelog": "Added additional turbo and queuing options as well as various job related placeholders."
+  "Changelog": "Job placeholders will no longer match yourself."
 }
