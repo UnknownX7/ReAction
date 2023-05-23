@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Logging;
 using Hypostasis.Game.Structures;
 using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
 
@@ -67,7 +66,7 @@ public unsafe class AutoTarget : PluginModule
             || !a.CanTargetHostile)
             return;
 
-        PluginLog.Debug($"Attempting to swap target {adjustedActionID}, {targetObjectID:X}");
+        DalamudApi.LogDebug($"Attempting to swap target {adjustedActionID}, {targetObjectID:X}");
 
         TargetEnemy();
         if (DalamudApi.TargetManager.Target is not { } target) return;
@@ -75,6 +74,6 @@ public unsafe class AutoTarget : PluginModule
         var prevTargetObjectID = targetObjectID;
         targetObjectID = Game.GetObjectID((GameObject*)target.Address);
 
-        PluginLog.Debug($"Target swapped {prevTargetObjectID:X} -> {targetObjectID:X}");
+        DalamudApi.LogDebug($"Target swapped {prevTargetObjectID:X} -> {targetObjectID:X}");
     }
 }

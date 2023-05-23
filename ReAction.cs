@@ -35,7 +35,7 @@ public class ReAction : DalamudPlugin<Configuration>, IDalamudPlugin
     {
         if (!Common.IsMacroRunning)
         {
-            PrintError("This command requires a macro to be running.");
+            DalamudApi.PrintError("This command requires a macro to be running.");
             return;
         }
 
@@ -52,7 +52,7 @@ public class ReAction : DalamudPlugin<Configuration>, IDalamudPlugin
                     Game.queueACCommandPatch.Toggle();
                 break;
             default:
-                PrintError("Invalid usage.");
+                DalamudApi.PrintError("Invalid usage.");
                 break;
         }
     }

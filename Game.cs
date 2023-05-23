@@ -17,20 +17,20 @@ public static unsafe class Game
 {
     public const uint InvalidObjectID = 0xE0000000;
 
-    public static readonly AsmPatch queueGroundTargetsPatch = new("74 24 41 81 FE F5 0D 00 00", new byte[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
+    public static readonly AsmPatch queueGroundTargetsPatch = new("74 20 81 FD F5 0D 00 00", new byte?[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
 
     // test byte ptr [r15+39], 04
     // jnz A7h
-    public static readonly AsmPatch spellAutoAttackPatch = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", new byte[] { 0x41, 0xF6, 0x47, 0x39, 0x04, 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00, 0x90 }, ReAction.Config.EnableSpellAutoAttacks && ReAction.Config.EnableSpellAutoAttacksOutOfCombat);
+    public static readonly AsmPatch spellAutoAttackPatch = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", new byte?[] { 0x41, 0xF6, 0x47, 0x39, 0x04, 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00, 0x90 }, ReAction.Config.EnableSpellAutoAttacks && ReAction.Config.EnableSpellAutoAttacksOutOfCombat);
 
-    public static readonly AsmPatch allowUnassignableActionsPatch = new("75 07 32 C0 E9 ?? ?? ?? ?? 48 8B 00", new byte[] { 0xEB }, ReAction.Config.EnableUnassignableActions);
+    public static readonly AsmPatch allowUnassignableActionsPatch = new("75 07 32 C0 E9 ?? ?? ?? ?? 48 8B 00", new byte?[] { 0xEB }, ReAction.Config.EnableUnassignableActions);
 
     // mov eax, 1000f
     // movd xmm1, eax
     // mulss xmm0, xmm1
     // cvttss2si rcx, xmm0
     public static readonly AsmPatch waitSyntaxDecimalPatch = new("F3 0F 58 05 ?? ?? ?? ?? F3 48 0F 2C C0 69 C8",
-        new byte[] {
+        new byte?[] {
             0xB8, 0x00, 0x00, 0x7A, 0x44,
             0x66, 0x0F, 0x6E, 0xC8,
             0xF3, 0x0F, 0x59, 0xC1,
@@ -47,7 +47,7 @@ public static unsafe class Game
     // mov [rbx+58h], ecx
     // jmp
     public static readonly AsmPatch waitCommandDecimalPatch = new("F3 0F 58 0D ?? ?? ?? ?? F3 48 0F 2C C1 69 C8",
-        new byte[] {
+        new byte?[] {
             0xB8, 0x00, 0x00, 0x7A, 0x44,
             0x66, 0x0F, 0x6E, 0xC0,
             0xF3, 0x0F, 0x59, 0xC8,
@@ -59,7 +59,7 @@ public static unsafe class Game
         },
         ReAction.Config.EnableFractionality);
 
-    public static readonly AsmPatch queueACCommandPatch = new("02 00 00 00 41 8B D7 89", new byte[] { 0x64 }, ReAction.Config.EnableMacroQueue);
+    public static readonly AsmPatch queueACCommandPatch = new("02 00 00 00 41 8B D7 89", new byte?[] { 0x64 }, ReAction.Config.EnableMacroQueue);
 
     public static long GetObjectID(GameObject* o)
     {

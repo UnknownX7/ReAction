@@ -1,5 +1,4 @@
 using Dalamud.Game;
-using Dalamud.Logging;
 using Hypostasis.Game.Structures;
 
 namespace ReAction.Modules;
@@ -30,7 +29,7 @@ public unsafe class AutoCastCancel : PluginModule
             var o = Game.GetGameObjectFromObjectID(Common.ActionManager->castTargetObjectID);
             if (o == null || ActionManager.CanUseActionOnGameObject(Common.ActionManager->castActionID, o)) return;
 
-            PluginLog.Debug($"Cancelling cast {Common.ActionManager->castActionType}, {Common.ActionManager->castActionID}, {Common.ActionManager->castTargetObjectID:X}");
+            DalamudApi.LogDebug($"Cancelling cast {Common.ActionManager->castActionType}, {Common.ActionManager->castActionID}, {Common.ActionManager->castTargetObjectID:X}");
 
             cancelCast();
             canceledCast = true;

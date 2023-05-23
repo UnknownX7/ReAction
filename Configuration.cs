@@ -99,7 +99,7 @@ public class Configuration : PluginConfiguration, IPluginConfiguration
         }
     }
 
-    public override int Version { get; set; }
+    public int Version { get; set; }
 
     public List<ActionStack> ActionStacks = new();
     public bool EnableEnhancedAutoFaceTarget = false;

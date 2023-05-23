@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using Dalamud.Game;
-using Dalamud.Logging;
 
 namespace ReAction.Modules;
 
@@ -40,7 +39,7 @@ public unsafe class FrameAlignment : PluginModule
 
             if (blockDuration > 0)
             {
-                PluginLog.Debug($"Blocking main thread for {blockDuration / Stopwatch.Frequency * 1000} ms");
+                DalamudApi.LogDebug($"Blocking main thread for {blockDuration / Stopwatch.Frequency * 1000} ms");
 
                 timer.Restart();
                 while (timer.ElapsedTicks < blockDuration) ;

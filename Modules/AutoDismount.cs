@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Logging;
 using Dalamud.Game;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
@@ -38,7 +37,7 @@ public unsafe class AutoDismount : PluginModule
         ret = Game.UseActionHook.Original(actionManager, 5, 23, 0, 0, 0, 0, null);
         if (!ret.Value) return;
 
-        PluginLog.Debug($"Dismounting {actionType}, {actionID}, {targetObjectID:X}, {useType}, {pvp}");
+        DalamudApi.LogDebug($"Dismounting {actionType}, {actionID}, {targetObjectID:X}, {useType}, {pvp}");
 
         isMountActionQueued = true;
         queuedMountAction = (actionType, actionID, targetObjectID, useType, pvp);
@@ -51,7 +50,7 @@ public unsafe class AutoDismount : PluginModule
 
         if (mountActionTimer.ElapsedMilliseconds <= 2000)
         {
-            PluginLog.Debug("Using queued mount action");
+            DalamudApi.LogDebug("Using queued mount action");
 
             ActionStackManager.OnUseAction(Common.ActionManager, queuedMountAction.actionType, queuedMountAction.actionID,
                 queuedMountAction.targetObjectID, 0, queuedMountAction.useType, queuedMountAction.pvp, null);

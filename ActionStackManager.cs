@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Dalamud.Logging;
 using ActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Hypostasis.Game.Structures;
@@ -30,14 +29,14 @@ public static unsafe class ActionStackManager
             if (useType == 100)
             {
                 useType = 0;
-                PluginLog.Debug("UseAction called from a macro using /macroqueue");
+                DalamudApi.LogDebug("UseAction called from a macro using /macroqueue");
             }
 
             PreUseAction?.Invoke(actionManager, ref actionType, ref actionID, ref targetObjectID, ref param, ref useType, ref pvp);
 
             var adjustedActionID = actionType == 1 ? actionManager->CS.GetAdjustedActionId(actionID) : actionID;
 
-            PluginLog.Debug($"UseAction called {actionType}, {actionID} -> {adjustedActionID}, {targetObjectID:X}, {param}, {useType}, {pvp}");
+            DalamudApi.LogDebug($"UseAction called {actionType}, {actionID} -> {adjustedActionID}, {targetObjectID:X}, {param}, {useType}, {pvp}");
 
             bool? ret = null;
             PreActionStack?.Invoke(actionManager, ref actionType, ref actionID, ref adjustedActionID, ref targetObjectID, ref param, useType, ref pvp, out ret);
@@ -47,7 +46,7 @@ public static unsafe class ActionStackManager
             var succeeded = false;
             if (PluginModuleManager.GetModule<Modules.ActionStacks>().IsValid && tryStack && actionType == 1 && ReAction.actionSheet.TryGetValue(adjustedActionID, out var a))
             {
-                PluginLog.Debug("Checking stacks");
+                DalamudApi.LogDebug("Checking stacks");
 
                 var modifierKeys = GetModifierKeys();
                 foreach (var stack in ReAction.Config.ActionStacks)
@@ -65,13 +64,13 @@ public static unsafe class ActionStackManager
                     {
                         if (stack.BlockOriginal)
                         {
-                            PluginLog.Debug("Stack failed, blocking original");
+                            DalamudApi.LogDebug("Stack failed, blocking original");
                             return 0;
                         }
                         break;
                     }
 
-                    PluginLog.Debug($"Stack succeeded {adjustedActionID} -> {newAction}, {targetObjectID:X} -> {newTarget:X}");
+                    DalamudApi.LogDebug($"Stack succeeded {adjustedActionID} -> {newAction}, {targetObjectID:X} -> {newTarget:X}");
 
                     actionID = newAction;
                     adjustedActionID = newAction;
@@ -109,7 +108,7 @@ public static unsafe class ActionStackManager
         }
         catch (Exception e)
         {
-            PluginLog.Error($"Failed to modify action\n{e}");
+            DalamudApi.LogError($"Failed to modify action\n{e}");
             return 0;
         }
     }
@@ -154,7 +153,7 @@ public static unsafe class ActionStackManager
     {
         if ((ReAction.Config.EnableBlockMiscInstantGroundTargets && actionType == 11) || useType == 2 && actionType == 1 || actionType == 15) return;
 
-        PluginLog.Debug($"Making ground target instant {actionType}, {useType}");
+        DalamudApi.LogDebug($"Making ground target instant {actionType}, {useType}");
 
         Common.ActionManager->activateGroundTarget = 1;
     }

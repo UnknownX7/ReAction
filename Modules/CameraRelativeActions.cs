@@ -1,4 +1,3 @@
-using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
@@ -29,7 +28,7 @@ public unsafe class CameraRelativeActions : PluginModule
             || actionManager->animationLock != 0)
             return;
 
-        PluginLog.Debug($"Rotating camera {actionType}, {adjustedActionID}");
+        DalamudApi.LogDebug($"Rotating camera {actionType}, {adjustedActionID}");
 
         SetCharacterRotationToCamera();
     }

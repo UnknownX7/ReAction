@@ -104,7 +104,7 @@ public static class PluginUI
             }
             catch (Exception e)
             {
-                ReAction.PrintError($"Failed to import stack from clipboard!\n{e.Message}");
+                DalamudApi.PrintError($"Failed to import stack from clipboard!\n{e.Message}");
             }
         }
         ImGui.PopFont();
@@ -585,7 +585,7 @@ public static class PluginUI
                 else
                 {
                     ReAction.Config.EnableFractionality = false;
-                    ReAction.PrintError("Please disable and delete Fractionality by using the trashcan icon on the plugin installer before enabling this!");
+                    DalamudApi.PrintError("Please disable and delete Fractionality by using the trashcan icon on the plugin installer before enabling this!");
                 }
             }
             ImGuiEx.SetItemTooltip("Allows decimals in wait commands and removes the 60 seconds cap (e.g. <wait.0.5> or /wait 0.5).");
@@ -635,7 +635,7 @@ public static class PluginUI
             if (ImGui.Button("Execute"))
             {
                 Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, commandID);
-                ReAction.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
+                DalamudApi.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
             }
             ImGuiEx.SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
             ImGuiEx.EndGroupBox();

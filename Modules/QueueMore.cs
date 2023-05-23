@@ -1,4 +1,3 @@
-using Dalamud.Logging;
 using Hypostasis.Game.Structures;
 using Lumina.Excel.GeneratedSheets;
 
@@ -6,7 +5,7 @@ namespace ReAction.Modules;
 
 public unsafe class QueueMore : PluginModule
 {
-    private static readonly AsmPatch allowQueuingPatch = new("76 2F 80 F9 04", new byte[] { 0xEB });
+    private static readonly AsmPatch allowQueuingPatch = new("76 2B 80 F9 04", new byte?[] { 0xEB });
     private static ushort lastLBSequence = 0;
 
     public override bool ShouldEnable => ReAction.Config.EnableQueuingMore;
@@ -34,7 +33,7 @@ public unsafe class QueueMore : PluginModule
         switch (actionType)
         {
             case 2:
-                PluginLog.Debug("Applying queued item param");
+                DalamudApi.LogDebug("Applying queued item param");
                 param = 65535;
                 break;
             case 5 when actionID == 4:
@@ -50,7 +49,7 @@ public unsafe class QueueMore : PluginModule
         if (useType != 0 || !CheckAction(actionType, actionID, adjustedActionID)) return;
 
         allowQueuingPatch.Enable();
-        PluginLog.Debug($"Enabling queuing {actionType}, {adjustedActionID}");
+        DalamudApi.LogDebug($"Enabling queuing {actionType}, {adjustedActionID}");
     }
 
     private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp, bool ret)
