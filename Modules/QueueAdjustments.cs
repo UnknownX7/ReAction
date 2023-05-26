@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Hypostasis.Game.Structures;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
@@ -10,6 +11,7 @@ public unsafe class QueueAdjustments : PluginModule
     private static bool isRequeuing = false;
     private static float tempQueue = 0f;
     private static uint lastUsedActionID = 0;
+    private static Stopwatch lastUsedActionTimer = new();
 
     public override bool ShouldEnable => ReAction.Config.EnableQueueAdjustments;
 
@@ -50,7 +52,10 @@ public unsafe class QueueAdjustments : PluginModule
     private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp, bool ret)
     {
         if (ret && (useType == 1 || !actionManager->isQueued))
+        {
             lastUsedActionID = adjustedActionID;
+            lastUsedActionTimer.Restart();
+        }
 
         if (!isRequeuing) return;
 
@@ -80,12 +85,6 @@ public unsafe class QueueAdjustments : PluginModule
         return recastRemaining > additionalRecastRemaining ? recastRemaining : additionalRecastRemaining;
     }
 
-    private static float GetElapsedActionRecast(ActionManager* actionManager, uint actionType, uint actionID)
-    {
-        var recastGroupDetail = actionManager->CS.GetRecastGroupDetail(actionManager->CS.GetRecastGroup((int)actionType, actionID));
-        return recastGroupDetail != null ? recastGroupDetail->Elapsed : -1;
-    }
-
     public static Bool CanQueueActionDetour(ActionManager* actionManager, uint actionType, uint actionID)
     {
         float threshold;
@@ -100,8 +99,7 @@ public unsafe class QueueAdjustments : PluginModule
         }
         else
         {
-            var elapsed = GetElapsedActionRecast(actionManager, actionType, actionID);
-            threshold = (actionType == 1 ? actionManager->CS.GetAdjustedActionId(lastUsedActionID) == actionManager->CS.GetAdjustedActionId(actionID) : lastUsedActionID == actionID) && elapsed >= 0 && elapsed < ReAction.Config.QueueActionLockout
+            threshold = (actionType == 1 ? actionManager->CS.GetAdjustedActionId(lastUsedActionID) == actionManager->CS.GetAdjustedActionId(actionID) : lastUsedActionID == actionID) && lastUsedActionTimer.Elapsed.TotalSeconds < ReAction.Config.QueueActionLockout
                 ? 0
                 : ReAction.Config.EnableGCDAdjustedQueueThreshold
                     ? ReAction.Config.QueueThreshold * ActionManager.GCDRecast / 2500f
