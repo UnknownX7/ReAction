@@ -33,14 +33,14 @@ public unsafe class QueueAdjustments : PluginModule
         ActionStackManager.PostUseAction -= PostUseAction;
     }
 
-    private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp)
+    private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref ulong targetObjectID, uint param, uint useType, int pvp)
     {
         if (useType == 1 && tempQueue > 0)
             tempQueue = 0;
 
         if (!ReAction.Config.EnableRequeuing
             || !actionManager->isQueued
-            || GetRemainingActionRecast(actionManager, (uint)actionManager->CS.QueuedActionType, actionManager->CS.QueuedActionType == ActionType.Spell
+            || GetRemainingActionRecast(actionManager, (uint)actionManager->CS.QueuedActionType, actionManager->CS.QueuedActionType == ActionType.Action
                     ? actionManager->CS.GetAdjustedActionId(actionManager->CS.QueuedActionId)
                     : actionManager->CS.QueuedActionId)
                 is { } remaining && remaining <= ReAction.Config.QueueLockThreshold)
@@ -49,7 +49,7 @@ public unsafe class QueueAdjustments : PluginModule
         isRequeuing = true;
     }
 
-    private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp, bool ret)
+    private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ulong targetObjectID, uint param, uint useType, int pvp, bool ret)
     {
         if (ret && (useType == 1 || !actionManager->isQueued))
         {

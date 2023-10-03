@@ -7,8 +7,6 @@ namespace ReAction;
 
 public class ReAction : DalamudPlugin<Configuration>, IDalamudPlugin
 {
-    public string Name => "ReAction";
-
     public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> actionSheet;
     public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> mountActionsSheet;
 

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ActionManager = Hypostasis.Game.Structures.ActionManager;
 
@@ -9,7 +9,7 @@ namespace ReAction.Modules;
 public unsafe class AutoDismount : PluginModule
 {
     private static bool isMountActionQueued = false;
-    private static (uint actionType, uint actionID, long targetObjectID, uint useType, int pvp) queuedMountAction;
+    private static (uint actionType, uint actionID, ulong targetObjectID, uint useType, int pvp) queuedMountAction;
     private static readonly Stopwatch mountActionTimer = new();
 
     public override bool ShouldEnable => ReAction.Config.EnableAutoDismount;
@@ -26,7 +26,7 @@ public unsafe class AutoDismount : PluginModule
         DalamudApi.Framework.Update -= Update;
     }
 
-    private static void PreActionStack(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref uint adjustedActionID, ref long targetObjectID, ref uint param, uint useType, ref int pvp, out bool? ret)
+    private static void PreActionStack(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref uint adjustedActionID, ref ulong targetObjectID, ref uint param, uint useType, ref int pvp, out bool? ret)
     {
         ret = null;
 
@@ -44,7 +44,7 @@ public unsafe class AutoDismount : PluginModule
         mountActionTimer.Restart();
     }
 
-    private static void Update(Framework framework)
+    private static void Update(IFramework framework)
     {
         if (!isMountActionQueued || DalamudApi.Condition[ConditionFlag.Mounted]) return;
 

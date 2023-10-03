@@ -26,7 +26,7 @@ public unsafe class EnhancedAutoFaceTarget : PluginModule
         ActionStackManager.PostActionStack -= PostActionStack;
     }
 
-    private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp)
+    private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref ulong targetObjectID, uint param, uint useType, int pvp)
     {
         if (DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { Unknown26: false }) // This is checked by Client::Game::ActionManager_GetActionInRangeOrLoS
             removeAutoFaceTargetPatch.Enable();

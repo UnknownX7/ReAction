@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics;
-using Dalamud.Game;
+using Dalamud.Plugin.Services;
 
 namespace ReAction.Modules;
 
@@ -18,7 +18,7 @@ public unsafe class FrameAlignment : PluginModule
         timer.Stop();
     }
 
-    private static void Update(Framework framework)
+    private static void Update(IFramework framework)
     {
         if (timer.IsRunning)
         {

@@ -17,7 +17,7 @@ public static unsafe class Game
 {
     public const uint InvalidObjectID = 0xE0000000;
 
-    public static readonly AsmPatch queueGroundTargetsPatch = new("74 20 81 FD F5 0D 00 00", new byte?[] { 0xEB }, ReAction.Config.EnableGroundTargetQueuing);
+    public static readonly AsmPatch queueGroundTargetsPatch = new("75 49 44 8B C3 41 8B D6", new byte?[] { 0x90, 0x90 }, ReAction.Config.EnableGroundTargetQueuing);
 
     // test byte ptr [r15+39], 04
     // jnz A7h
@@ -61,17 +61,17 @@ public static unsafe class Game
 
     public static readonly AsmPatch queueACCommandPatch = new("02 00 00 00 41 8B D7 89", new byte?[] { 0x64 }, ReAction.Config.EnableMacroQueue);
 
-    public static long GetObjectID(GameObject* o)
+    public static ulong GetObjectID(GameObject* o)
     {
         if (o == null) return InvalidObjectID;
 
         var id = o->GetObjectID();
-        return (id.Type * 0x1_0000_0000) | id.ObjectID;
+        return (ulong)((id.Type * 0x1_0000_0000) | id.ObjectID);
     }
 
     [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 44 0F B6 C3 48 8B D0")]
-    public static delegate* unmanaged<long, GameObject*> fpGetGameObjectFromObjectID;
-    public static GameObject* GetGameObjectFromObjectID(long id) => fpGetGameObjectFromObjectID(id);
+    public static delegate* unmanaged<ulong, GameObject*> fpGetGameObjectFromObjectID;
+    public static GameObject* GetGameObjectFromObjectID(ulong id) => fpGetGameObjectFromObjectID(id);
 
     // The game is dumb and I cannot check LoS easily because not facing the target will override it
     public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
@@ -91,7 +91,7 @@ public static unsafe class Game
         {
             for (int i = 0; i < array->Length; i++)
             {
-                if (array->Objects[i] == (nint)nameplateTarget)
+                if ((*array)[i] == nameplateTarget)
                     return nameplateTarget;
             }
         }
@@ -105,20 +105,20 @@ public static unsafe class Game
     {
         if (fpSetHotbarSlot == null || hotbar is < 0 or > 17 || (hotbar < 10 ? slot is < 0 or > 11 : slot is < 0 or > 15)) return;
         var raptureHotbarModule = Framework.Instance()->GetUiModule()->GetRaptureHotbarModule();
-        fpSetHotbarSlot(raptureHotbarModule->HotBar[hotbar]->Slot[slot], raptureHotbarModule->UiModule, type, id);
+        fpSetHotbarSlot(raptureHotbarModule->HotBarsSpan[hotbar].GetHotbarSlot((uint)slot), raptureHotbarModule->UiModule, type, id);
     }
 
-    public delegate Bool UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);
+    public delegate Bool UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, ulong targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);
     [HypostasisClientStructsInjection(typeof(FFXIVClientStructs.FFXIV.Client.Game.ActionManager.MemberFunctionPointers))]
     public static Hook<UseActionDelegate> UseActionHook;
-    private static Bool UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget) =>
+    private static Bool UseActionDetour(ActionManager* actionManager, uint actionType, uint actionID, ulong targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget) =>
         ActionStackManager.OnUseAction(actionManager, actionType, actionID, targetObjectID, param, useType, pvp, isGroundTarget);
 
     public static (string Name, uint DataID) FocusTargetInfo { get; private set; } = (null, 0);
-    public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, long objectID);
+    public delegate void SetFocusTargetByObjectIDDelegate(TargetSystem* targetSystem, ulong objectID);
     [HypostasisSignatureInjection("E8 ?? ?? ?? ?? BA 0C 00 00 00 48 8D 0D")]
     public static Hook<SetFocusTargetByObjectIDDelegate> SetFocusTargetByObjectIDHook;
-    private static void SetFocusTargetByObjectIDDetour(TargetSystem* targetSystem, long objectID)
+    private static void SetFocusTargetByObjectIDDetour(TargetSystem* targetSystem, ulong objectID)
     {
         if (ReAction.Config.AutoFocusTargetID == 0 || DalamudApi.TargetManager.FocusTarget == DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name))
             SetFocusTargetByObjectIDHook.Original(targetSystem, objectID);

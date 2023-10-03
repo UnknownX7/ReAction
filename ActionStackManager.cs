@@ -8,18 +8,18 @@ namespace ReAction;
 
 public static unsafe class ActionStackManager
 {
-    public delegate void PreUseActionEventDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref long targetObjectID, ref uint param, ref uint useType, ref int pvp);
+    public delegate void PreUseActionEventDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref ulong targetObjectID, ref uint param, ref uint useType, ref int pvp);
     public static event PreUseActionEventDelegate PreUseAction;
-    public delegate void PreActionStackDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref uint adjustedActionID, ref long targetObjectID, ref uint param, uint useType, ref int pvp, out bool? ret);
+    public delegate void PreActionStackDelegate(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref uint adjustedActionID, ref ulong targetObjectID, ref uint param, uint useType, ref int pvp, out bool? ret);
     public static event PreActionStackDelegate PreActionStack;
-    public delegate void PostActionStackDelegate(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp);
+    public delegate void PostActionStackDelegate(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref ulong targetObjectID, uint param, uint useType, int pvp);
     public static event PostActionStackDelegate PostActionStack;
-    public delegate void PostUseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp, bool ret);
+    public delegate void PostUseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ulong targetObjectID, uint param, uint useType, int pvp, bool ret);
     public static event PostUseActionDelegate PostUseAction;
 
-    private static long queuedGroundTargetObjectID = 0;
+    private static ulong queuedGroundTargetObjectID = 0;
 
-    public static Bool OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, long targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
+    public static Bool OnUseAction(ActionManager* actionManager, uint actionType, uint actionID, ulong targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget)
     {
         try
         {
@@ -125,7 +125,7 @@ public static unsafe class ActionStackManager
         return keys;
     }
 
-    private static bool CheckActionStack(uint id, Configuration.ActionStack stack, out uint action, out long target)
+    private static bool CheckActionStack(uint id, Configuration.ActionStack stack, out uint action, out ulong target)
     {
         action = 0;
         target = Game.InvalidObjectID;
@@ -147,7 +147,7 @@ public static unsafe class ActionStackManager
     }
 
     private static bool CanUseAction(uint id, GameObject* target)
-        => ActionManager.CanUseActionOnGameObject(id, target) && Common.ActionManager->CS.GetActionStatus(ActionType.Spell, id, target->ObjectID, false, false) == 0;
+        => ActionManager.CanUseActionOnGameObject(id, target) && Common.ActionManager->CS.GetActionStatus(ActionType.Action, id, target->ObjectID, false, false) == 0;
 
     private static void SetInstantGroundTarget(uint actionType, uint useType)
     {

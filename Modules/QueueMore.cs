@@ -5,7 +5,7 @@ namespace ReAction.Modules;
 
 public unsafe class QueueMore : PluginModule
 {
-    private static readonly AsmPatch allowQueuingPatch = new("76 2B 80 F9 04", new byte?[] { 0xEB });
+    private static readonly AsmPatch allowQueuingPatch = new("76 0A 41 80 F8 04", new byte?[] { 0xEB });
     private static ushort lastLBSequence = 0;
 
     public override bool ShouldEnable => ReAction.Config.EnableQueuingMore;
@@ -26,7 +26,7 @@ public unsafe class QueueMore : PluginModule
         ActionStackManager.PostUseAction -= PostUseAction;
     }
 
-    private static void PreUseAction(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref long targetObjectID, ref uint param, ref uint useType, ref int pvp)
+    private static void PreUseAction(ActionManager* actionManager, ref uint actionType, ref uint actionID, ref ulong targetObjectID, ref uint param, ref uint useType, ref int pvp)
     {
         if (useType != 1) return;
 
@@ -44,7 +44,7 @@ public unsafe class QueueMore : PluginModule
         }
     }
 
-    private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref long targetObjectID, uint param, uint useType, int pvp)
+    private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref ulong targetObjectID, uint param, uint useType, int pvp)
     {
         if (useType != 0 || !CheckAction(actionType, actionID, adjustedActionID)) return;
 
@@ -52,7 +52,7 @@ public unsafe class QueueMore : PluginModule
         DalamudApi.LogDebug($"Enabling queuing {actionType}, {adjustedActionID}");
     }
 
-    private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, long targetObjectID, uint param, uint useType, int pvp, bool ret)
+    private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ulong targetObjectID, uint param, uint useType, int pvp, bool ret)
     {
         allowQueuingPatch.Disable();
 

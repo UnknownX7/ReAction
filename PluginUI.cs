@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Hypostasis.Game.Structures;
 using ImGuiNET;
@@ -576,17 +577,9 @@ public static class PluginUI
 
             if (ImGui.Checkbox("Enable Decimal Waits (Fractionality)", ref ReAction.Config.EnableFractionality))
             {
-                if (!DalamudApi.PluginInterface.PluginNames.Contains("Fractionality") || !ReAction.Config.EnableFractionality)
-                {
-                    Game.waitSyntaxDecimalPatch.Toggle();
-                    Game.waitCommandDecimalPatch.Toggle();
-                    save = true;
-                }
-                else
-                {
-                    ReAction.Config.EnableFractionality = false;
-                    DalamudApi.PrintError("Please disable and delete Fractionality by using the trashcan icon on the plugin installer before enabling this!");
-                }
+                Game.waitSyntaxDecimalPatch.Toggle();
+                Game.waitCommandDecimalPatch.Toggle();
+                save = true;
             }
             ImGuiEx.SetItemTooltip("Allows decimals in wait commands and removes the 60 seconds cap (e.g. <wait.0.5> or /wait 0.5).");
 
@@ -676,16 +669,16 @@ public static class PluginUI
             case HotbarSlotType.GeneralAction:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<GeneralAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.CompanionOrder:
+            case HotbarSlotType.BuddyAction:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<BuddyAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
             case HotbarSlotType.MainCommand:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<MainCommand> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.Minion:
+            case HotbarSlotType.Companion:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Companion> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });
                 break;
-            case HotbarSlotType.PetOrder:
+            case HotbarSlotType.PetAction:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<PetAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
             case HotbarSlotType.Mount:
@@ -712,7 +705,7 @@ public static class PluginUI
             case HotbarSlotType.PvPCombo:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ActionComboRoute> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.SquadronOrder:
+            case HotbarSlotType.BgcArmyAction:
                 // Sheet is BgcArmyAction, but it doesn't appear to be in Lumina
                 var __ = (int)commandID;
                 if (ImGui.Combo("ID", ref __, "[#0]\0[#1] Engage\0[#2] Disengage\0[#3] Re-engage\0[#4] Execute Limit Break\0[#5] Display Order Hotbar"))
@@ -724,7 +717,7 @@ public static class PluginUI
             case HotbarSlotType.Collection:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<McGuffin> { FormatRow = r => $"[#{r.RowId}] {r.UIData.Value?.Name}" });
                 break;
-            case HotbarSlotType.FashionAccessory:
+            case HotbarSlotType.Ornament:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Ornament> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });
                 break;
             // Doesn't appear to have a sheet

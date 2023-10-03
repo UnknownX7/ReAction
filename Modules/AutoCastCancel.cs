@@ -1,4 +1,4 @@
-using Dalamud.Game;
+using Dalamud.Plugin.Services;
 using Hypostasis.Game.Structures;
 
 namespace ReAction.Modules;
@@ -16,7 +16,7 @@ public unsafe class AutoCastCancel : PluginModule
     [HypostasisSignatureInjection("48 83 EC 38 33 D2 C7 44 24 20 00 00 00 00 45 33 C9", Required = true)]
     private static delegate* unmanaged<void> cancelCast;
 
-    private static void Update(Framework framework)
+    private static void Update(IFramework framework)
     {
         if (canceledCast && Common.ActionManager->castActionType == 0)
         {
