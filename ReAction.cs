@@ -5,12 +5,10 @@ using Dalamud.Plugin;
 
 namespace ReAction;
 
-public class ReAction : DalamudPlugin<Configuration>, IDalamudPlugin
+public class ReAction(DalamudPluginInterface pluginInterface) : DalamudPlugin<Configuration>(pluginInterface), IDalamudPlugin
 {
     public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> actionSheet;
     public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> mountActionsSheet;
-
-    public ReAction(DalamudPluginInterface pluginInterface) : base(pluginInterface) { }
 
     protected override void Initialize()
     {

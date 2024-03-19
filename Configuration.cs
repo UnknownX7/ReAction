@@ -54,8 +54,8 @@ public class Configuration : PluginConfiguration, IPluginConfiguration
     public class ActionStack
     {
         public string Name = string.Empty;
-        public List<Action> Actions = new();
-        public List<ActionStackItem> Items = new();
+        public List<Action> Actions = [];
+        public List<ActionStackItem> Items = [];
         public uint ModifierKeys = 0u;
         public bool BlockOriginal = false;
         public bool CheckRange = false;
@@ -101,7 +101,7 @@ public class Configuration : PluginConfiguration, IPluginConfiguration
 
     public int Version { get; set; }
 
-    public List<ActionStack> ActionStacks = new();
+    public List<ActionStack> ActionStacks = [];
     public bool EnableEnhancedAutoFaceTarget = false;
     public bool EnableAutoDismount = false;
     public bool EnableGroundTargetQueuing = false;

@@ -418,8 +418,8 @@ public static class PronounManager
 
     public static Dictionary<uint, IGamePronoun> CustomPronouns { get; set; } = new();
     public static Dictionary<string, IGamePronoun> CustomPlaceholders { get; set; } = new();
-    public static List<uint> OrderedIDs { get; set; } = new()
-    {
+    public static List<uint> OrderedIDs { get; set; } =
+    [
         10_000, // Target
         10_001, // SoftTarget
         (uint)PronounID.FocusTarget,
@@ -440,7 +440,7 @@ public static class PronounManager
         (uint)PronounID.P8,
         (uint)PronounID.Companion,
         (uint)PronounID.Pet
-    };
+    ];
 
     private static readonly Dictionary<PronounID, string> formalPronounIDName = new()
     {

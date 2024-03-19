@@ -11,7 +11,7 @@ public unsafe class QueueAdjustments : PluginModule
     private static bool isRequeuing = false;
     private static float tempQueue = 0f;
     private static uint lastUsedActionID = 0;
-    private static Stopwatch lastUsedActionTimer = new();
+    private static readonly Stopwatch lastUsedActionTimer = new();
 
     public override bool ShouldEnable => ReAction.Config.EnableQueueAdjustments;
 
