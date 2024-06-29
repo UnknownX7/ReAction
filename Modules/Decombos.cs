@@ -27,13 +27,15 @@ public unsafe class Decombos : PluginModule
         Geirskogul = 3555
     }
 
-    public override bool ShouldEnable => ReAction.Config.EnableDecomboMeditation
+    /*public override bool ShouldEnable => ReAction.Config.EnableDecomboMeditation
         || ReAction.Config.EnableDecomboBunshin
         || ReAction.Config.EnableDecomboWanderersMinuet
         || ReAction.Config.EnableDecomboLiturgy
         || ReAction.Config.EnableDecomboEarthlyStar
         || ReAction.Config.EnableDecomboMinorArcana
-        || ReAction.Config.EnableDecomboGeirskogul;
+        || ReAction.Config.EnableDecomboGeirskogul;*/
+
+    public override bool ShouldEnable => false;
 
     protected override void Enable() => GetAdjustedActionIdHook.Enable();
     protected override void Disable() => GetAdjustedActionIdHook.Disable();

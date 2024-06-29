@@ -82,7 +82,7 @@ public class FieldTargetPartyMemberPronoun : IGamePronoun
     {
         var i = 0;
         foreach (var partyMember in Common.GetPartyMembers().Skip(1))
-            partyMemberArray.Objects[i++] = (ulong)partyMember;
+            partyMemberArray.Objects[i++] = (GameObject*)partyMember;
         partyMemberArray.Length = i;
 
         fixed (GameObjectArray* ptr = &partyMemberArray)
@@ -137,7 +137,7 @@ public class KardionPronoun : IGamePronoun
     public string Name => "Kardion Target";
     public string Placeholder => "<kt>";
     public uint ID => 10_100;
-    public unsafe GameObject* GetGameObject() => DalamudApi.ClientState.LocalPlayer is { } p ? PronounHelpers.GetPartyMemberByStatus(2605, p.ObjectId) : null;
+    public unsafe GameObject* GetGameObject() => DalamudApi.ClientState.LocalPlayer is { } p ? PronounHelpers.GetPartyMemberByStatus(2605, p.EntityId) : null;
 }
 
 public class TankPronoun : IGamePronoun

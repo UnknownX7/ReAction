@@ -38,10 +38,9 @@ public unsafe class AutoTarget : PluginModule
             return val >= a && val <= b;
         }
 
-        Dalamud.Game.ClientState.Objects.Types.GameObject closest = null;
-        foreach (var o in DalamudApi.ObjectTable.Where(o => o.YalmDistanceX < 30
-            && o.ObjectKind is ObjectKind.Player or ObjectKind.BattleNpc
-            && ((BattleChara)o).CurrentHp > 0
+        IGameObject closest = null;
+        foreach (var o in DalamudApi.ObjectTable.Where(o => o is { YalmDistanceX: < 30, ObjectKind: ObjectKind.Player or ObjectKind.BattleNpc }
+            && ((IBattleChara)o).CurrentHp > 0
             && ActionManager.CanUseActionOnGameObject(7, (GameObject*)o.Address)))
         {
             var posDiff = o.Position - p.Position;

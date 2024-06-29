@@ -147,7 +147,7 @@ public static unsafe class ActionStackManager
     }
 
     private static bool CanUseAction(uint id, GameObject* target)
-        => ActionManager.CanUseActionOnGameObject(id, target) && Common.ActionManager->CS.GetActionStatus(ActionType.Action, id, target->ObjectID, false, false) == 0;
+        => ActionManager.CanUseActionOnGameObject(id, target) && Common.ActionManager->CS.GetActionStatus(ActionType.Action, id, target->GetGameObjectId(), false, false) == 0;
 
     private static void SetInstantGroundTarget(uint actionType, uint useType)
     {

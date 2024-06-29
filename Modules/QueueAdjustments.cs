@@ -67,7 +67,7 @@ public unsafe class QueueAdjustments : PluginModule
     [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 8B 4F 44 33 D2", Required = true)]
     private static delegate* unmanaged<ActionManager*, uint, uint, int> getAdditionalRecastGroup;
 
-    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 84 C0 74 12 48 83 FF 0F", Required = true)]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 84 C0 74 10 48 83 FF 0F", Required = true)]
     private static delegate* unmanaged<ActionManager*, uint, Bool> canUseActionAsCurrentClass;
 
     private static float? GetRemainingActionRecast(ActionManager* actionManager, uint actionType, uint actionID)
@@ -80,7 +80,7 @@ public unsafe class QueueAdjustments : PluginModule
 
         if (recastGroupDetail->IsActive == 0) return additionalRecastRemaining;
 
-        var charges = canUseActionAsCurrentClass(actionManager, recastGroupDetail->ActionID) ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(ActionManager.GetSpellIDForAction(actionType, actionID), 90) : 1;
+        var charges = canUseActionAsCurrentClass(actionManager, recastGroupDetail->ActionId) ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(ActionManager.GetSpellIDForAction(actionType, actionID), 90) : 1;
         var recastRemaining = recastGroupDetail->Total / charges - recastGroupDetail->Elapsed;
         return recastRemaining > additionalRecastRemaining ? recastRemaining : additionalRecastRemaining;
     }

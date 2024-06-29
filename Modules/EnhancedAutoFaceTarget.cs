@@ -5,8 +5,10 @@ namespace ReAction.Modules;
 
 public unsafe class EnhancedAutoFaceTarget : PluginModule
 {
-    private static readonly AsmPatch removeAutoFaceTargetPatch = new("41 80 7F 33 06 75 1E 48 8D 0D", new byte?[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0xEB, 0x1C });
-    private static readonly AsmPatch removeAutoFaceGroundTargetPatch = new("41 80 7F 33 06 74 22 49 8D 8E", new byte?[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0xEB });
+    // jmp 1Ch
+    private static readonly AsmPatch removeAutoFaceTargetPatch = new("80 7E 33 06 75 1E 48 8D 0D", [ 0x90, 0x90, 0x90, 0x90, 0xEB, 0x1C ]);
+    // jz -> jmp ??
+    private static readonly AsmPatch removeAutoFaceGroundTargetPatch = new("80 7E 33 06 74 21 48 8D 8F", [ 0x90, 0x90, 0x90, 0x90, 0xEB ]);
 
     public override bool ShouldEnable => ReAction.Config.EnableEnhancedAutoFaceTarget;
 

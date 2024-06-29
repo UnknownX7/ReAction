@@ -612,25 +612,21 @@ public static class PluginUI
         {
             ImGui.Combo("Bar", ref hotbar, "1\02\03\04\05\06\07\08\09\010\0XHB 1\0XHB 2\0XHB 3\0XHB 4\0XHB 5\0XHB 6\0XHB 7\0XHB 8");
             ImGui.Combo("Slot", ref hotbarSlot, "1\02\03\04\05\06\07\08\09\010\011\012\013\014\015\016");
-            var hotbarSlotType = Enum.GetName(typeof(HotbarSlotType), commandType) ?? commandType.ToString();
+            var hotbarSlotType = Enum.GetName(typeof(RaptureHotbarModule.HotbarSlotType), commandType) ?? commandType.ToString();
             if (ImGui.BeginCombo("Type", hotbarSlotType))
             {
                 for (int i = 1; i <= 32; i++)
                 {
-                    if (!ImGui.Selectable($"{Enum.GetName(typeof(HotbarSlotType), i) ?? i.ToString()}##{i}", commandType == i)) continue;
+                    if (!ImGui.Selectable($"{Enum.GetName(typeof(RaptureHotbarModule.HotbarSlotType), i) ?? i.ToString()}##{i}", commandType == i)) continue;
                     commandType = i;
                 }
                 ImGui.EndCombo();
             }
 
-            DrawHotbarIDInput((HotbarSlotType)commandType);
+            DrawHotbarIDInput((RaptureHotbarModule.HotbarSlotType)commandType);
 
             if (ImGui.Button("Execute"))
-            {
                 Game.SetHotbarSlot(hotbar, hotbarSlot, (byte)commandType, commandID);
-                DalamudApi.PrintEcho("MAKE SURE TO MOVE WHATEVER YOU JUST PLACED ON THE HOTBAR OR IT WILL NOT SAVE. YES, MOVING IT TO ANOTHER SLOT AND THEN MOVING IT BACK IS FINE.");
-            }
-            ImGuiEx.SetItemTooltip("You need to move whatever you place on the hotbar in order to have it save.");
             ImGuiEx.EndGroupBox();
         }
 
@@ -638,14 +634,14 @@ public static class PluginUI
             ReAction.Config.Save();
     }
 
-    public static void DrawHotbarIDInput(HotbarSlotType slotType)
+    public static void DrawHotbarIDInput(RaptureHotbarModule.HotbarSlotType slotType)
     {
-        switch ((HotbarSlotType)commandType)
+        switch ((RaptureHotbarModule.HotbarSlotType)commandType)
         {
-            case HotbarSlotType.Action:
+            case RaptureHotbarModule.HotbarSlotType.Action:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Action> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.Item:
+            case RaptureHotbarModule.HotbarSlotType.Item:
                 const int hqID = 1_000_000;
                 var _ = commandID >= hqID ? commandID - hqID : commandID;
                 if (ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref _, new ImGuiEx.ExcelSheetComboOptions<Item> { FormatRow = r => $"[#{r.RowId}] {r.Name}" }))
@@ -654,70 +650,70 @@ public static class PluginUI
                 if (ImGui.Checkbox("HQ", ref hq))
                     commandID = hq ? commandID + hqID : commandID - hqID;
                 break;
-            case HotbarSlotType.EventItem:
+            case RaptureHotbarModule.HotbarSlotType.EventItem:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<EventItem> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.Emote:
+            case RaptureHotbarModule.HotbarSlotType.Emote:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Emote> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.Marker:
+            case RaptureHotbarModule.HotbarSlotType.Marker:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Marker> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.CraftAction:
+            case RaptureHotbarModule.HotbarSlotType.CraftAction:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<CraftAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.GeneralAction:
+            case RaptureHotbarModule.HotbarSlotType.GeneralAction:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<GeneralAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.BuddyAction:
+            case RaptureHotbarModule.HotbarSlotType.BuddyAction:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<BuddyAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.MainCommand:
+            case RaptureHotbarModule.HotbarSlotType.MainCommand:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<MainCommand> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.Companion:
+            case RaptureHotbarModule.HotbarSlotType.Companion:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Companion> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });
                 break;
-            case HotbarSlotType.PetAction:
+            case RaptureHotbarModule.HotbarSlotType.PetAction:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<PetAction> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.Mount:
+            case RaptureHotbarModule.HotbarSlotType.Mount:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Mount> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });
                 break;
-            case HotbarSlotType.FieldMarker:
+            case RaptureHotbarModule.HotbarSlotType.FieldMarker:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<FieldMarker> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.Recipe:
+            case RaptureHotbarModule.HotbarSlotType.Recipe:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Recipe> { FormatRow = r => $"[#{r.RowId}] {r.ItemResult.Value?.Name}" });
                 break;
-            case HotbarSlotType.ChocoboRaceAbility:
+            case RaptureHotbarModule.HotbarSlotType.ChocoboRaceAbility:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ChocoboRaceAbility> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.ChocoboRaceItem:
+            case RaptureHotbarModule.HotbarSlotType.ChocoboRaceItem:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ChocoboRaceItem> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.ExtraCommand:
+            case RaptureHotbarModule.HotbarSlotType.ExtraCommand:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ExtraCommand> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.PvPQuickChat:
+            case RaptureHotbarModule.HotbarSlotType.PvPQuickChat:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<QuickChat> { FormatRow = r => $"[#{r.RowId}] {r.NameAction}" });
                 break;
-            case HotbarSlotType.PvPCombo:
+            case RaptureHotbarModule.HotbarSlotType.PvPCombo:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ActionComboRoute> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
-            case HotbarSlotType.BgcArmyAction:
+            case RaptureHotbarModule.HotbarSlotType.BgcArmyAction:
                 // Sheet is BgcArmyAction, but it doesn't appear to be in Lumina
                 var __ = (int)commandID;
                 if (ImGui.Combo("ID", ref __, "[#0]\0[#1] Engage\0[#2] Disengage\0[#3] Re-engage\0[#4] Execute Limit Break\0[#5] Display Order Hotbar"))
                     commandID = (uint)__;
                 break;
-            case HotbarSlotType.PerformanceInstrument:
+            case RaptureHotbarModule.HotbarSlotType.PerformanceInstrument:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Perform> { FormatRow = r => $"[#{r.RowId}] {r.Instrument}" });
                 break;
-            case HotbarSlotType.Collection:
+            case RaptureHotbarModule.HotbarSlotType.McGuffin:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<McGuffin> { FormatRow = r => $"[#{r.RowId}] {r.UIData.Value?.Name}" });
                 break;
-            case HotbarSlotType.Ornament:
+            case RaptureHotbarModule.HotbarSlotType.Ornament:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Ornament> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });
                 break;
             // Doesn't appear to have a sheet
@@ -754,7 +750,7 @@ public static class PluginUI
             var p = pronoun.GetGameObject();
             if (p == null) continue;
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted(((nint)p->Name).ReadCString());
+            ImGui.TextUnformatted(p->NameString);
         }
 
         ImGui.EndTable();
