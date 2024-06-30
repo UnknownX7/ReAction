@@ -342,6 +342,16 @@ public class ReaperPronoun : IGamePronoun
     public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
 }
 
+public class ViperPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 41;
+
+    public string Name => "Viper";
+    public string Placeholder => "<vpr>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
 public class BardPronoun : IGamePronoun
 {
     private const byte ClassJobID = 23;
@@ -402,6 +412,16 @@ public class RedMagePronoun : IGamePronoun
     public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
 }
 
+public class PictomancerPronoun : IGamePronoun
+{
+    private const byte ClassJobID = 42;
+
+    public string Name => "Pictomancer";
+    public string Placeholder => "<pct>";
+    public uint ID => 10_220 + ClassJobID;
+    public unsafe GameObject* GetGameObject() => PronounHelpers.GetPartyMemberByClassJobID(ClassJobID);
+}
+
 public class BlueMagePronoun : IGamePronoun
 {
     private const byte ClassJobID = 36;
@@ -416,8 +436,8 @@ public static class PronounManager
 {
     public const int MinimumCustomPronounID = 10_000;
 
-    public static Dictionary<uint, IGamePronoun> CustomPronouns { get; set; } = new();
-    public static Dictionary<string, IGamePronoun> CustomPlaceholders { get; set; } = new();
+    public static Dictionary<uint, IGamePronoun> CustomPronouns { get; set; } = [];
+    public static Dictionary<string, IGamePronoun> CustomPlaceholders { get; set; } = [];
     public static List<uint> OrderedIDs { get; set; } =
     [
         10_000, // Target

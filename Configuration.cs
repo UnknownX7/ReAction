@@ -17,37 +17,6 @@ public class Configuration : PluginConfiguration, IPluginConfiguration
     public class ActionStackItem
     {
         public uint ID = 0;
-
-        [Obsolete]
-        public uint Target
-        {
-            set
-            {
-                TargetID = value switch
-                {
-                    0 => 10_000,
-                    1 => 10_001,
-                    2 => (uint)PronounID.FocusTarget,
-                    3 => 10_002,
-                    4 => 10_003,
-                    5 => (uint)PronounID.TargetsTarget,
-                    6 => (uint)PronounID.Me,
-                    7 => (uint)PronounID.LastTarget,
-                    8 => (uint)PronounID.LastEnemy,
-                    9 => (uint)PronounID.LastAttacker,
-                    10 => (uint)PronounID.P2,
-                    11 => (uint)PronounID.P3,
-                    12 => (uint)PronounID.P4,
-                    13 => (uint)PronounID.P5,
-                    14 => (uint)PronounID.P6,
-                    15 => (uint)PronounID.P7,
-                    16 => (uint)PronounID.P8,
-                    17 => 10_010,
-                    _ => 10_000
-                };
-            }
-        }
-
         public uint TargetID = 10_000;
     }
 
@@ -115,7 +84,6 @@ public class Configuration : PluginConfiguration, IPluginConfiguration
     public bool EnableCameraRelativeDashes = false;
     public bool EnableNormalBackwardDashes = false;
     public bool EnableQueuingMore = false;
-    [Obsolete] public bool EnableFPSAlignment { internal get; set; } // TODO: Remove in 6.4
     public bool EnableFrameAlignment = false;
     public bool EnableAutoRefocusTarget = false;
     public bool EnableMacroQueue = false;
@@ -145,11 +113,7 @@ public class Configuration : PluginConfiguration, IPluginConfiguration
     public bool EnableDecomboMinorArcana = false;
     public bool EnableDecomboGeirskogul = false;
 
-    public override void Initialize()
-    {
-        if (EnableFPSAlignment)
-            EnableFrameAlignment = true;
-    }
+    public override void Initialize() { }
 
     private static readonly StackSerializer serializer = new ();
 
