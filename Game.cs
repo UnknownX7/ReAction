@@ -101,7 +101,7 @@ public static unsafe class Game
     public static void SetHotbarSlot(int hotbar, int slot, byte type, uint id)
     {
         if (hotbar is < 0 or > 17 || (hotbar < 10 ? slot is < 0 or > 11 : slot is < 0 or > 15)) return;
-        Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->SetAndSaveSlot((uint)hotbar, (uint)slot, (RaptureHotbarModule.HotbarSlotType)type, id);
+        Framework.Instance()->GetUIModule()->GetRaptureHotbarModule()->SetAndSaveSlot((uint)hotbar, (uint)slot, (RaptureHotbarModule.HotbarSlotType)type, id, false, false);
     }
 
     public delegate Bool UseActionDelegate(ActionManager* actionManager, uint actionType, uint actionID, ulong targetObjectID, uint param, uint useType, int pvp, bool* isGroundTarget);

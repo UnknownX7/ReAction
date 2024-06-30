@@ -602,7 +602,7 @@ public static class PluginUI
         {
             HeaderTextAction = () => ImGuiEx.SetItemTooltip(
                 "This will allow you to place various things on the hotbar that you can't normally." +
-                "\nIf you don't know what this can be used for, don't touch it. Whatever you place on it MUST BE MOVED OR ELSE IT WILL NOT SAVE." +
+                "\nIf you don't know what this can be used for, don't touch it." +
                 "\nSome examples of things you can do:" +
                 "\n\tPlace a certain action on the hotbar to be used with one of the \"Sundering\" features. The IDs are in each setting's tooltip." +
                 "\n\tPlace a certain doze and sit emote on the hotbar (Emote, 88 and 95)." +

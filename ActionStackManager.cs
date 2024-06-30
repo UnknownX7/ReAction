@@ -104,7 +104,7 @@ public static unsafe class ActionStackManager
             if (ReAction.Config.EnableInstantGroundTarget && !succeeded && queuedGroundTargetObjectID == 0)
                 SetInstantGroundTarget(actionType, useType);
 
-            return ret.Value;
+            return ret!.Value;
         }
         catch (Exception e)
         {
