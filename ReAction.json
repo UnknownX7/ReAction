@@ -13,5 +13,5 @@
   ],
   "InternalName": "ReAction",
   "AssemblyVersion": "9.9.9.9",
-  "Changelog": ""
+  "Changelog": "Fixed an issue with queuing some charged actions."
 }

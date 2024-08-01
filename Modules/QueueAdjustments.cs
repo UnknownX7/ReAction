@@ -80,7 +80,7 @@ public unsafe class QueueAdjustments : PluginModule
 
         if (recastGroupDetail->IsActive == 0) return additionalRecastRemaining;
 
-        var charges = canUseActionAsCurrentClass(actionManager, recastGroupDetail->ActionId) ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(ActionManager.GetSpellIDForAction(actionType, actionID), 90) : 1;
+        var charges = canUseActionAsCurrentClass(actionManager, recastGroupDetail->ActionId) ? FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetMaxCharges(ActionManager.GetSpellIDForAction(actionType, actionID), 100) : 1;
         var recastRemaining = recastGroupDetail->Total / charges - recastGroupDetail->Elapsed;
         return recastRemaining > additionalRecastRemaining ? recastRemaining : additionalRecastRemaining;
     }
