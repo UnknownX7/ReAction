@@ -6,8 +6,8 @@ using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Hypostasis.Game.Structures;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
-using Action = Lumina.Excel.GeneratedSheets.Action;
+using Lumina.Excel.Sheets;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace ReAction;
 
@@ -226,7 +226,7 @@ public static class PluginUI
         0 => "All Actions",
         1 => "All Harmful Actions",
         2 => "All Beneficial Actions",
-        _ => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}"
+        _ => $"[#{a.RowId} {a.ClassJob.ValueNullable?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}"
     };
 
     private static readonly ImGuiEx.ExcelSheetComboOptions<Action> actionComboOptions = new()
@@ -304,7 +304,7 @@ public static class PluginUI
     private static string FormatOverrideActionRow(Action a) => a.RowId switch
     {
         0 => "Same Action",
-        _ => $"[#{a.RowId} {a.ClassJob.Value?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}"
+        _ => $"[#{a.RowId} {a.ClassJob.ValueNullable?.Abbreviation}{(a.IsPvP ? " PVP" : string.Empty)}] {a.Name}"
     };
 
     private static readonly ImGuiEx.ExcelSheetComboOptions<Action> actionOverrideComboOptions = new()
@@ -684,7 +684,7 @@ public static class PluginUI
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<FieldMarker> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
                 break;
             case RaptureHotbarModule.HotbarSlotType.Recipe:
-                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Recipe> { FormatRow = r => $"[#{r.RowId}] {r.ItemResult.Value?.Name}" });
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Recipe> { FormatRow = r => $"[#{r.RowId}] {r.ItemResult.ValueNullable?.Name}" });
                 break;
             case RaptureHotbarModule.HotbarSlotType.ChocoboRaceAbility:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<ChocoboRaceAbility> { FormatRow = r => $"[#{r.RowId}] {r.Name}" });
@@ -711,7 +711,7 @@ public static class PluginUI
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Perform> { FormatRow = r => $"[#{r.RowId}] {r.Instrument}" });
                 break;
             case RaptureHotbarModule.HotbarSlotType.McGuffin:
-                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<McGuffin> { FormatRow = r => $"[#{r.RowId}] {r.UIData.Value?.Name}" });
+                ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<McGuffin> { FormatRow = r => $"[#{r.RowId}] {r.UIData.ValueNullable?.Name}" });
                 break;
             case RaptureHotbarModule.HotbarSlotType.Ornament:
                 ImGuiEx.ExcelSheetCombo($"ID##{commandType}", ref commandID, new ImGuiEx.ExcelSheetComboOptions<Ornament> { FormatRow = r => $"[#{r.RowId}] {r.Singular}" });

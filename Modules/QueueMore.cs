@@ -1,5 +1,5 @@
 using Hypostasis.Game.Structures;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace ReAction.Modules;
 
@@ -56,14 +56,14 @@ public unsafe class QueueMore : PluginModule
     {
         allowQueuingPatch.Disable();
 
-        if (ret && DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { ActionCategory.Row: 9 or 15 })
+        if (ret && DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { ActionCategory.RowId: 9 or 15 })
             lastLBSequence = actionManager->currentSequence;
     }
 
     private static bool CheckAction(uint actionType, uint actionID, uint adjustedActionID) =>
         actionType switch
         {
-            1 when DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { ActionCategory.Row: 9 or 15 } => lastLBSequence != Common.ActionManager->currentSequence, // Allow LB
+            1 when DalamudApi.DataManager.GetExcelSheet<Action>()?.GetRow(adjustedActionID) is { ActionCategory.RowId: 9 or 15 } => lastLBSequence != Common.ActionManager->currentSequence, // Allow LB
             2 => true, // Allow items
             5 when actionID == 4 => true, // Allow Sprint
             _ => false

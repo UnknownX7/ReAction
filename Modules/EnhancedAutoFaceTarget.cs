@@ -1,5 +1,5 @@
 using Hypostasis.Game.Structures;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace ReAction.Modules;
 
