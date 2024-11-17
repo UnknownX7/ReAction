@@ -64,7 +64,7 @@ public unsafe class QueueAdjustments : PluginModule
         isRequeuing = false;
     }
 
-    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 8B 4F 44 33 D2", Required = true)]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 8B 4F 44 33 D2 ?? ?? ?? ?? ?? ??", Required = true)]
     private static delegate* unmanaged<ActionManager*, uint, uint, int> getAdditionalRecastGroup;
 
     [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 84 C0 74 10 48 83 FF 0F", Required = true)]
