@@ -12,6 +12,5 @@
     "jobs"
   ],
   "InternalName": "ReAction",
-  "AssemblyVersion": "9.9.9.9",
   "Changelog": "Fixed an issue with queuing some charged actions."
 }
