@@ -30,7 +30,7 @@ public unsafe class EnhancedAutoFaceTarget : PluginModule
 
     private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref ulong targetObjectID, uint param, uint useType, int pvp)
     {
-        if (DalamudApi.DataManager.GetExcelSheet<Action>().GetRow(adjustedActionID) is { NeedToFaceTarget: false })
+        if (DalamudApi.DataManager.GetExcelSheet<Action>().GetRowOrDefault(adjustedActionID) is { NeedToFaceTarget: false })
             removeAutoFaceTargetPatch.Enable();
         else
             removeAutoFaceTargetPatch.Disable();
