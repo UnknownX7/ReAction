@@ -7,16 +7,16 @@ namespace ReAction;
 
 public class ReAction(IDalamudPluginInterface pluginInterface) : DalamudPlugin<Configuration>(pluginInterface), IDalamudPlugin
 {
-    public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> actionSheet;
-    public static Dictionary<uint, Lumina.Excel.GeneratedSheets.Action> mountActionsSheet;
+    public static Dictionary<uint, Lumina.Excel.Sheets.Action> actionSheet;
+    public static Dictionary<uint, Lumina.Excel.Sheets.Action> mountActionsSheet;
 
     protected override void Initialize()
     {
         Game.Initialize();
         PronounManager.Initialize();
 
-        actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ClassJobCategory.Row > 0 && i.ActionCategory.Row <= 4 && i.RowId > 8).ToDictionary(i => i.RowId, i => i);
-        mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.Where(i => i.ActionCategory.Row == 12).ToDictionary(i => i.RowId, i => i);
+        actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>().Where(i => i.ClassJobCategory.RowId > 0 && i.ActionCategory.RowId <= 4 && i.RowId > 8).ToDictionary(i => i.RowId, i => i);
+        mountActionsSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>().Where(i => i.ActionCategory.RowId == 12).ToDictionary(i => i.RowId, i => i);
         if (actionSheet == null || mountActionsSheet == null)
             throw new ApplicationException("Action sheet failed to load!");
     }

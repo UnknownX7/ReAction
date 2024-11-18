@@ -18,9 +18,9 @@ public static unsafe class Game
 
     public static readonly AsmPatch queueGroundTargetsPatch = new("75 49 44 8B C7 41 8B D5", [ 0x90, 0x90 ], ReAction.Config.EnableGroundTargetQueuing);
 
-    // test byte ptr [rsi+3A], 04
-    // jnz 7Ah
-    public static readonly AsmPatch spellAutoAttackPatch = new("41 B0 01 44 0F B6 CA 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", [ 0xF6, 0x46, 0x3A, 0x04, 0x0F, 0x85, 0x7A, 0x00, 0x00, 0x00, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 ], ReAction.Config.EnableSpellAutoAttacks && ReAction.Config.EnableSpellAutoAttacksOutOfCombat);
+    // test byte ptr [rbp+3A], 04 (CanTargetSelf)
+    // jnz 79h
+    public static readonly AsmPatch spellAutoAttackPatch = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", [ 0xF6, 0x45, 0x3A, 0x04, 0x0F, 0x85, 0x79, 0x00, 0x00, 0x00, 0x90, 0x90 ], ReAction.Config.EnableSpellAutoAttacks && ReAction.Config.EnableSpellAutoAttacksOutOfCombat);
 
     public static readonly AsmPatch allowUnassignableActionsPatch = new("75 07 32 C0 E9 ?? ?? ?? ?? 48 8B 00", [ 0xEB ], ReAction.Config.EnableUnassignableActions);
 

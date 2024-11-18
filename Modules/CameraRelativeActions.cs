@@ -36,7 +36,7 @@ public unsafe class CameraRelativeActions : PluginModule
     private static bool CheckAction(uint actionType, uint actionID, uint adjustedActionID)
     {
         if (!ReAction.actionSheet.TryGetValue(adjustedActionID, out var a)) return false;
-        if (ReAction.Config.EnableCameraRelativeDirectionals && a.IsPlayerAction && (a.Unknown50 == 6 || (a.CastType is 3 or 4 && a.CanTargetSelf))) return true; // Channeled abilities and cones and rectangles
+        if (ReAction.Config.EnableCameraRelativeDirectionals && a.IsPlayerAction && (a.AutoAttackBehaviour == 6 || (a.CastType is 3 or 4 && a.CanTargetSelf))) return true; // Channeled abilities and cones and rectangles
         if (!ReAction.Config.EnableCameraRelativeDashes) return false;
         if (!a.AffectsPosition && adjustedActionID != 29494) return false; // Block non movement abilities
         if (!a.CanTargetSelf) return false; // Block non self targeted abilities
