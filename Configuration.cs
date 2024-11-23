@@ -105,13 +105,13 @@ public class Configuration : PluginConfiguration, IPluginConfiguration
     public uint AutoFocusTargetID = 0;
     public bool EnableAutoFocusTargetOutOfCombat = false;
 
-    public bool EnableDecomboMeditation = false;
-    public bool EnableDecomboBunshin = false;
-    public bool EnableDecomboWanderersMinuet = false;
     public bool EnableDecomboLiturgy = false;
     public bool EnableDecomboEarthlyStar = false;
     public bool EnableDecomboMinorArcana = false;
-    public bool EnableDecomboGeirskogul = false;
+    public bool EnableDecomboFireInRed = false;
+    public bool EnableDecomboFire2InRed = false;
+    public bool EnableDecomboBlizzardInCyan = false;
+    public bool EnableDecomboBlizzard2InCyan = false;
 
     public override void Initialize() { }
 

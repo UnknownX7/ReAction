@@ -544,16 +544,19 @@ public static class PluginUI
 
         ImGui.SameLine();
 
-        /*if (ImGuiEx.BeginGroupBox("Sunderings", 0.5f))
+        if (ImGuiEx.BeginGroupBox("Sunderings", 0.5f))
         {
-            save |= ImGui.Checkbox("Sunder Meditation", ref ReAction.Config.EnableDecomboMeditation);
-            ImGuiEx.SetItemTooltip("Removes the Meditation <-> Steel Peak / Forbidden Chakra combo. You will need to use\nthe hotbar feature below to place one of them on your hotbar in order to use them again.\nSteel Peak ID: 25761\nForbidden Chakra ID: 3547");
+            save |= ImGui.Checkbox("Sunder Fire in Red", ref ReAction.Config.EnableDecomboFireInRed);
+            ImGuiEx.SetItemTooltip("Removes the Fire in Red combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nAero in Green ID: 34651\nWater in Blue ID: 34652");
 
-            save |= ImGui.Checkbox("Sunder Bunshin", ref ReAction.Config.EnableDecomboBunshin);
-            ImGuiEx.SetItemTooltip("Removes the Bunshin <-> Phantom Kamaitachi combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPhantom Kamaitachi ID: 25774");
+            save |= ImGui.Checkbox("Sunder Fire II in Red", ref ReAction.Config.EnableDecomboFire2InRed);
+            ImGuiEx.SetItemTooltip("Removes the Fire II in Red combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nAero II in Green ID: 34657\nWater II in Blue ID: 34658");
 
-            save |= ImGui.Checkbox("Sunder Wanderer's Minuet", ref ReAction.Config.EnableDecomboWanderersMinuet);
-            ImGuiEx.SetItemTooltip("Removes the Wanderer's Minuet -> Pitch Perfect combo. You will need to use\nthe hotbar feature below to place it on your hotbar in order to use it again.\nPitch Perfect ID: 7404");
+            save |= ImGui.Checkbox("Sunder Blizzard in Cyan", ref ReAction.Config.EnableDecomboBlizzardInCyan);
+            ImGuiEx.SetItemTooltip("Removes the Blizzard in Cyan combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStone in Yellow ID: 34654\nThunder in Magenta ID: 34655");
+
+            save |= ImGui.Checkbox("Sunder Blizzard II in Cyan", ref ReAction.Config.EnableDecomboBlizzard2InCyan);
+            ImGuiEx.SetItemTooltip("Removes the Blizzard II in Cyan combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStone II in Yellow ID: 34660\nThunder II in Magenta ID: 34661");
 
             save |= ImGui.Checkbox("Sunder Liturgy of the Bell", ref ReAction.Config.EnableDecomboLiturgy);
             ImGuiEx.SetItemTooltip("Removes the Liturgy of the Bell combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nLiturgy of the Bell (Detonate) ID: 28509");
@@ -561,14 +564,8 @@ public static class PluginUI
             save |= ImGui.Checkbox("Sunder Earthly Star", ref ReAction.Config.EnableDecomboEarthlyStar);
             ImGuiEx.SetItemTooltip("Removes the Earthly Star combo. You will need to use the hotbar\nfeature below to place it on your hotbar in order to use it again.\nStellar Detonation ID: 8324");
 
-            save |= ImGui.Checkbox("Sunder Minor Arcana", ref ReAction.Config.EnableDecomboMinorArcana);
-            ImGuiEx.SetItemTooltip("Removes the Minor Arcana -> Lord / Lady of Crowns combo. You will need to use the\nhotbar feature below to place one of them on your hotbar in order to use them again.\nLord of Crowns ID: 7444\nLady of Crowns ID: 7445");
-
-            save |= ImGui.Checkbox("Sunder Geirskogul", ref ReAction.Config.EnableDecomboGeirskogul);
-            ImGuiEx.SetItemTooltip("Removes the Geirskogul -> Nastrond combo. You will need to use the\nhotbar feature below to place it on your hotbar in order to use it again.\nNastrond ID: 7400");
-
             ImGuiEx.EndGroupBox();
-        }*/
+        }
 
         if (ImGuiEx.BeginGroupBox("Misc", 0.5f))
         {
@@ -596,7 +593,7 @@ public static class PluginUI
             ImGuiEx.EndGroupBox();
         }
 
-        //ImGui.SameLine();
+        ImGui.SameLine();
 
         if (ImGuiEx.BeginGroupBox("Place on Hotbar (HOVER ME FOR INFORMATION)", 0.5f, new ImGuiEx.GroupBoxOptions
         {
