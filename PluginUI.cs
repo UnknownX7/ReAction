@@ -499,7 +499,7 @@ public static class PluginUI
             ImGuiEx.SetItemTooltip("Ground targets will insert themselves into the action queue,\ncausing them to immediately be used as soon as possible, like other OGCDs.");
 
             save |= ImGui.Checkbox("Enable Queuing More", ref ReAction.Config.EnableQueuingMore);
-            ImGuiEx.SetItemTooltip("Allows sprint, items and LBs to be queued.");
+            ImGuiEx.SetItemTooltip("Allows all items and LBs to be queued.");
 
             save |= ImGui.Checkbox("Always Queue Macros", ref ReAction.Config.EnableMacroQueue);
             ImGuiEx.SetItemTooltip("All macros will behave as if /macroqueue was used.");

@@ -12,7 +12,7 @@ public unsafe class CameraRelativeActions : PluginModule
     protected override void Enable() => ActionStackManager.PostActionStack += PostActionStack;
     protected override void Disable() => ActionStackManager.PostActionStack -= PostActionStack;
 
-    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 83 FE 4F", Required = true)]
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 83 FE 20", Required = true)]
     private static delegate* unmanaged<GameObject*, float, void> fpSetGameObjectRotation;
     private static void SetCharacterRotationToCamera()
     {

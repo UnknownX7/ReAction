@@ -75,7 +75,7 @@ public unsafe class TurboHotbars : PluginModule
     }
 
     private delegate void CheckHotbarBindingsDelegate(nint a1, byte a2);
-    [HypostasisSignatureInjection("48 89 4C 24 ?? 53 41 55 41 57 48 83 EC 40", Required = true, EnableHook = false)]
+    [HypostasisSignatureInjection("89 54 24 10 53 41 55 41 57", Required = true, EnableHook = false)]
     private static Hook<CheckHotbarBindingsDelegate> CheckHotbarBindingsHook;
     private static void CheckHotbarBindingsDetour(nint a1, byte a2)
     {

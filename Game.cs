@@ -16,7 +16,8 @@ public static unsafe class Game
 {
     public const uint InvalidObjectID = 0xE0000000;
 
-    public static readonly AsmPatch queueGroundTargetsPatch = new("75 49 44 8B C7 41 8B D5", [ 0x90, 0x90 ], ReAction.Config.EnableGroundTargetQueuing);
+    // movzx eax, dl -> xor al, al
+    public static readonly AsmPatch queueGroundTargetsPatch = new("0F B6 C2 34 01 84 C0 74 8C", [ 0x90, 0x32, 0xC0 ], ReAction.Config.EnableGroundTargetQueuing);
 
     // test byte ptr [rbp+3A], 04 (CanTargetSelf)
     // jnz 79h
