@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Hypostasis.Game.Structures;
-using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Action = Lumina.Excel.Sheets.Action;
 
@@ -192,16 +192,16 @@ public static class PluginUI
         var save = false;
 
         save |= ImGui.InputText("Name", ref stack.Name, 64);
-        save |= ImGui.CheckboxFlags("##Shift", ref stack.ModifierKeys, 1);
+        save |= ImGui.CheckboxFlags("##Shift", ref stack.ModifierKeys, 1u);
         ImGuiEx.SetItemTooltip("Shift");
         ImGui.SameLine();
-        save |= ImGui.CheckboxFlags("##Ctrl", ref stack.ModifierKeys, 2);
+        save |= ImGui.CheckboxFlags("##Ctrl", ref stack.ModifierKeys, 2u);
         ImGuiEx.SetItemTooltip("Control");
         ImGui.SameLine();
-        save |= ImGui.CheckboxFlags("##Alt", ref stack.ModifierKeys, 4);
+        save |= ImGui.CheckboxFlags("##Alt", ref stack.ModifierKeys, 4u);
         ImGuiEx.SetItemTooltip("Alt");
         ImGui.SameLine();
-        save |= ImGui.CheckboxFlags("##Exact", ref stack.ModifierKeys, 8);
+        save |= ImGui.CheckboxFlags("##Exact", ref stack.ModifierKeys, 8u);
         ImGuiEx.SetItemTooltip("Match exactly these modifiers. E.g. Shift + Control ticked will match Shift + Control held, but not Shift + Control + Alt held.");
         ImGui.SameLine();
         ImGui.TextUnformatted("Modifier Keys");

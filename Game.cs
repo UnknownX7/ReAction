@@ -17,11 +17,11 @@ public static unsafe class Game
     public const uint InvalidObjectID = 0xE0000000;
 
     // movzx eax, dl -> xor al, al
-    public static readonly AsmPatch queueGroundTargetsPatch = new("0F B6 C2 34 01 84 C0 74 8C", [ 0x90, 0x32, 0xC0 ], ReAction.Config.EnableGroundTargetQueuing);
+    public static readonly AsmPatch queueGroundTargetsPatch = new("0F B6 C2 34 01 84 C0 0F 84", [ 0x90, 0x32, 0xC0 ], ReAction.Config.EnableGroundTargetQueuing);
 
-    // test byte ptr [rbp+3A], 04 (CanTargetSelf)
-    // jnz 79h
-    public static readonly AsmPatch spellAutoAttackPatch = new("41 B0 01 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", [ 0xF6, 0x45, 0x3A, 0x04, 0x0F, 0x85, 0x79, 0x00, 0x00, 0x00, 0x90, 0x90 ], ReAction.Config.EnableSpellAutoAttacks && ReAction.Config.EnableSpellAutoAttacksOutOfCombat);
+    // test byte ptr [rsi+3B], 04 (CanTargetSelf)
+    // jnz 7Ah
+    public static readonly AsmPatch spellAutoAttackPatch = new("41 B0 01 44 0F B6 CA 41 0F B6 D0 E9 ?? ?? ?? ?? 41 B0 01", [ 0x41, 0xF6, 0x46, 0x3B, 0x04, 0x0F, 0x85, 0x79, 0x00, 0x00, 0x00, 0x90, 0x90, 0x90, 0x90, 0x90 ], ReAction.Config.EnableSpellAutoAttacks && ReAction.Config.EnableSpellAutoAttacksOutOfCombat);
 
     public static readonly AsmPatch allowUnassignableActionsPatch = new("75 07 32 C0 E9 ?? ?? ?? ?? 48 8B 00", [ 0xEB ], ReAction.Config.EnableUnassignableActions);
 
@@ -128,11 +128,11 @@ public static unsafe class Game
         DalamudApi.TargetManager.FocusTarget = DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name);
     }
 
-    private delegate GameObject* ResolvePlaceholderDelegate(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames);
-    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 48 8B 5C 24 30 EB 0C")]
+    private delegate GameObject* ResolvePlaceholderDelegate(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames, Bool a5);
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? 33 ED 4C 8B F8")]
     private static Hook<ResolvePlaceholderDelegate> ResolvePlaceholderHook;
-    private static GameObject* ResolvePlaceholderDetour(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames) =>
-        ResolvePlaceholderHook.Original(pronounModule, text, defaultToTarget, allowPlayerNames || ReAction.Config.EnablePlayerNamesInCommands);
+    private static GameObject* ResolvePlaceholderDetour(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames, Bool a5) =>
+        ResolvePlaceholderHook.Original(pronounModule, text, defaultToTarget, allowPlayerNames || ReAction.Config.EnablePlayerNamesInCommands, a5);
 
     private static GameObject* GetGameObjectFromPronounIDDetour(PronounModule* pronounModule, PronounID pronounID)
     {
