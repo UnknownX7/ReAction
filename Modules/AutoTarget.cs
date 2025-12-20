@@ -17,7 +17,7 @@ public unsafe class AutoTarget : PluginModule
 
     private static void TargetEnemy()
     {
-        if (DalamudApi.ClientState.LocalPlayer is not { } p) return;
+        if (DalamudApi.ObjectTable.LocalPlayer is not { } p) return;
 
         var worldCamera = Common.CameraManager->worldCamera;
         if (worldCamera == null) return;

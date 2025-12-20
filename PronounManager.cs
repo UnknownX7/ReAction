@@ -137,7 +137,7 @@ public class KardionPronoun : IGamePronoun
     public string Name => "Kardion Target";
     public string Placeholder => "<kt>";
     public uint ID => 10_100;
-    public unsafe GameObject* GetGameObject() => DalamudApi.ClientState.LocalPlayer is { } p ? PronounHelpers.GetPartyMemberByStatus(2605, p.EntityId) : null;
+    public unsafe GameObject* GetGameObject() => DalamudApi.ObjectTable.LocalPlayer is { } p ? PronounHelpers.GetPartyMemberByStatus(2605, p.EntityId) : null;
 }
 
 public class TankPronoun : IGamePronoun

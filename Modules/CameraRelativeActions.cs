@@ -18,7 +18,7 @@ public unsafe class CameraRelativeActions : PluginModule
     {
         var worldCamera = Common.CameraManager->worldCamera;
         if (worldCamera == null) return;
-        fpSetGameObjectRotation((GameObject*)DalamudApi.ClientState.LocalPlayer!.Address, worldCamera->GameObjectHRotation);
+        fpSetGameObjectRotation((GameObject*)DalamudApi.ObjectTable.LocalPlayer!.Address, worldCamera->GameObjectHRotation);
     }
 
     private static void PostActionStack(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ref ulong targetObjectID, uint param, uint useType, int pvp)

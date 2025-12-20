@@ -74,7 +74,7 @@ public static unsafe class Game
     public static GameObject* GetGameObjectFromObjectID(ulong id) => fpGetGameObjectFromObjectID(id, false);
 
     // The game is dumb and I cannot check LoS easily because not facing the target will override it
-    public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ClientState.LocalPlayer is { } p && o != null
+    public static bool IsActionOutOfRange(uint actionID, GameObject* o) => DalamudApi.ObjectTable.LocalPlayer is { } p && o != null
         && FFXIVClientStructs.FFXIV.Client.Game.ActionManager.GetActionInRangeOrLoS(actionID, (GameObject*)p.Address, o) is 566; // Returns the log message (562 = LoS, 565 = Not Facing Target, 566 = Out of Range)
 
     public static GameObject* GetMouseOverObject(GameObjectArray* array)
@@ -117,15 +117,15 @@ public static unsafe class Game
     public static Hook<SetFocusTargetByObjectIDDelegate> SetFocusTargetByObjectIDHook;
     private static void SetFocusTargetByObjectIDDetour(TargetSystem* targetSystem, ulong objectID)
     {
-        if (ReAction.Config.AutoFocusTargetID == 0 || DalamudApi.TargetManager.FocusTarget == null || DalamudApi.TargetManager.FocusTarget.Equals(DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name)))
+        if (ReAction.Config.AutoFocusTargetID == 0 || DalamudApi.TargetManager.FocusTarget == null || DalamudApi.TargetManager.FocusTarget.Equals(DalamudApi.ObjectTable.FirstOrDefault(o => o.BaseId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name)))
             SetFocusTargetByObjectIDHook.Original(targetSystem, objectID);
-        FocusTargetInfo = DalamudApi.TargetManager.FocusTarget is { } o ? (o.Name.ToString(), o.DataId) : (null, 0);
+        FocusTargetInfo = DalamudApi.TargetManager.FocusTarget is { } o ? (o.Name.ToString(), o.BaseId) : (null, 0);
     }
 
     public static void RefocusTarget()
     {
         if (FocusTargetInfo.Name == null) return;
-        DalamudApi.TargetManager.FocusTarget = DalamudApi.ObjectTable.FirstOrDefault(o => o.DataId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name);
+        DalamudApi.TargetManager.FocusTarget = DalamudApi.ObjectTable.FirstOrDefault(o => o.BaseId == FocusTargetInfo.DataID && o.Name.ToString() == FocusTargetInfo.Name);
     }
 
     private delegate GameObject* ResolvePlaceholderDelegate(PronounModule* pronounModule, string text, Bool defaultToTarget, Bool allowPlayerNames, Bool a5);

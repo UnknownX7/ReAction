@@ -23,7 +23,7 @@ public static unsafe class ActionStackManager
     {
         try
         {
-            if (DalamudApi.ClientState.LocalPlayer == null) return 0;
+            if (DalamudApi.ObjectTable.LocalPlayer == null) return 0;
 
             var tryStack = useType == 0;
             if (useType == 100)
