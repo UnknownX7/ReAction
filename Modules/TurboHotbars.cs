@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Hypostasis.Game.Structures;
 
 namespace ReAction.Modules;
@@ -21,6 +22,7 @@ public unsafe class TurboHotbars : PluginModule
 
     private static readonly Dictionary<uint, TurboInfo> inputIDInfos = new();
     private static bool isAnyTurboRunning;
+    private static TurboInfo currentTurboInfo;
 
     public override bool ShouldEnable => ReAction.Config.EnableTurboHotbars;
 
@@ -46,6 +48,7 @@ public unsafe class TurboHotbars : PluginModule
         if (!inputIDInfos.TryGetValue(id, out var info))
             inputIDInfos[id] = info = new TurboInfo();
 
+        currentTurboInfo = info;
         var isPressed = InputData.isInputIDPressed.Original(inputData, id);
         var isHeld = inputData->IsInputIDHeld(id);
         var useHeld = info.IsReady && (ReAction.Config.EnableTurboHotbarsOutOfCombat || DalamudApi.Condition[ConditionFlag.InCombat]);
@@ -79,9 +82,12 @@ public unsafe class TurboHotbars : PluginModule
     private static Hook<CheckHotbarBindingsDelegate> CheckHotbarBindingsHook;
     private static void CheckHotbarBindingsDetour(nint a1, byte a2)
     {
+        currentTurboInfo = null;
         isAnyTurboRunning = inputIDInfos.Any(t => t.Value.LastPress.IsRunning);
         InputData.isInputIDPressed.Hook.Enable();
+        ExecuteSlotHook.Enable();
         CheckHotbarBindingsHook.Original(a1, a2);
+        ExecuteSlotHook.Disable();
         InputData.isInputIDPressed.Hook.Disable();
     }
 
@@ -94,4 +100,22 @@ public unsafe class TurboHotbars : PluginModule
         // Needs different input functions
         CheckCrossbarBindingsHook.Original(a1, a2);
     }*/
+
+    private delegate Bool ExecuteSlotDelegate(RaptureHotbarModule* raptureHotbarModule, RaptureHotbarModule.HotbarSlot* hotbarSlot);
+    [HypostasisClientStructsInjection(typeof(RaptureHotbarModule.MemberFunctionPointers), Required = true, EnableHook = false)]
+    private static Hook<ExecuteSlotDelegate> ExecuteSlotHook;
+    private static Bool ExecuteSlotDetour(RaptureHotbarModule* raptureHotbarModule, RaptureHotbarModule.HotbarSlot* hotbarSlot)
+    {
+        ActionStackManager.PostUseAction += PostUseAction;
+        var ret = ExecuteSlotHook.Original(raptureHotbarModule, hotbarSlot);
+        ActionStackManager.PostUseAction -= PostUseAction;
+        return ret;
+    }
+
+    private static void PostUseAction(ActionManager* actionManager, uint actionType, uint actionID, uint adjustedActionID, ulong targetObjectID, uint param, uint useType, int pvp, bool ret)
+    {
+        if (currentTurboInfo == null) return;
+        if (actionType == 1 && ReAction.Config.TurboHotbarBlacklist.Contains(actionID))
+            currentTurboInfo.LastPress.Reset();
+    }
 }

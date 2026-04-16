@@ -241,6 +241,12 @@ public static class PluginUI
         FilteredSheet = actionComboOptions.FilteredSheet
     };
 
+    private static readonly ImGuiEx.ExcelSheetPopupOptions<Action> actionBlacklistPopupOptions = new()
+    {
+        FormatRow = FormatActionRow,
+        FilteredSheet = ReAction.actionSheet.Select(kv => kv.Value)
+    };
+
     private static void DrawActionEditor(Configuration.ActionStack stack)
     {
         var contentRegion = ImGui.GetContentRegionAvail();
@@ -396,8 +402,13 @@ public static class PluginUI
                 ImGuiEx.Prefix(false);
                 save |= ImGui.DragInt("Start Delay", ref ReAction.Config.InitialTurboHotbarInterval, 0.5f, 0, 1000, "%d ms");
 
-                ImGuiEx.Prefix(true);
+                ImGuiEx.Prefix(false);
                 save |= ImGui.Checkbox("Enable Out of Combat##Turbo", ref ReAction.Config.EnableTurboHotbarsOutOfCombat);
+
+                ImGuiEx.Prefix(true);
+                ImGui.Button("Action Blacklist");
+                ImGuiEx.SetItemTooltip("Disables turbo for specified UNADJUSTED actions.\nThe unadjusted action is the action originally placed on the hotbar.");
+                save |= ImGuiEx.ExcelSheetMultiselectPopup("##TurboBlacklist", ReAction.Config.TurboHotbarBlacklist, actionBlacklistPopupOptions);
             }
 
             save |= ImGui.Checkbox("Enable Instant Ground Targets", ref ReAction.Config.EnableInstantGroundTarget);
