@@ -17,7 +17,7 @@ public static unsafe class Game
     public const uint InvalidObjectID = 0xE0000000;
 
     // movzx eax, dl -> xor al, al
-    public static readonly AsmPatch queueGroundTargetsPatch = new("0F B6 C2 34 01 84 C0 0F 84", [ 0x90, 0x32, 0xC0 ], ReAction.Config.EnableGroundTargetQueuing);
+    public static readonly AsmPatch queueGroundTargetsPatch = new("0F B6 C2 34 01 84 C0 74", [ 0x90, 0x32, 0xC0 ], ReAction.Config.EnableGroundTargetQueuing);
 
     // test byte ptr [rsi+3B], 04 (CanTargetSelf)
     // jnz 7Ah
@@ -141,7 +141,7 @@ public static unsafe class Game
     }
 
     private delegate uint GetTextCommandParamIDDelegate(PronounModule* pronounModule, nint* text, int len); // Probably not an issue, but this function doesn't get called if the length is > 31
-    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? EB C3 48 63 F7")] // Original was inlined, may override default game placeholders if not careful!
+    [HypostasisSignatureInjection("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 63 F7")] // Original was inlined, may override default game placeholders if not careful!
     private static Hook<GetTextCommandParamIDDelegate> GetTextCommandParamIDHook;
     private static uint GetTextCommandParamIDDetour(PronounModule* pronounModule, nint* bytePtrPtr, int len)
     {
