@@ -39,7 +39,7 @@ public unsafe class AutoTarget : PluginModule
         }
 
         IGameObject closest = null;
-        foreach (var o in DalamudApi.ObjectTable.Where(o => o is { YalmDistanceX: < 30, ObjectKind: ObjectKind.Player or ObjectKind.BattleNpc }
+        foreach (var o in DalamudApi.ObjectTable.Where(o => o is { YalmDistanceX: < 30, ObjectKind: ObjectKind.Pc or ObjectKind.BattleNpc }
             && ((IBattleChara)o).CurrentHp > 0
             && ActionManager.CanUseActionOnGameObject(7, (GameObject*)o.Address)))
         {
